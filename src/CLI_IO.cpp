@@ -28,3 +28,4 @@ string CLI_IO:: getLine() {
 void CLI_IO:: write(const string& content) const {
     cout << content;
 }
+ 
