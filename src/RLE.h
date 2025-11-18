@@ -1,6 +1,6 @@
 #ifndef RLE
 #define RLE
-#include ICompress.h
+#include "ICompress.h"
 
 #include <string>
 
