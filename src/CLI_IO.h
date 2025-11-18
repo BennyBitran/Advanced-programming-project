@@ -1,6 +1,6 @@
 #ifndef CLI_IO
 #define CLI_IO
-#include IO.h
+#include "IO.h"
 
 #include <string>
 
@@ -12,9 +12,9 @@ class CLI_IO : public IO
 
     public:
         CLI_IO();
-        virtual std::string getLine() const override;
-        virtual std::string read() override;
-        virtual void write(std::string) const override;
+         std::string getLine() override;
+         std::string read() override;
+         void write(std::string&) const override;
 
         virtual ~CLI_IO() = default;
 };
