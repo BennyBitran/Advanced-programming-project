@@ -1,64 +1,10 @@
 #include "RLE.h"
 #include <iostream>
 using namespace std;
-/*string RLE::compress(const string& data) {
-    string compressed = "";
-    if (data.empty()) return compressed;
-    for (int i = 0; i < data.size(); i++) {
-        int count = 1;
-        while (i + 1 < data.size() && data[i] == data[i + 1]){
-            count++;
-            i++;
-        }
-        compressed += to_string(count);
-        compressed += data[i];
-    }
-    return compressed;
-}
-    
-    string RLE :: compress(const string data) {
-    string compressed = "";
-    if (data.empty()) return compressed;
-    
-    for(int i = 0; i < data.size(); i++) {
-        char currentChar = data[i];
-        int count = 1;
-        while (i + 1 < data.size() && data[i + 1] == currentChar) {
-            count++;
-            i++;
-        }
-        compressed += to_string (count);
-        compressed += '#';
 
-        if (currentChar == '#' || currentChar == '~') {
-            compressed += '~';
-            compressed += currentChar;
-        }
-        else {
-            compressed += currentChar;
-        }
+RLE::RLE() {}
 
-    }
-    return compressed;
-}
-string RLE :: decompress(const string data) {
-    string decompressed = "";
-    int i = 0;
-    while (i < data.size()) {
-        string countStr = "";
-        while (i < data.size() && isdigit(data[i])) {
-            countStr += data[i];
-            i++;
-        }
-        if (countStr.empty()) {
-            return decompressed; // Invalid format
-        }
-        int count = stoi(countStr);
-
-    }
-} */
-
-// this alg will use bytes to store the compresses data, one byte for the count and one byte for the character
+// this alg will use bytes to store the compressed data, one byte for the count and one byte for the character
 string byteRLE:: compress (const string& data) {
     string compressed = "";
     compressed.reserve(data.size() * 2); // Reserve space to minimize reallocations
