@@ -20,11 +20,11 @@ void Add::execute()
     if (fileName.empty() || fileData.empty()) {
         return;
     }
-    string file_name = MY_FILES + "/" + file_name;
-    if (filesystem::exists(file_name)) {
+    string file_full_path = MY_FILES + "/" + fileName;
+    if (filesystem::exists(file_full_path)) {
         return;
     }
-    std::ofstream newFile(file_name);
+    std::ofstream newFile(file_full_path);
     newFile << (compressor->compress(fileData));
     newFile.close();
 }
