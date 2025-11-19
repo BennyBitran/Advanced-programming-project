@@ -1,5 +1,5 @@
-#ifndef ICompress
-#define ICompress
+#ifndef ICompress_H
+#define ICompress_H
 
 #include <string>
 
