@@ -1,4 +1,4 @@
-#include "Add.h"
+#include "Search.h"
 #include "ICompress.h"
 #include "IO.h"
 
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Add::Add(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
+Search::Search(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
 
 void execute()
 {
@@ -27,7 +27,7 @@ void execute()
             continue;         
         }
         //decompress file content and search for the text (decoupling compression from searching)
-        string content = io->decompress(entry.path().string());
+        string content = compressor->decompress(entry.path().string());
         if (content.contains(text_to_search)) {
             //print the file name if content found inside the file
             cout << entry.path().filename().string() << "\n";   
