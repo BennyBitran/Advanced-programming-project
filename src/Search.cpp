@@ -30,7 +30,8 @@ void execute()
         string content = compressor->decompress(entry.path().string());
         if (content.contains(text_to_search)) {
             //print the file name if content found inside the file
-            cout << entry.path().filename().string() << "\n";   
+            io->write(entry.path().filename().string() << " ");   
         }
     }
+    io->write("\n");
 }
