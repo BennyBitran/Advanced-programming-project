@@ -1,5 +1,5 @@
-#ifndef RLE
-#define RLE
+#ifndef RLE_H
+#define RLE_H
 #include "ICompress.h"
 
 #include <string>
@@ -7,10 +7,10 @@
 class RLE : public ICompress
 {
     public:
-        RLE();
+        RLE() = default;
 
-        virtual std::string compress(std::string) override;
-        virtual std::string decompress(std::string) override;
+        virtual std::string compress(const std::string) override;
+        virtual std::string decompress(const std::string) override;
 
         virtual ~RLE() = default;
 };
