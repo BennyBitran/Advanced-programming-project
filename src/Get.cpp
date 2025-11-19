@@ -32,7 +32,7 @@ void Get::execute()
     std::string line;
     //read each line in file, decompress and print to cout
     while (std::getline(fileStream, line)) {
-        std::cout << compressor->decompress(line) << "\n";
+        io->write(compressor->decompress(line) << "\n");
     }
     fileStream.close();
 }
