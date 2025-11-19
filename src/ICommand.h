@@ -1,5 +1,5 @@
-#ifndef ICommand
-#define ICommand
+#ifndef ICOMMAND_H
+#define ICOMMAND_H
 
 #include <string>
 

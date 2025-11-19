@@ -1,5 +1,5 @@
-#ifndef RLE
-#define RLE
+#ifndef RLE_H
+#define RLE_H
 #include "ICompress.h"
 
 #include <string>
