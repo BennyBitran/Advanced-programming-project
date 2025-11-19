@@ -1,5 +1,5 @@
-#ifndef App
-#define App
+#ifndef APP_H
+#define APP_H
 
 #include "ICommand.h"
 #include "IO.h"
@@ -19,3 +19,4 @@ class App
         virtual ~App() = default;
 };
 #endif
+//class and macros need to have dif names.

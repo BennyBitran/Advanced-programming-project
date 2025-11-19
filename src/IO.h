@@ -1,5 +1,5 @@
-#ifndef IO
-#define IO
+#ifndef IO_H
+#define IO_H
 
 #include <string>
 
@@ -14,3 +14,4 @@ class IO
         virtual ~IO() = default;
 };
 #endif
+//class and macros need to have dif names.

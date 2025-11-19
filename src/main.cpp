@@ -1,10 +1,9 @@
 #include <map>
 #include <string>
 #include <iostream>
-
-std::string MY_FILES="../files";
+#include "Config.h"
 
 int main() {
-    //write main
+    // still can use MI Files
     return 0;
 }

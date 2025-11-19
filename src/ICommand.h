@@ -1,5 +1,5 @@
-#ifndef ICommand
-#define ICommand
+#ifndef ICOMMAND_H
+#define ICOMMAND_H
 
 #include <string>
 
@@ -12,3 +12,4 @@ class ICommand
         virtual ~ICommand() = default;
 };
 #endif
+//class and macros need to have dif names.

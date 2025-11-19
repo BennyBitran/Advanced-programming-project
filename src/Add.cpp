@@ -1,3 +1,7 @@
+#include "Config.h"
+#include <sstream>
+#include <fstream>
+#include <filesystem>
 #include "Add.h"
 #include <iostream>
 #include <string>

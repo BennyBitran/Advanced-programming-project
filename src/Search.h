@@ -1,5 +1,5 @@
-#ifndef Search
-#define Search
+#ifndef SEARCH_H
+#define SEARCH_H
 
 #include "ICompress.h"
 #include "IO.h"
@@ -20,3 +20,4 @@ class Search : public ICommand
         virtual ~Search() = default;
 };
 #endif
+//class and macros need to have dif names.

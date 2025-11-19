@@ -1,5 +1,5 @@
-#ifndef CLI_IO
-#define CLI_IO
+#ifndef CLI_IO_H
+#define CLI_IO_H
 #include "IO.h"
 
 #include <string>
@@ -19,3 +19,4 @@ class CLI_IO : public IO
         virtual ~CLI_IO() = default;
 };
 #endif
+//class and macros need to have dif names.

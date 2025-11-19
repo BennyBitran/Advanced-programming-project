@@ -1,8 +1,9 @@
-#ifndef Add
-#define Add
+#ifndef ADD_H
+#define ADD_H
 
 #include "ICompress.h"
 #include "IO.h"
+#include "ICommand.h"
 
 #include <string>
 
@@ -19,3 +20,4 @@ class Add : public ICommand
         virtual ~Add() = default;
 };
 #endif
+//class and macros need to have dif names.

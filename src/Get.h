@@ -1,5 +1,6 @@
-#ifndef Get
-#define Get
+#include "Config.h"
+#ifndef GET_H
+#define GET_H
 
 #include "ICompress.h"
 #include "IO.h"
@@ -20,3 +21,4 @@ class Get : public ICommand
         virtual ~Get() = default;
 };
 #endif
+//class and macros need to have dif names.
