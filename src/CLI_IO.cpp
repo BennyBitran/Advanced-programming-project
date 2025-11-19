@@ -13,7 +13,7 @@ string CLI_IO:: read() {
     ss >> command; // Extract the first word as command
     getline(ss, this->line); // Store the rest of the line for getLine()
 
-        return command;
+    return command;
 }
 
 // Returns the rest of the line after the command
