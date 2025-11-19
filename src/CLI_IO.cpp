@@ -10,21 +10,18 @@ string CLI_IO:: read() {
     getline(cin, this->line);
     stringstream ss(this->line);
     string command;
-    ss >> command;
+    ss >> command; // Extract the first word as command
     getline(ss, this->line); // Store the rest of the line for getLine()
 
-    // Remove leading space from the remaining line
-    if (!this->line.empty() && this->line[0] == ' ')
-        this->line.erase(0, 1);
-    
         return command;
 }
 
+// Returns the rest of the line after the command
 string CLI_IO:: getLine() {
 
    return this->line;
 }
-
+// Writes content to standard output
 void CLI_IO:: write(const string& content) const {
     cout << content;
 }
