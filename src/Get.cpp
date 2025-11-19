@@ -18,15 +18,15 @@ void Get::execute()
     if (fileName.empty()) {
         return;
     }
-    string file_name = MY_FILES + "/" + file_name;
+    string file_full_path = MY_FILES + "/" + fileName;
     
     string restOfLine;
     getline(inStream, restOfLine);
 
-    if (!filesystem::exists(file_name) || !restOfLine.empty()) {
+    if (!filesystem::exists(file_full_path) || !restOfLine.empty()) {
         return;
     }
-    std::ifstream fileStream(file_name);
+    std::ifstream fileStream(file_full_path);
     std::string line;
 
     while (std::getline(fileStream, line)) {
