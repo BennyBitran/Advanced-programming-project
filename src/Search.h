@@ -1,5 +1,5 @@
-#ifndef Search
-#define Search
+#ifndef SEARCH_H
+#define SEARCH_H
 
 #include "ICompress.h"
 #include "IO.h"

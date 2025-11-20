@@ -1,16 +1,18 @@
 #include "Search.h"
 #include "ICompress.h"
 #include "IO.h"
-
+#include "Globals.h"
 #include <iostream>
-#include <string>
+#include <sstream>
 #include <filesystem>
+#include <fstream>
+#include <string>
 
 using namespace std;
 
 Search::Search(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
 
-void execute()
+void Search::execute()
 {
     std::string line = io->getLine();
     std::istringstream inStream(line);
@@ -28,9 +30,10 @@ void execute()
         }
         //decompress file content and search for the text (decoupling compression from searching)
         string content = compressor->decompress(entry.path().string());
-        if (content.contains(text_to_search)) {
+        //check if text_to_search is in content
+        if (content.find(text_to_search) != string::npos) {
             //print the file name if content found inside the file
-            io->write(entry.path().filename().string() << " ");   
+            io->write(entry.path().filename().string() + " ");   
         }
     }
     io->write("\n");

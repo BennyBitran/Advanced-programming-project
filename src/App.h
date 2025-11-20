@@ -1,5 +1,5 @@
-#ifndef App
-#define App
+#ifndef APP_H
+#define APP_H
 
 #include "ICommand.h"
 #include "IO.h"
@@ -13,9 +13,9 @@ class App
     std::map<std::string, ICommand*> commands;
 
     public:
-        App(IO*, const std::map<std::string, ICommand*>&);
+        App(IO*, std::map<std::string, ICommand*>);
         void run();
 
-        virtual ~App() = default;
+        ~App() = default;
 };
 #endif
