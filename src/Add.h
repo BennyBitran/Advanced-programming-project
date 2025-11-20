@@ -1,6 +1,6 @@
-#ifndef Add
-#define Add
-
+#ifndef ADD_H
+#define ADD_H
+#include "ICommand.h" 
 #include "ICompress.h"
 #include "IO.h"
 
@@ -14,8 +14,8 @@ class Add : public ICommand
 
     public:
         Add(ICompress*, IO*);
-        virtual void execute() override;
+        void execute() override;
 
-        virtual ~Add() = default;
+        ~Add() override = default;
 };
 #endif

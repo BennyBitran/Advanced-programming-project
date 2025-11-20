@@ -1,5 +1,5 @@
-#ifndef Get
-#define Get
+#ifndef Get_H
+#define Get_H
 
 #include "ICompress.h"
 #include "IO.h"

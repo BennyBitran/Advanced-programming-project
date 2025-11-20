@@ -3,7 +3,7 @@
 #include "IO.h"
 using namespace std;
 
-App::App(IO* ioHandler, const map<string, ICommand*>& cmd) : io(ioHandler) commands(cmd) {}
+App::App(IO* ioHandler, map<string, ICommand*> cmd) : io(ioHandler), commands(cmd) {}
 
 void App::run()
 {
