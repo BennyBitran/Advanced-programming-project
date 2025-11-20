@@ -6,6 +6,7 @@ COPY . /usr
 #move into that directory
 WORKDIR /usr
 #set an environment variable for the files directory
+RUN mkdir MyFiles
 ENV FILES_DIR=/usr/MyFiles
 #create a build directory inside the project directory
 RUN mkdir build
