@@ -14,10 +14,15 @@ Search::Search(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler)
 
 void Search::execute()
 {
+    bool found = false;
     std::string line = io->getLine();
     std::istringstream inStream(line);
     std::string text_to_search;
-    inStream >> text_to_search;
+    std::getline(inStream, text_to_search);
+
+    if (!text_to_search.empty() && text_to_search[0] == ' ') {
+        text_to_search.erase(0, 1);
+}
 
     if (text_to_search.empty()) {
         return;
@@ -28,13 +33,17 @@ void Search::execute()
         if (!entry.is_regular_file()) {
             continue;         
         }
-        //decompress file content and search for the text (decoupling compression from searching)
-        string content = compressor->decompress(entry.path().string());
-        //check if text_to_search is in content
-        if (content.find(text_to_search) != string::npos) {
-            //print the file name if content found inside the file
-            io->write(entry.path().filename().string() + " ");   
+        std::ifstream fileStream(entry.path());
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+        std::string compressed_content = buffer.str();
+        std::string decompressed_content = compressor->decompress(compressed_content);
+        if (decompressed_content.find(text_to_search) != std::string::npos) {
+            io->write(entry.path().filename().string() + " ");
+            found = true;
         }
     }
+    if (found) {
     io->write("\n");
+    }
 }
