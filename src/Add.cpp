@@ -33,6 +33,6 @@ void Add::execute()
     }
     //create and open the file, write compressed data into it
     std::ofstream newFile(file_full_path);
-    newFile << (compressor->compress(fileData));
+    newFile << (compressor->compress(fileData.substr(1))); //substr(1) to remove leading space
     newFile.close();
 }
