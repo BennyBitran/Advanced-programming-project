@@ -12,14 +12,18 @@ void App::run()
     {   
         //read next from IO (app doesnt need to know from where)
         string cmd = io->read();
-        try
-        {
-            //execute the command found in the map
-            commands[cmd]->execute();
+        //check if command exists in the map
+        if(commands.count(cmd)) {
+            try
+            {
+                //execute the command found in the map
+                commands[cmd]->execute();
+            }
+            //if command not found, or anything goes wrong - just continue
+            catch(...) {
+                continue;
+            }
         }
-        //if command not found, or anything goes wrong - just continue
-        catch(...) {
-            continue;
-        }
+        continue;
     }
 }
