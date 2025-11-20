@@ -14,16 +14,20 @@ Search::Search(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler)
 
 void Search::execute()
 {
-    bool found = false;
+    bool found = false; // flag to check if any file matched
+
+    // Read the entire line containing the text to search for
     std::string line = io->getLine();
     std::istringstream inStream(line);
     std::string text_to_search;
     std::getline(inStream, text_to_search);
 
+    // Remove leading space if present
     if (!text_to_search.empty() && text_to_search[0] == ' ') {
         text_to_search.erase(0, 1);
 }
 
+    // If the search text is empty, return immediately, because the program keeps running to allow next commands
     if (text_to_search.empty()) {
         return;
     }
@@ -33,16 +37,24 @@ void Search::execute()
         if (!entry.is_regular_file()) {
             continue;         
         }
-        std::ifstream fileStream(entry.path());
-        std::stringstream buffer;
-        buffer << fileStream.rdbuf();
-        std::string compressed_content = buffer.str();
-        std::string decompressed_content = compressor->decompress(compressed_content);
+
+        
+        std::ifstream fileStream(entry.path()); //open file
+        std::stringstream buffer; //read file content into a stringstream
+        
+        // read the entire file content
+        buffer << fileStream.rdbuf(); 
+        std::string compressed_content = buffer.str(); 
+        std::string decompressed_content = compressor->decompress(compressed_content); 
+
+        ///search for the text in the decompressed content
         if (decompressed_content.find(text_to_search) != std::string::npos) {
             io->write(entry.path().filename().string() + " ");
             found = true;
         }
     }
+
+    //print a newline if any file matched
     if (found) {
     io->write("\n");
     }
