@@ -22,9 +22,10 @@ void Search::execute()
     std::string text_to_search;
     std::getline(inStream, text_to_search);
 
-    // Remove leading space if present
+    // Remove leading space if present 
     if (!text_to_search.empty() && text_to_search[0] == ' ') {
         text_to_search.erase(0, 1);
+        
 }
 
     // If the search text is empty, return immediately, because the program keeps running to allow next commands
@@ -42,7 +43,7 @@ void Search::execute()
         std::ifstream fileStream(entry.path()); //open file
         std::stringstream buffer; //read file content into a stringstream
         
-        // read the entire file content
+        //read the entire file content
         buffer << fileStream.rdbuf(); 
         std::string compressed_content = buffer.str(); 
         std::string decompressed_content = compressor->decompress(compressed_content); 
