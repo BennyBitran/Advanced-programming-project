@@ -1,6 +1,6 @@
 #ifndef ADD_H
 #define ADD_H
-
+#include "ICommand.h" 
 #include "ICompress.h"
 #include "IO.h"
 
