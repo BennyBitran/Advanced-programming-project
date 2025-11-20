@@ -5,12 +5,16 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <sstream>
+#include "Constants.h"
+
 
 using namespace std;
+using namespace std::filesystem;
 
 Search::Search(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
 
-void execute()
+void Search::execute()
 {
     std::string line = io->getLine();
     std::istringstream inStream(line);
@@ -30,7 +34,7 @@ void execute()
         string content = compressor->decompress(entry.path().string());
         if (content.contains(text_to_search)) {
             //print the file name if content found inside the file
-            io->write(entry.path().filename().string() << " ");   
+            io->write(entry.path().filename().string() + " ");   
         }
     }
     io->write("\n");

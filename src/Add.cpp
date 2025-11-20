@@ -3,8 +3,13 @@
 #include <string>
 #include "ICompress.h"
 #include "IO.h"
+#include <sstream>
+#include <filesystem>
+#include <fstream>
+#include "Constants.h"
 
 using namespace std;
+using namespace std::filesystem;
 Add::Add(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}  
 
 void Add::execute()

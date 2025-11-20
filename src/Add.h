@@ -3,6 +3,7 @@
 
 #include "ICompress.h"
 #include "IO.h"
+#include "ICommand.h"
 
 #include <string>
 

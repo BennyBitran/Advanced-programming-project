@@ -10,11 +10,11 @@
 #include "ICompress.h"
 #include "RLE.h"
 #include "App.h"
+#include "Constants.h"
 
 using namespace std;
 //string MY_FILES=getenv("FILES_DIR");  #################uncomment when finished
-string MY_FILES="../files";     //###########remove this line when finished
-
+//string MY_FILES="../files";     //###########remove this line when finished
 int main() {
     IO* io = new CLI_IO();
     ICompress* compressor = new RLE();

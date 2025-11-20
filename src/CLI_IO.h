@@ -14,7 +14,7 @@ class CLI_IO : public IO
         CLI_IO();
         std::string getLine() override;
         std::string read() override;
-        void write(std::string&) const override;
+        void write( const std::string&) const override;
 
         ~CLI_IO() = default;
 };

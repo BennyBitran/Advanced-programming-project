@@ -3,6 +3,10 @@
 #include <string>
 #include "ICompress.h"
 #include "IO.h"
+#include <sstream>
+#include <filesystem>
+#include <fstream>
+#include "Constants.h"
 
 using namespace std;
 
@@ -29,10 +33,10 @@ void Get::execute()
     }
 
     std::ifstream fileStream(file_full_path);
-    std::string line;
+    std::string line2;
     //read each line in file, decompress and print to cout
-    while (std::getline(fileStream, line)) {
-        io->write(compressor->decompress(line) << "\n");
+    while (std::getline(fileStream, line2)) {
+        io->write(compressor->decompress(line) + "\n");
     }
     fileStream.close();
 }
