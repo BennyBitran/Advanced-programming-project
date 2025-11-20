@@ -1,13 +1,18 @@
 #include "Add.h"
-#include <iostream>
-#include <string>
+#include "Globals.h"
 #include "ICompress.h"
 #include "IO.h"
+#include <iostream>
+#include <sstream>
+#include <filesystem>
+#include <fstream>
+#include <string>
 
 using namespace std;
+
 Add::Add(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}  
 
-void Add::execute()
+void Add::execute() 
 {
     std::string line = io->getLine();
     std::istringstream inStream(line);

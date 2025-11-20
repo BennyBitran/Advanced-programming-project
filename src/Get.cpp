@@ -1,17 +1,21 @@
 #include "Get.h"
 #include <iostream>
+#include <sstream>
+#include <filesystem>
+#include <fstream>
 #include <string>
+
 #include "ICompress.h"
 #include "IO.h"
-
+#include "Globals.h"
 using namespace std;
 
 Get::Get(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
 
 void Get::execute()
 {
-    string line = io->getLine();
-    istringstream inStream(line);
+    string argument = io->getLine();
+    istringstream inStream(argument);
     string fileName;
     inStream >> fileName;
     //if no argument provided, return
@@ -32,7 +36,7 @@ void Get::execute()
     std::string line;
     //read each line in file, decompress and print to cout
     while (std::getline(fileStream, line)) {
-        io->write(compressor->decompress(line) << "\n");
+        io->write(compressor->decompress(line) + "\n");
     }
     fileStream.close();
 }
