@@ -109,24 +109,15 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
     // uf Get.cpp uses getline, it might fail here because it hits the 10 byte
     // and thinks the line ended, returning incomplete data.
     EXPECT_NE(mock_output.str().find(tricky_string), std::string::npos) 
-        << "Failed to retrieve string containing repeat count of 10 (newline byte). Check Get.cpp getline usage!";
+        << "Failed to retrieve string containing repeat count of 10 (newline byte)";
 }
 
 // TEST 3: Invalid Command Silence
-// Requirement: "The command is considered invalid... ignore it completely (no printing)"
+// if command is considered invalid we need ignore it completely (no printing)
 TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
     CLI_IO real_io;
     RLE real_compressor;
     
-    // We cannot use App directly because of the infinite loop.
-    // But we can verify that if we tried to execute a non-existent command logic manually,
-    // or if we pass garbage to the components, nothing breaks.
-    
-    // Since we can't run App::run(), we will verify the "silence" of the components 
-    // when fed bad data implies the App won't print extra.
-    
-    // Actually, a better check here given the constraints is ensuring 
-    // the known commands don't output anything on bad arguments if logic dictates so.
     
     Add add_cmd(&real_compressor, &real_io);
     
@@ -135,6 +126,6 @@ TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
     mock_input << "only_filename_no_content"; 
     add_cmd.execute();
     
-    // Assert: Output should be empty
+    // output should be empty
     EXPECT_EQ(mock_output.str(), "") << "Command should remain silent on invalid arguments";
 }
