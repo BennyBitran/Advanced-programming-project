@@ -20,13 +20,20 @@ FetchContent_MakeAvailable(googletest)
 include_directories(../src)
 
 # define the test executable
-# we include rle.cpp specifically to test the compression logic in isolation
 add_executable(
   runTests 
-  RLE_Test.cpp 
+  RLE_Test.cpp
+  CLI_IO_Test.cpp
+  Add_Test.cpp
+  Get_Test.cpp
+  Search_Test.cpp
   ../src/RLE.cpp 
   ../src/Globals.cpp
+  ../src/Add.cpp
+  ../src/Get.cpp
+  ../src/Search.cpp
+  ../src/CLI_IO.cpp
 )
 
-# link gtest
-target_link_libraries(runTests gtest_main)
+# link gtest and gmock
+target_link_libraries(runTests gtest_main gmock_main)
