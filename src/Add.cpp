@@ -14,13 +14,15 @@ Add::Add(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
 
 void Add::execute() 
 {
-    std::string line = io->getLine();
-    std::istringstream inStream(line);
-    std::string fileName;
+    string line = io->getLine();
+    istringstream inStream(line);
+    string fileName;
     inStream >> fileName;
     //read the rest of the line as file data
     string fileData;
-    std::getline(inStream, fileData);
+    getline(inStream, fileData);
+    //remove leading space. if it wasnt a space - it would have been in fileName (so its safe)
+    fileData = fileData.substr(1);  
     
     if (fileName.empty() || fileData.empty()) {
         return;
@@ -33,6 +35,6 @@ void Add::execute()
     }
     //create and open the file, write compressed data into it
     ofstream newFile(file_full_path);
-    newFile << (compressor->compress(fileData.substr(1))); //substr(1) to remove leading space
+    newFile << (compressor->compress(fileData));
     newFile.close();
 }
