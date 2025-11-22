@@ -39,7 +39,6 @@ void Search::execute()
             continue;         
         }
 
-        
         ifstream fileStream(entry.path()); //open file
         stringstream buffer; //read file content into a stringstream
         
