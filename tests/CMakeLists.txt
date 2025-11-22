@@ -27,6 +27,7 @@ add_executable(
   Add_Test.cpp
   Get_Test.cpp
   Search_Test.cpp
+  Integration_Test.cpp
   ../src/RLE.cpp 
   ../src/Globals.cpp
   ../src/Add.cpp
