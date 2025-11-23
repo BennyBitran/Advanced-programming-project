@@ -9,11 +9,11 @@
 class Add : public ICommand
 {
     private:
-    ICompress* compressor;
-    IO* io;
+    const ICompress& compressor;
+    IO& io;
 
     public:
-        Add(ICompress*, IO*);
+        Add(const ICompress&, IO&);
         void execute() override;
 
         ~Add() override = default;

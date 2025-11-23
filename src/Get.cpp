@@ -10,12 +10,12 @@
 #include "Globals.h"
 using namespace std;
 
-Get::Get(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
+Get::Get(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler) {}
 
 void Get::execute()
 {
     //get the full command line (without the "get" part)
-    string argument = io->getLine();
+    string argument = io.getLine();
     istringstream inStream(argument);
     string fileName;    //first argument should be the file name
     inStream >> fileName;
@@ -37,6 +37,6 @@ void Get::execute()
     //read the entire file content and dump it all to a string named "content"
     string content((istreambuf_iterator<char>(fileStream)), istreambuf_iterator<char>());
     //decompress content and send to io for output
-    io->write(compressor->decompress(content) + "\n");
+    io.write(compressor.decompress(content) + "\n");
     fileStream.close();
 }
