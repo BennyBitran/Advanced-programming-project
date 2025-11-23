@@ -21,11 +21,10 @@ FetchContent_MakeAvailable(googletest)
 # -----------------------------
 add_executable(runTests
     RLETest.cpp
-    IOTest.cpp
     AddTest.cpp
     GetTest.cpp
     SearchTest.cpp
-    CLI_IO_Test
+    CLI_IO_Test.cpp
 )
 
 # Give access to headers from src
