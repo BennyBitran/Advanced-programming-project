@@ -12,7 +12,7 @@ class CLI_IO : public IO
 
     public:
         CLI_IO();
-        std::string getLine() override;
+        std::string getLine() const override;
         std::string read() override;
         void write(const std::string&) const override;
 

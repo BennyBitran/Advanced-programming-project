@@ -10,11 +10,11 @@
 
 using namespace std;
 
-Add::Add(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}  
+Add::Add(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler) {}  
 
 void Add::execute() 
 {
-    string line = io->getLine();
+    string line = io.getLine();
     istringstream inStream(line);
     string fileName;
     inStream >> fileName;
@@ -35,6 +35,6 @@ void Add::execute()
     }
     //create and open the file, write compressed data into it
     ofstream newFile(file_full_path);
-    newFile << (compressor->compress(fileData));
+    newFile << (compressor.compress(fileData));
     newFile.close();
 }

@@ -17,7 +17,7 @@ string CLI_IO:: read() {
 }
 
 // Returns the rest of the line after the command
-string CLI_IO:: getLine() {
+string CLI_IO:: getLine() const {
 
    return this->line;
 }

@@ -7,8 +7,8 @@ class ICompress
 {
     public:
 
-        virtual std::string compress(std::string) = 0;
-        virtual std::string decompress(std::string) = 0;
+        virtual std::string compress(const std::string&) const = 0;
+        virtual std::string decompress(const std::string&) const = 0;
 
         virtual ~ICompress() = default;
 };
