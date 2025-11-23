@@ -3,7 +3,7 @@
 #include "IO.h"
 using namespace std;
 
-App::App(IO* ioHandler, map<string, ICommand*> cmd) : io(ioHandler), commands(cmd) {}
+App::App(IO& ioHandler, map<string, ICommand*>& cmd) : io(ioHandler), commands(cmd) {}
 
 void App::run()
 {
@@ -11,7 +11,7 @@ void App::run()
     while (true)
     {   
         //read next from IO (app doesnt need to know from where)
-        string cmd = io->read();
+        string cmd = io.read();
         //check if command exists in the map
         if(commands.count(cmd)) {
             try
