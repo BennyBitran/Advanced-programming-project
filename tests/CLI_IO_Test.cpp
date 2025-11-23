@@ -1,50 +1,67 @@
 #include <gtest/gtest.h>
-#include "../src/CLI_IO.h"
 #include <sstream>
+#include "../src/CLI_IO.h"
 
-// test fixture for cli_io
-class CLI_IOTest : public ::testing::Test {
-protected:
-    CLI_IO cli_io;
-    std::stringstream mock_input;
-    std::stringstream mock_output;
-    std::streambuf* original_cin;
-    std::streambuf* original_cout;
+// Test that write() sends data to the provided output stream
+TEST(IOTest, WriteTests) {
+    std::istringstream in("");  // no input needed for this test because we are only testing output
+    std::ostringstream out; // we will capture output here
 
-    void SetUp() override {
-        // redirect std::cin and std::cout to stringstreams
-        original_cin = std::cin.rdbuf(mock_input.rdbuf());
-        original_cout = std::cout.rdbuf(mock_output.rdbuf());
-    }
+    CLI_IO io(in, out);
 
-    void TearDown() override {
-        // restore std::cin and std::cout
-        std::cin.rdbuf(original_cin);
-        std::cout.rdbuf(original_cout);
-    }
-};
+    io.write("hello");
+    io.write(" world");
 
-// test parsing the command name (first word)
-TEST_F(CLI_IOTest, ReadParsesCommandCorrectly) {
-    mock_input << "add myfile.txt content";
-    std::string cmd = cli_io.read();
+    // Everything written should be in out.str()
+    EXPECT_EQ(out.str(), "hello world");
+}
+
+// Test that read() and getLine() parse the command and the rest of the line, respectively
+TEST(IOTest, ReadTests) {
+    // This simulates a user typing:  add file1 hello world
+    std::istringstream in("add file1 hello world");
+    std::ostringstream out; // we don't care about output for this test
+
+    CLI_IO io(in, out);
+
+    std::string cmd  = io.read(); //should give us only the command
+    std::string rest = io.getLine(); //should give us the rest of the line
+
     EXPECT_EQ(cmd, "add");
-}
 
-// test getting the rest of the line
-TEST_F(CLI_IOTest, GetLineReturnsRestOfInput) {
-    mock_input << "add myfile.txt content";
-    cli_io.read(); // consumes "add"
-    std::string args = cli_io.getLine();
-    
-    // cli_io implementation usually keeps the leading space or trims it depending on logic
-    // based on provided code: getline(ss, this->line) keeps the leading space if using >>
-    // let's verify the exact behavior
-    EXPECT_EQ(args, " myfile.txt content"); 
+    EXPECT_EQ(rest, " file1 hello world"); // our implementation keeps the leading space, we take care of it later
 }
+// Test that read() and getLine() handle empty input correctly
+TEST(IOTest, ReadHandlesEmptyInput) {
+    // This simulates a user pressing enter without typing anything
+    std::istringstream in("\n");
+    std::ostringstream out;
 
-// test writing to standard output
-TEST_F(CLI_IOTest, WriteOutputsToStdOut) {
-    cli_io.write("Hello World");
-    EXPECT_EQ(mock_output.str(), "Hello World");
+    CLI_IO io(in, out);
+
+    std::string cmd  = io.read();
+    std::string rest = io.getLine();
+
+    EXPECT_EQ(cmd, "");  // No command entered
+    EXPECT_EQ(rest, ""); // No additional input
+}
+//test that multiple reads work correctly
+TEST(IOTest, MultipleReadsWorkCorrectly) {
+    // This simulates a user typing multiple commands
+    std::istringstream in("first command line one\nsecond command line two\n");
+    std::ostringstream out;
+
+    CLI_IO io(in, out);
+
+    std::string cmd1  = io.read();
+    std::string rest1 = io.getLine();
+
+    std::string cmd2  = io.read();
+    std::string rest2 = io.getLine();
+
+    EXPECT_EQ(cmd1, "first");
+    EXPECT_EQ(rest1, " command line one");
+
+    EXPECT_EQ(cmd2, "second");
+    EXPECT_EQ(rest2, " command line two");
 }
