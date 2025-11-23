@@ -3,8 +3,30 @@ project(AdvancedProject)
 
 set(CMAKE_CXX_STANDARD 17)
 
-#note - uncomment the files below as you create them
-add_executable(runProject    src/main.cpp   src/Add.cpp    src/Add.h    src/Get.cpp    src/Get.h       src/IO.h    
-    src/CLI_IO.cpp    src/CLI_IO.h    src/App.cpp    src/App.h 
-    src/ICommand.h    src/ICompress.h    src/RLE.cpp    src/RLE.h
-    src/Search.cpp    src/Search.h  src/IO.h    src/Globals.h   src/Globals.cpp)
+# we created our project as a library so we can link our tests to our cpp files more easily
+add_library(project_lib
+    src/Add.cpp
+    src/Get.cpp
+    src/CLI_IO.cpp
+    src/App.cpp
+    src/RLE.cpp
+    src/Search.cpp
+    src/Globals.cpp
+)
+
+# Allow including src headers
+target_include_directories(project_lib PUBLIC src)
+
+# -----------------------------
+# Main executable using the library
+# -----------------------------
+add_executable(runProject
+    src/main.cpp
+)
+
+target_link_libraries(runProject project_lib)
+
+# -----------------------------
+# Enable tests directory
+# -----------------------------
+add_subdirectory(tests)
