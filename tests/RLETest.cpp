@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "../src/RLE.h"
 #include <string>
+using namespace std;
 
 // test fixture for rle compression
 class RLETest : public ::testing::Test {
@@ -11,10 +12,10 @@ protected:
 // sanity test: compression logic
 TEST_F(RLETest, CompressBasicString) {
     // arrange
-    std::string input = "AAABBB";
+    string input = "AAABBB";
     
     // act
-    std::string compressed = compressor.compress(input);
+    string compressed = compressor.compress(input);
     
     // assert
     // rle logic: 3 'A's -> char(3) + 'A'
@@ -28,12 +29,12 @@ TEST_F(RLETest, CompressBasicString) {
 // sanity test: decompression logic
 TEST_F(RLETest, DecompressBasicString) {
     // arrange
-    std::string compressed = "";
+    string compressed = "";
     compressed.push_back((char)2);
     compressed.push_back('X');
     
     // act
-    std::string decompressed = compressor.decompress(compressed);
+    string decompressed = compressor.decompress(compressed);
     
     // assert
     EXPECT_EQ(decompressed, "XX");
