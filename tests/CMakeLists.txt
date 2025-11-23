@@ -25,6 +25,7 @@ add_executable(runTests
     GetTest.cpp
     SearchTest.cpp
     CLI_IO_Test.cpp
+    Integration_Test.cpp
 )
 
 # Give access to headers from src

@@ -6,6 +6,7 @@
 #include "FakeIO.h"
 #include "FakeCompress.h"
 
+// Test that the Get command correctly reads a file, decompresses its content, and outputs it via the IO handler.
 TEST(GetTest, OutputsDecompressedContent) {
     std::string dir = "./test_get";
     std::filesystem::remove_all(dir);
