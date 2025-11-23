@@ -15,13 +15,18 @@ using namespace std;
 //string MY_FILES=getenv("FILES_DIR");  #################uncomment when finished
 
 int main() {
-    IO* io = new CLI_IO();
-    ICompress* compressor = new RLE();
+    CLI_IO io;
+    RLE compressor;
+    
+    Add add(compressor, io);
+    Get get(compressor, io);
+    Search search(compressor, io);
 
     map<string, ICommand*> commands;
-    commands["add"] = new Add(compressor, io);
-    commands["get"] = new Get(compressor, io);
-    commands["search"] = new Search(compressor, io);
+
+    commands["add"] = &add;
+    commands["get"] = &get;
+    commands["search"] = &search;
 
     App app(io, commands);
     app.run();
