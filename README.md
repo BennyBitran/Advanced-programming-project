@@ -75,3 +75,11 @@ run:
 4. cmake .. && make
 
 5. ./runTests
+
+
+## authors:
+Gilad Tenenbaum
+
+Ilya vladimirskiy
+
+Benny Bitran
