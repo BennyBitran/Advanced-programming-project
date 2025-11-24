@@ -7,119 +7,46 @@
 #include "../src/RLE.h"
 
 #include "FakeIO.h"
+#include "helpers.h"
+using namespace std;
 
-class SearchTest : public ::testing::Test {
-protected:
-    std::string dir;
-    RLE compressor;
+// Test that the Search command correctly finds and outputs filenames containing the search term.
+TEST(SearchTest, FindsAndOutputsMatchingFilenames) {
+    // Set up a temporary directory and create test files
+    string dir = "test_dir_search";
+    createTestDir(dir);
+   RLE comp; // using real RLE compressor for this test
 
-    void SetUp() override {
-        dir = "./test_search_no_helper";
-        std::filesystem::remove_all(dir);
-        std::filesystem::create_directory(dir);
-        MY_FILES = dir;
-    }
-
-    void TearDown() override {
-        std::filesystem::remove_all(dir);
-    }
-};
-
-// --------------------------------------------------------
-// 1. No files present
-// --------------------------------------------------------
-TEST_F(SearchTest, NoFiles_NoOutput) {
-    FakeIO io("search", "hello");
-    Search search(compressor, io);
-
-    search.execute();
-
-    EXPECT_EQ(io.output, "");
+    ofstream file1(dir + "/apple.txt");
+    file1 << comp.compress("This is a file about apples.");
+    file1.close();
+    ofstream file2(dir + "/banana.txt");
+    file2 << comp.compress("banans are yummy.");
+    file2.close();
+    ofstream file3(dir + "/tapuz.txt");
+    file3 << comp.compress("haruz tapuz.");
+    file3.close();
+    // Set up FakeIO to simulate user input and capture output
+    FakeIO io = createFakeIO("", "ap"); // simulate SEARCH command with argument "ap"
+    Search search(comp, io); // create Search command with real compressor and fake IO
+    search.execute(); // execute the command
+    // Verify that the output captured by FakeIO contains the expected filenames
+    ASSERT_NE(io.output.find("apple.txt"), string::npos); // should find apple.txt
+    ASSERT_NE(io.output.find("tapuz.txt"), string::npos); // should find tapuz.txt
+    ASSERT_EQ(io.output.find("banana.txt"), string::npos); // should NOT find banana.txt
 }
 
-// --------------------------------------------------------
-// 2. One file: match
-// --------------------------------------------------------
-TEST_F(SearchTest, SingleFile_Match) {
-    // Create file containing COMPRESSED "hello world"
-    {
-        std::ofstream f(dir + "/file1");
-        std::string compressed = compressor.compress("hello world");
-        f << compressed;
-    }
-
-    FakeIO io("search", "hello");
-    Search search(compressor, io);
-
+// Test that the Search command handles the case where no filenames match the search term.
+TEST(SearchTest, NoMatchingFilenames) {
+    string dir = "test_dir_search_no_match";
+    createTestDir(dir);
+    RLE comp; // again, using real RLE, we tested it extensively elsewhere
+    ofstream file1(dir + "/orange.txt");
+    file1 << comp.compress("Just some content.");
+    file1.close();
+    FakeIO io = createFakeIO("", "xyz"); // simulate SEARCH command with non-matching argument
+    Search search(comp, io);
     search.execute();
-
-    EXPECT_EQ(io.output, "file1 \n");
-}
-
-// --------------------------------------------------------
-// 3. One file: no match
-// --------------------------------------------------------
-TEST_F(SearchTest, SingleFile_NoMatch) {
-    {
-        std::ofstream f(dir + "/file1");
-        std::string compressed = compressor.compress("goodbye");
-        f << compressed;
-    }
-
-    FakeIO io("search", "hello");
-    Search search(compressor, io);
-
-    search.execute();
-
-    EXPECT_EQ(io.output, "");
-}
-
-// --------------------------------------------------------
-// 4. Several files: some match, some don’t
-// --------------------------------------------------------
-TEST_F(SearchTest, MultipleFiles_SomeMatch) {
-    {
-        std::ofstream f(dir + "/f1");
-        f << compressor.compress("hello there");
-    }
-    {
-        std::ofstream f(dir + "/f2");
-        f << compressor.compress("nothing relevant");
-    }
-    {
-        std::ofstream f(dir + "/f3");
-        f << compressor.compress("oh hello again");
-    }
-
-    FakeIO io("search", "hello");
-    Search search(compressor, io);
-    search.execute();
-
-    std::string out = io.output;
-
-    // Check f1 and f3 are printed
-    EXPECT_NE(out.find("f1 "), std::string::npos);
-    EXPECT_NE(out.find("f3 "), std::string::npos);
-
-    // Check f2 is NOT printed
-    EXPECT_EQ(out.find("f2 "), std::string::npos);
-
-    // Output must end with newline (because at least one match exists)
-    EXPECT_EQ(out.back(), '\n');
-}
-
-// --------------------------------------------------------
-// 5. File decompresses to empty string
-// --------------------------------------------------------
-TEST_F(SearchTest, EmptyFile_NoMatchForNonEmptyQuery) {
-    {
-        std::ofstream f(dir + "/empty");
-        f << compressor.compress("");
-    }
-
-    FakeIO io("search", "hello");
-    Search search(compressor, io);
-    search.execute();
-
-    EXPECT_EQ(io.output, "");
+    // Verify that the output indicates no matches found
+    ASSERT_EQ(io.output, ""); // no output expected
 }

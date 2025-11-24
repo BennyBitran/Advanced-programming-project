@@ -28,6 +28,8 @@ add_executable(
   SearchTest.cpp
   FakeCompress.h
   FakeIO.h
+  helpers.h
+  helpers.cpp
 
   ../src/RLE.cpp 
   ../src/Globals.cpp
