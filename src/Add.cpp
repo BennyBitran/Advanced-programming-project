@@ -15,6 +15,9 @@ Add::Add(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler)
 void Add::execute() 
 {
     string line = io.getLine();
+    if (line.empty()) {
+        return; // no arguments provided
+    }
     
     //if the first char is a space, that means there were at least two spaces after the command, and Hemi said this is invalid, so we do nothing and move on with our program
     if (!line.empty() && line[0] == ' ') {
