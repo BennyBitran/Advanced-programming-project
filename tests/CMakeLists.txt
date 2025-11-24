@@ -26,6 +26,7 @@ add_executable(
   AddTest.cpp
   GetTest.cpp
   SearchTest.cpp
+  Integration_Test.cpp
   FakeCompress.h
   FakeIO.h
 
@@ -38,5 +39,5 @@ add_executable(
   
 )
 
-# link gtest and gmock
-target_link_libraries(runTests gtest_main gmock_main)
+# link gtest
+target_link_libraries(runTests gtest_main)
