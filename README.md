@@ -27,37 +27,33 @@ search [text to serach]
 ### HOW TO BUILD AND RUN:
 
 
-## to run from terminal do:
+## to run locally do:
 run: 
 
-mkdir -p files
+1. mkdir -p files
 
-export FILES_DIR="$(pwd)/files"
+2. export FILES_DIR="$(pwd)/files"
 
-mkdir build
+3. mkdir build
 
-cd build
+4. cd build
 
-cmake .. && make
+5. cmake .. && make
 
-./runProject
+6. ./runProject
 
 
 ## to run from docker:
-go too root of the project
+go to root of the project
+
 run:  
 
-docker build -t myproj .
+1. mkdir -p files
 
-docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
+2. docker build -t myproj .
 
+3. docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
 
-## or just run the shell scripts provided:
-chmod +x runFromDocker.sh  
-
-./buildDockerfile  
-
-./runProjectWithDocker.sh  
 
 ## to run tests:
 cd to project root
@@ -66,3 +62,16 @@ run:
 1. docker build -f tests/Dockerfile -t gtests . 
 
 2. docker run gtests
+
+## to run tests locally:
+run:
+
+1. export FILES_DIR="$(pwd)/files" 
+
+2. cd tests
+
+3. mkdir build
+
+4. cmake .. && make
+
+5. ./runTests
