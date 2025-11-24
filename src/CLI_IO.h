@@ -4,24 +4,25 @@
 
 #include <iostream>
 #include <string>
+using namespace std;
 
 class CLI_IO : public IO
 {
     private:
     
-        std::string line;
-        std::istream& input;
-        std::ostream& output;
+        string line;
+        istream& input;
+        ostream& output;
 
     public:
         //default constructor (input from cin and output to cout)
         CLI_IO();
 
-        CLI_IO(std::istream& input, std::ostream& output);
+        CLI_IO(istream& input, ostream& output);
 
-        std::string getLine() const override;
-        std::string read() override;
-        void write(const std::string&) const override;
+        string getLine() const override;
+        string read() override;
+        void write(const string&) const override;
 
         ~CLI_IO() = default;
 };
