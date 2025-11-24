@@ -19,7 +19,7 @@ TEST(AddTest, CreatesCompressedFile) {
     createTestDir(dir);
 
     FakeIO io = createFakeIO("", "file1 hello world"); // simulate ADD command with argument "file1"
-    FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
+    FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); //simulate compression output
 
     Add add(comp, io); // create Add command with fake components
     add.execute(); // let the magic begin
