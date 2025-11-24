@@ -30,27 +30,39 @@ search [text to serach]
 ## to run from terminal do:
 run: 
 
-mkdir -p files  
+mkdir -p files
+
 export FILES_DIR="$(pwd)/files"
+
 mkdir build
+
 cd build
+
 cmake .. && make
+
 ./runProject
+
 
 ## to run from docker:
 go too root of the project
 run:  
 
 docker build -t myproj .
+
 docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
+
 
 ## or just run the shell scripts provided:
 chmod +x runFromDocker.sh  
+
 ./buildDockerfile  
+
 ./runProjectWithDocker.sh  
 
 ## to run tests:
 cd to project root
 run:
+
 1. docker build -f tests/Dockerfile -t gtests . 
+
 2. docker run gtests
