@@ -30,7 +30,9 @@ void Add::execute()
     string fileData;
     getline(inStream, fileData);
     //remove leading space. if it wasnt a space - it would have been in fileName (so its safe)
+    if (!fileData.empty()){
     fileData = fileData.substr(1);  
+    }
     
     if (fileName.empty() || fileData.empty()) {
         return;

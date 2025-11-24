@@ -2,6 +2,8 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <string>
+
 #include "../src/App.h"
 #include "../src/CLI_IO.h"
 #include "../src/Add.h"
@@ -12,14 +14,12 @@
 
 // Test for chain of logic without testingg App
 // external linkage to modify global path
-using
+using namespace std;
 extern string MY_FILES;
 
 class IntegrationTest : public ::testing::Test {
 protected:
     string test_dir = "./test_integration_files";
-    streambuf* original_cin;
-    streambuf* original_cout;
     stringstream mock_input;
     stringstream mock_output;
 
@@ -30,42 +30,31 @@ protected:
         }
         filesystem::create_directory(test_dir);
         MY_FILES = test_dir;
-
-        // redirect cin and cout
-        original_cin = cin.rdbuf(mock_input.rdbuf());
-        original_cout = cout.rdbuf(mock_output.rdbuf());
     }
 
     void TearDown() override {
         // cleanup
-        cin.rdbuf(original_cin);
-        cout.rdbuf(original_cout);
         if (filesystem::exists(test_dir)) {
             filesystem::remove_all(test_dir);
         }
     }
 };
 
-// TEST 1: Basic Integration (Add -> File -> Get)
+// TEST 1: Full loop (Add -> creation of File -> Get -> reading)
 // this checks if real files are created and read correctly
 TEST_F(IntegrationTest, FullFlow_AddAndGet) {
-    // Prepare the input commands
-    // 1. add file1 hello
-    // 2. get file1
-    // 3. loop will essentially exit when input stream ends/throws, handled by test env)
-    
-    // App loop is infinite, so we need a way to break it or run commands manually.
     //manually instantiate the commands and share the real IO/Compressor.
-    
-    CLI_IO real_io;
+    //using streams of cli io for input output
+    CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
-    
+    // real dependecies
     Add add_cmd(real_compressor, real_io);
     Get get_cmd(real_compressor, real_io);
 
     // execute ADD
     // simulate input for ADD
-    mock_input << "file1 hello_world"; 
+    mock_input << "add file1 hello_world"; 
+    real_io.read();
     add_cmd.execute();
 
     // check if file exists physically
@@ -75,19 +64,20 @@ TEST_F(IntegrationTest, FullFlow_AddAndGet) {
     // simulate input for GET (filename)
     mock_input.str(""); // clear buffer
     mock_input.clear();
-    mock_input << "file1"; 
-    
+    mock_input << "get file1\n"; 
+    real_io.read();
     get_cmd.execute();
 
     // expect "hello_world" followed by newline from Get.cpp logic
-    EXPECT_NE(mock_output.str().find("hello_world"), string::npos);
+    EXPECT_NE(mock_output.str().find("hello_world\n"), string::npos);
 }
 
 // TEST 2: compression steps ascii trick
 // RLE writes counts as bytes. If count is 10, it writes '\n'.
 // getline in Get.cpp will stop reading prematurely.
 TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
-    CLI_IO real_io;
+
+    CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
     
     Add add_cmd(real_compressor, real_io);
@@ -98,14 +88,15 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
     // we want count = 10. So we need 10 identical characters.
     string tricky_string = "AAAAAAAAAA"; // 10 'A's
     
-    mock_input << "tricky_file " << tricky_string;
+    mock_input << "add tricky_file " << tricky_string;
+    real_io.read();
     add_cmd.execute();
 
     // try to GET it back
     mock_input.str(""); 
     mock_input.clear();
-    mock_input << "tricky_file";
-    
+    mock_input << "git tricky_file";
+    real_io.read();
     get_cmd.execute();
 
     // uf Get.cpp uses getline, it might fail here because it hits the 10 byte
@@ -117,7 +108,8 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
 // TEST 3: Invalid Command Silence
 // if command is considered invalid we need ignore it completely (no printing)
 TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
-    CLI_IO real_io;
+
+    CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
     
     
@@ -125,7 +117,7 @@ TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
     
     // Case: Add with missing arguments (e.g. just "add")
     // The code in Add.cpp checks: if (fileName.empty() || fileData.empty()) return;
-    mock_input << "only_filename_no_content"; 
+    mock_input << "add only_filename_no_content"; 
     add_cmd.execute();
     
     // output should be empty
