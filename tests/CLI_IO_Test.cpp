@@ -66,3 +66,16 @@ TEST(IOTest, MultipleReadsWorkCorrectly) {
     EXPECT_EQ(cmd2, "second");
     EXPECT_EQ(rest2, "command line two");
 }
+
+// Test that write() handles empty strings correctly
+TEST(IOTest, WriteHandlesEmptyString) {
+    istringstream in("");
+    ostringstream out;
+
+    CLI_IO io(in, out);
+
+    io.write("");
+    io.write("");
+
+    EXPECT_EQ(out.str(), "");
+}
