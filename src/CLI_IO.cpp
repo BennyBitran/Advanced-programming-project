@@ -13,6 +13,7 @@ string CLI_IO:: read() {
     stringstream ss(this->line);
     string command;
     ss >> command; // Extract the first word as command
+    ss.ignore(1) ; // Ignore the space after the command
     getline(ss, this->line); // Store the rest of the line for getLine()
 
         return command;

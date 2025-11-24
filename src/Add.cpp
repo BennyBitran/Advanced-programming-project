@@ -15,9 +15,8 @@ Add::Add(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler)
 void Add::execute() 
 {
     string line = io.getLine();
-    line = line.substr(1); // remove leading space
     
-    //if there was more than one space, Hemi said the command is invalid, so we do nothing and move on with our program
+    //if the first char is a space, that means there were at least two spaces after the command, and Hemi said this is invalid, so we do nothing and move on with our program
     if (!line.empty() && line[0] == ' ') {
         return;
     }

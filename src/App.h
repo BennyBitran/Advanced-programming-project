@@ -6,14 +6,16 @@
 #include <map>
 #include <string>
 
+using namespace std;
+
 class App
 {
     private:
     IO& io;
-    std::map<std::string, ICommand*>& commands;
+    map<string, ICommand*>& commands;
 
     public:
-        App(IO&, std::map<std::string, ICommand*>&);
+        App(IO&, map<string, ICommand*>&);
         void run();
 
         ~App() = default;
