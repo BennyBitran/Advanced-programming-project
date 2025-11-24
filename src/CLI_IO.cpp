@@ -5,9 +5,7 @@
 using namespace std;
 CLI_IO::CLI_IO() : input(cin), output(cout), line("") {}
 
-CLI_IO::CLI_IO(istream& in, ostream& out) : input(in), output(out), line("") {}
-    
-CLI_IO::~CLI_IO() 
+CLI_IO::CLI_IO(istream& in, ostream& out) : input(in), output(out), line("") {} 
 
 // Reads a line from standard input and returns the first word as command
 string CLI_IO:: read() {

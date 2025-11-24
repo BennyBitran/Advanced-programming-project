@@ -16,6 +16,12 @@ void Get::execute()
 {
     //get the full command line (without the "get" part)
     string argument = io.getLine();
+    argument = argument.substr(1); // remove leading space
+
+    //if there was more than one space, Hemi said the command is invalid, so we do nothing and move on with our program (just like in Add)
+    if (!argument.empty() && argument[0] == ' ') {
+        return;
+    }
     istringstream inStream(argument);
     string fileName;    //first argument should be the file name
     inStream >> fileName;
