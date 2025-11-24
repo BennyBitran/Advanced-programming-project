@@ -25,6 +25,7 @@ add_executable(
   SearchTest.cpp
   Integration_Test.cpp
   FakeCompress.h
+  CLI_IO_Test.cpp
   FakeIO.h
   helpers.h
   helpers.cpp
