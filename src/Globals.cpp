@@ -1,3 +1,4 @@
 #include "Globals.h"
+using namespace std;
 
-std::string MY_FILES = getenv("FILES_DIR"); 
+string MY_FILES = getenv("FILES_DIR"); 

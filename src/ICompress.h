@@ -2,13 +2,14 @@
 #define ICOMPRESS_H
 
 #include <string>
+using namespace std;
 
 class ICompress
 {
     public:
 
-        virtual std::string compress(const std::string&) const = 0;
-        virtual std::string decompress(const std::string&) const = 0;
+        virtual string compress(const string&) const = 0;
+        virtual string decompress(const string&) const = 0;
 
         virtual ~ICompress() = default;
 };

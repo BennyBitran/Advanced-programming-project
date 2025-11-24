@@ -3,14 +3,15 @@
 #include "ICompress.h"
 
 #include <string>
+using namespace std;
 
 class RLE : public ICompress
 {
     public:
         RLE();
 
-        virtual std::string compress(const std::string&) const override;
-        virtual std::string decompress(const std::string&) const override;
+        virtual string compress(const string&) const override;
+        virtual string decompress(const string&) const override;
 
         virtual ~RLE() = default;
 };
