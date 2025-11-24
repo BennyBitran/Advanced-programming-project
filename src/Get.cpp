@@ -10,13 +10,20 @@
 #include "Globals.h"
 using namespace std;
 
-Get::Get(ICompress* comp, IO* ioHandler) : compressor(comp), io(ioHandler) {}
+Get::Get(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler) {}
 
 void Get::execute()
 {
-    string argument = io->getLine();
+    //get the full command line (without the "get" part)
+    string argument = io.getLine();
+    argument = argument.substr(1); // remove leading space
+
+    //if there was more than one space, Hemi said the command is invalid, so we do nothing and move on with our program (just like in Add)
+    if (!argument.empty() && argument[0] == ' ') {
+        return;
+    }
     istringstream inStream(argument);
-    string fileName;
+    string fileName;    //first argument should be the file name
     inStream >> fileName;
     //if no argument provided, return
     if (fileName.empty()) {
@@ -24,19 +31,18 @@ void Get::execute()
     }
     //construct full file path
     string file_full_path = MY_FILES + "/" + fileName;
-    //save the rest of the line to check for unwanted extra arguments
+    //save the rest of the line to check there was unwanted extra arguments
     string restOfLine;
     getline(inStream, restOfLine);
-
+    //if file does not exist or there are extra arguments, return
     if (!filesystem::exists(file_full_path) || !restOfLine.empty()) {
         return;
     }
-
-    std::ifstream fileStream(file_full_path);
-    std::string line;
-    //read each line in file, decompress and print to cout
-    while (std::getline(fileStream, line)) {
-        io->write(compressor->decompress(line) + "\n");
-    }
+    //open the file for reading
+    ifstream fileStream(file_full_path);    
+    //read the entire file content and dump it all to a string named "content"
+    string content((istreambuf_iterator<char>(fileStream)), istreambuf_iterator<char>());
+    //decompress content and send to io for output
+    io.write(compressor.decompress(content) + "\n");
     fileStream.close();
 }

@@ -9,11 +9,11 @@
 class App
 {
     private:
-    IO* io;
-    std::map<std::string, ICommand*> commands;
+    IO& io;
+    std::map<std::string, ICommand*>& commands;
 
     public:
-        App(IO*, std::map<std::string, ICommand*>);
+        App(IO&, std::map<std::string, ICommand*>&);
         void run();
 
         ~App() = default;
