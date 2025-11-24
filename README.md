@@ -7,16 +7,6 @@ the app compresses the data into files and saves them in a folder passed by an e
 Docker
 To build and run locally: CMake + GCC
 
-## Project Structure
-
-```text
-/
-├── src/
-├── tests/
-│   ├── CMakeLists.txt
-│   └── Dockerfile
-├── CMakeLists.txt
-└── Dockerfile
 
 ## Environement Variable: 
 FILES_DIR=... (export this variable in the wanted directory when run locally)
