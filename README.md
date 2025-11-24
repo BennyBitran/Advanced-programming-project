@@ -1,5 +1,40 @@
 # Advanced-programming-project
-this repository will be our teams repo for the whole project
+this repository is our project and its main objective is to start the implementation of our home made "Drive" system.
+this app (for now) implements the ability to add files, get their content and search content in all files.
+the app compresses the data into files and saves them in a folder passed by an environment vriable (that needs to be exported into FILES_DIR)
+
+## Requirements:
+Docker
+To build and run locally: CMake + GCC
+
+## Project Structure:
+/
+├── src/
+├── tests/
+│   ├── CMakeLists.txt
+│   └── Dockerfile
+├── CMakeLists.txt
+└── Dockerfile
+
+
+## Environement Variable: 
+FILES_DIR=... (export this variable in the wanted directory when run locally)
+
+
+## Usage:
+after build and run simply use these commands format:
+to add a file just write:
+add [file name] [file content]
+
+to get a file content:
+get [file name]
+
+to search which files contain a certain content:
+search [text to serach]
+# NOTE: careful to put exactly 1 space between the command and the next argument
+
+### HOW TO BUILD AND RUN:
+
 
 ## to run from terminal do:
 run: 
@@ -12,12 +47,11 @@ cmake .. && make
 ./runProject
 
 ## to run from docker:
-## to run from docker:
 go too root of the project
-run: 
+run:  
 
 docker build -t myproj .
-docker run --rm -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
+docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
 
 ## or just run the shell scripts provided:
 chmod +x runFromDocker.sh  
