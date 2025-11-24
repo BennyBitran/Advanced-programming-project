@@ -18,7 +18,7 @@ TEST(AddTest, CreatesCompressedFile) {
     string dir = "test_dir_add";
     createTestDir(dir);
 
-    FakeIO io = createFakeIO("", "file1 hello world"); // simulate ADD command with argument "file1"
+    FakeIO io = createFakeIO("", "file1 hello world"); // simulate ADD command with argument "file1
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
 
     Add add(comp, io); // create Add command with fake components
