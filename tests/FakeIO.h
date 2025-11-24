@@ -3,25 +3,25 @@
 
 #include "../src/IO.h"
 #include <string>
-
+using namespace std;
 class FakeIO : public IO {
 public:
-    std::string cmd;       // returned by read()
-    std::string args;      // returned by getLine()
+    string command;       // returned by read()
+    string line;      // returned by getLine()
     mutable std::string output; // collects write()
 
-    FakeIO(const std::string& c, const std::string& a)
-        : cmd(c), args(a) {}
+    FakeIO(const string& cmd, const string& rest)
+        : command(cmd), line(rest) {}
 
-    std::string read() override {
-        return cmd;
+    string read() override {
+        return command;
     }
 
-    std::string getLine() const override {
-        return args;
+    string getLine() const override {
+        return line;
     }
 
-    void write(const std::string& s) const override {
+    void write(const string& s) const override {
         output += s;
     }
 };
