@@ -22,18 +22,20 @@ include_directories(../src)
 # define the test executable
 add_executable(
   runTests 
-  RLE_Test.cpp
-  CLI_IO_Test.cpp
-  Add_Test.cpp
-  Get_Test.cpp
-  Search_Test.cpp
-  Integration_Test.cpp
+  RLETest.cpp
+  AddTest.cpp
+  GetTest.cpp
+  SearchTest.cpp
+  FakeCompress.h
+  FakeIO.h
+
   ../src/RLE.cpp 
   ../src/Globals.cpp
   ../src/Add.cpp
   ../src/Get.cpp
   ../src/Search.cpp
   ../src/CLI_IO.cpp
+  
 )
 
 # link gtest and gmock

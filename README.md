@@ -12,6 +12,7 @@ cmake .. && make
 ./runProject
 
 ## to run from docker:
+## to run from docker:
 go too root of the project
 run: 
 
