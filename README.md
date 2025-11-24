@@ -55,8 +55,9 @@ run:
 3. docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
 
 
-## to run tests:
+## to run tests from Docker:
 cd to project root
+
 run:
 
 1. docker build -f tests/Dockerfile -t gtests . 
