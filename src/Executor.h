@@ -10,7 +10,7 @@ class Executor
 {
     public:
 
-        virtual void execute(Runnable command) const = 0;
+        virtual void execute(Runnable& command) const = 0;
 
         virtual ~Executor() = default;
         
