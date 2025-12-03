@@ -15,7 +15,9 @@ public:
 
     virtual void addFile(const string& name, const string& data) = 0;
 
-    virtual void deleteFile(const string& name) = 0;
+    //virtual void deleteFile(const string& name) = 0; add later
 
     virtual ~IFileSystem() = default;
 };
+
+#endif
