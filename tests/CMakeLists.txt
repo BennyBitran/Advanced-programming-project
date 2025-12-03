@@ -29,6 +29,7 @@ add_executable(
   FakeIO.h
   helpers.h
   helpers.cpp
+  SocketIOTest.cpp
 
   ../src/RLE.cpp 
   ../src/Globals.cpp
@@ -36,6 +37,7 @@ add_executable(
   ../src/Get.cpp
   ../src/Search.cpp
   ../src/CLI_IO.cpp
+  ../src/SocketIO.cpp
   
 )
 
