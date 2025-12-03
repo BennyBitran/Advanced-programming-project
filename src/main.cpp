@@ -10,17 +10,19 @@
 #include "ICompress.h"
 #include "RLE.h"
 #include "App.h"
+#include "IFileSystem.h"
+#include "FileManager.h"
 
 using namespace std;
-//string MY_FILES=getenv("FILES_DIR");  #################uncomment when finished
 
 int main() {
     CLI_IO io;
     RLE compressor;
+    FileManager fs;
     
-    Add add(compressor, io);
-    Get get(compressor, io);
-    Search search(compressor, io);
+    Add add(compressor, io, fs);
+    Get get(compressor, io, fs);
+    Search search(compressor, io, fs);
 
     map<string, ICommand*> commands;
 
