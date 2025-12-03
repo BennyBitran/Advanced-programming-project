@@ -6,7 +6,7 @@
 #include "FakeIO.h"
 #include "FakeCompress.h"
 #include "helpers.h"
-
+#include "../src/FileManager.h"
 using namespace std;
 
 
@@ -20,8 +20,9 @@ TEST(AddTest, CreatesCompressedFile) {
 
     FakeIO io = createFakeIO("", "file1 hello world"); // simulate ADD command with argument "file1"
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); //simulate compression output
+    FileManager fs;
 
-    Add add(comp, io); // create Add command with fake components
+    Add add(comp, io, fs); // create Add command with fake components
     add.execute(); // let the magic begin
 
     string path = dir + "/file1"; // expected file path
@@ -40,7 +41,9 @@ TEST(AddTest, NoArgumentsProvided) {
     createTestDir(dir);
     FakeIO io = createFakeIO("", ""); // simulate ADD command with no arguments
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
-    Add add(comp, io); // create Add command with fake components
+    FileManager fs;
+
+    Add add(comp, io, fs);  // create Add command with fake components
     add.execute(); // execute the command
     ASSERT_TRUE(filesystem::is_empty(dir)); // check that no file was created
 }
@@ -51,7 +54,8 @@ TEST(AddTest, InvalidInputFormat) {
     createTestDir(dir);
     FakeIO io = createFakeIO("", " fileName hello"); // simulate ADD command with invalid input
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
-    Add add(comp, io); // create Add command with fake components
+    FileManager fs;
+    Add add(comp, io, fs); // create Add command with fake components
     add.execute(); // execute the command
     string path = dir + "/fileName"; // expected file path
     ASSERT_FALSE(filesystem::exists(path)); // check that no file was created
