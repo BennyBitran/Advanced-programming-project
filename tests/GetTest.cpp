@@ -6,6 +6,7 @@
 #include "FakeIO.h"
 #include "FakeCompress.h"
 #include "helpers.h"
+#include "../src/FileManager.h"
 using namespace std;
 
 
@@ -24,12 +25,12 @@ TEST(GetTest, OutputsDecompressedContent) {
     // Set up FakeIO to simulate user input and capture output
     FakeIO io = createFakeIO("", "file1"); // simulate GET command with argument "file1"
     FakeCompress comp = createFakeCompress("hello world"); // simulate decompression output
-
-    Get get(comp, io); // create Get command with fake components
+    FileManager fs;
+    Get get(comp, io, fs); // create Get command with fake components
     get.execute(); // execute the command
 
     // Verify that the output captured by FakeIO matches the expected decompressed content
-    ASSERT_EQ(io.output, "hello world\n");
+    ASSERT_EQ(io.output, "hello world");
 }
 
 // Test that the Get command handles the case where the requested file does not exist.
@@ -37,9 +38,9 @@ TEST(GetTest, FileDoesNotExist) {
     string dir = "test_dir_get_no_file";
     createTestDir(dir);
     FakeIO io = createFakeIO("", "nonexistent_file"); // simulate GET command with non-existent file 
-    FakeCompress comp = createFakeCompress("irrelevant"); // decompression won't be called
-
-    Get get(comp, io);
+    FakeCompress comp = createFakeCompress(""); // decompression won't be called
+    FileManager fs;
+    Get get(comp, io, fs);
     get.execute();
 
     // Verify that the output indicates the file does not exist
