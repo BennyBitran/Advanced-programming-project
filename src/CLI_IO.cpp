@@ -13,10 +13,10 @@ string CLI_IO:: read() {
     stringstream ss(this->line);
     string command;
     ss >> command; // Extract the first word as command
-    ss.ignore(1) ; // Ignore the space after the command
+    ss.ignore(1) ; // Ignore the space after the command (must be space since we used >>)
     getline(ss, this->line); // Store the rest of the line for getLine()
-
-        return command;
+    
+    return command;
 }
 
 // Returns the rest of the line after the command
@@ -26,6 +26,9 @@ string CLI_IO:: getLine() const {
 }
 // Writes content to standard output
 void CLI_IO:: write(const string& content) const {
-    output << content;
+    if (content.empty()) {
+        return;
+    }
+    output << content << "\n";
 }
  
