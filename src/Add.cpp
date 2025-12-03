@@ -7,10 +7,12 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include "IFileSystem.h"
 
 using namespace std;
 
-Add::Add(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler) {}  
+Add::Add(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
+         : compressor(comp), io(ioHandler), fs(fileSystem) {}  
 
 void Add::execute() 
 {
@@ -35,16 +37,13 @@ void Add::execute()
     }
     
     if (fileName.empty() || fileData.empty()) {
-        return;
+        return; //add exception throw
     }
-    //construct full file path
-    string file_full_path = MY_FILES + "/" + fileName;
-    //check if file already exists - for now, if it does, we do nothing
-    if (filesystem::exists(file_full_path)) {
-        return;
+    //add the file to the file system
+    try {
+        fs.addFile(fileName, compressor.compress(fileData));
     }
-    //create and open the file, write compressed data into it
-    ofstream newFile(file_full_path);
-    newFile << (compressor.compress(fileData));
-    newFile.close();
+    catch (...) {
+        //handle exceptions when we add exceptions 
+    }
 }
