@@ -26,6 +26,8 @@ private:
     // Extracts a full line from buffer
     std::string readLine();
 
+    // apparently there is no string.toLowerCase in cpp
+    std::string tolowerCase(const std::string& text) const;
 public:
     explicit SocketIO(int fd);
     ~SocketIO() override;
