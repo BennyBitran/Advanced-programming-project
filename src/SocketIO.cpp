@@ -72,6 +72,7 @@ void SocketIO::write() (const string& text) const {
     int remaining = text.length();
 
     while(total < remaining) {
+        // third argument = number of bytes left to send
         int sent = send(sockfd, text.c_str() + total, remaining - total, 0); // text.c_str() = pointer to the string we need to send
 
         if(sent <= 0) {

@@ -17,13 +17,13 @@ private:
     // whats left after the command
     std::string line;
 
-    // CLI_IO used only for parsing commands from a stringstream
+    // CLI_IO used for parsing commands from a stringstream
       CLI_IO* parser = nullptr;
 
     // Reads raw bytes from socket into buffer
     bool fillBuffer();
 
-    // Extracts a full line ending with '\n' from buffer
+    // Extracts a full line from buffer
     std::string readLine();
 
 public:
