@@ -5,13 +5,7 @@ using namespace std;
 
 SocketIO::SocketIO(int fd) : sockfd(fd), buffer(""), line(""), parser(nullptr) {}
 
-SocketIO:: ~SocketIO(){
-    if(parser) {
-        delete parser;
-        parser = nullptr;
-    }
-    close(sockfd);
-}
+
 // this func return false if the client disconnected, o.w it fills the buffer with more data from the client, and returns true
 bool SocketIO:: fillBuffer() {
     char tmp[1024];
@@ -30,7 +24,7 @@ std::string SocketIO::readLine() {
 
         // if we found where the line ends, we return the whole line, and erase it from the buffer
         if(pos != string::npos) {
-            string rawLine = buffer.substr (0, pos);
+            string rawLine = buffer.substr (0, pos); 
             buffer.erase(0, pos + 1);
             return rawLine;
         }
@@ -74,10 +68,11 @@ void SocketIO::write(const string& text) const {
 
     while(total < remaining) {
         // third argument = number of bytes left to send
-        int sent = send(sockfd, text.c_str() + total, remaining - total, 0); // text.c_str() = pointer to the string we need to send
+        // text.c_str() = pointer to the string we need to send
+        int sent = send(sockfd, text.c_str() + total, remaining - total, 0); 
 
         if(sent <= 0) {
-            return;
+            return; // maybe throw exception
         }
         total += sent;
     }
@@ -91,3 +86,6 @@ string SocketIO:: tolowerCase(const string& text) const {
     }
     return result;
 }
+
+
+
