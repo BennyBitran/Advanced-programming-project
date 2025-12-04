@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <stdexcept>
 
 using namespace std;
 
@@ -36,7 +37,7 @@ string FileManager::getFile(const string& name) {
 
     if (!filesystem::exists(fullPath)) {
         files_lock.unlock();    
-        return "";      // throw exception later
+        throw runtime_error("File not found");
     }
     ifstream fileStream(fullPath); 
     
@@ -58,7 +59,7 @@ void FileManager::addFile(const string& fileName, const string& data) {
     //check if file already exists - for now, if it does, we do nothing
     if (filesystem::exists(file_full_path)) {
         files_lock.unlock();
-        return; // throw exception later
+        throw runtime_error("File already exists");
     }
     //create and open the file, write compressed data into it
     ofstream newFile(file_full_path);
@@ -66,4 +67,17 @@ void FileManager::addFile(const string& fileName, const string& data) {
     newFile.close();
     files_lock.unlock();
     return;
+}
+
+//delete a file if it exists
+void FileManager::deleteFile(const string& fileName) {
+    lock_guard<mutex> lock(files_lock);
+
+    string fullPath = MY_FILES + "/" + fileName;
+
+    if (!filesystem::exists(fullPath)) {
+        throw runtime_error("File not found");
+    }
+
+    filesystem::remove(fullPath);
 }
