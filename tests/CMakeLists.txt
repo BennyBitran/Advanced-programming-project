@@ -36,6 +36,7 @@ add_executable(
   ../src/Get.cpp
   ../src/Search.cpp
   ../src/CLI_IO.cpp
+  ../src/FileManager.cpp
   
 )
 
