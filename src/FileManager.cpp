@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <stdexcept>
 
 using namespace std;
 
@@ -66,4 +67,17 @@ void FileManager::addFile(const string& fileName, const string& data) {
     newFile.close();
     files_lock.unlock();
     return;
+}
+
+//delete a file if it exists
+void FileManager::deleteFile(const string& fileName) {
+    lock_guard<mutex> lock(files_lock);
+
+    string fullPath = MY_FILES + "/" + fileName;
+
+    if (!filesystem::exists(fullPath)) {
+        throw runtime_error("File not found");
+    }
+
+    filesystem::remove(fullPath);
 }
