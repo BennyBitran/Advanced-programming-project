@@ -11,6 +11,8 @@
 #include "../src/Search.h"
 #include "../src/RLE.h"
 #include "../src/Globals.h"
+#include "../src/FileManager.h"
+
 
 // Test for chain of logic without testingg App
 // external linkage to modify global path
@@ -47,9 +49,10 @@ TEST_F(IntegrationTest, FullFlow_AddAndGet) {
     //using streams of cli io for input output
     CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
+    FileManager fs;
     // real dependecies
-    Add add_cmd(real_compressor, real_io);
-    Get get_cmd(real_compressor, real_io);
+    Add add_cmd(real_compressor, real_io, fs);
+    Get get_cmd(real_compressor, real_io, fs);
 
     // execute ADD
     // simulate input for ADD
@@ -79,9 +82,10 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
 
     CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
-    
-    Add add_cmd(real_compressor, real_io);
-    Get get_cmd(real_compressor, real_io);
+    FileManager fs;
+    // real dependecies
+    Add add_cmd(real_compressor, real_io, fs);
+    Get get_cmd(real_compressor, real_io, fs);
 
     // create a string that will result in a byte 10 (newline) in RLE
     // RLE writes [count][char].
@@ -111,9 +115,9 @@ TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
 
     CLI_IO real_io(mock_input, mock_output);
     RLE real_compressor;
+    FileManager fs;
     
-    
-    Add add_cmd(real_compressor, real_io);
+    Add add_cmd(real_compressor, real_io, fs);
     
     // Case: Add with missing arguments (e.g. just "add")
     // The code in Add.cpp checks: if (fileName.empty() || fileData.empty()) return;

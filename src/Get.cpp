@@ -4,44 +4,38 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
-
 #include "ICompress.h"
 #include "IO.h"
 #include "Globals.h"
+
 using namespace std;
 
-Get::Get(const ICompress& comp, IO& ioHandler) : compressor(comp), io(ioHandler) {}
+Get::Get(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
+         : compressor(comp), io(ioHandler), fs(fileSystem) {} 
 
 void Get::execute()
 {
     //get the full command line (without the "get" part)
     string argument = io.getLine();
     
-    //if there was more than one space, Hemi said the command is invalid, so we do nothing and move on with our program (just like in Add)
+    //if there was more than one space - do nothing and move on
     if (!argument.empty() && argument[0] == ' ') {
-        return;
+        return; //throw exception later
     }
+
+    //first argument should be the file name
     istringstream inStream(argument);
-    string fileName;    //first argument should be the file name
+    string fileName;    
     inStream >> fileName;
-    //if no argument provided, return
-    if (fileName.empty()) {
-        return;
-    }
-    //construct full file path
-    string file_full_path = MY_FILES + "/" + fileName;
+
     //save the rest of the line to check there was unwanted extra arguments
     string restOfLine;
     getline(inStream, restOfLine);
-    //if file does not exist or there are extra arguments, return
-    if (!filesystem::exists(file_full_path) || !restOfLine.empty()) {
-        return;
+
+    //if no argument provided, or there are extra arguments - return
+    if (fileName.empty() || !restOfLine.empty()) {
+        return; //throw exception later
     }
-    //open the file for reading
-    ifstream fileStream(file_full_path);    
-    //read the entire file content and dump it all to a string named "content"
-    string content((istreambuf_iterator<char>(fileStream)), istreambuf_iterator<char>());
-    //decompress content and send to io for output
-    io.write(compressor.decompress(content) + "\n");
-    fileStream.close();
+
+    io.write(compressor.decompress(fs.getFile(fileName)));
 }

@@ -14,7 +14,7 @@ TEST(IOTest, WriteTests) {
     io.write(" world");
 
     // Everything written should be in out.str()
-    EXPECT_EQ(out.str(), "hello world");
+    EXPECT_EQ(out.str(), "hello\n world\n");
 }
 
 // Test that read() and getLine() parse the command and the rest of the line, respectively
