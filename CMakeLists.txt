@@ -8,4 +8,6 @@ add_executable(runProject    src/main.cpp   src/Add.cpp    src/Add.h    src/Get.
     src/CLI_IO.cpp    src/CLI_IO.h    src/App.cpp    src/App.h 
     src/ICommand.h    src/ICompress.h    src/RLE.cpp    src/RLE.h
     src/Search.cpp    src/Search.h  src/IO.h    src/Globals.h   src/Globals.cpp     
-    src/IFileSystem.h  src/FileManager.cpp  src/FileManager.h)
+    src/IFileSystem.h  src/FileManager.cpp  src/FileManager.h   src/Server.cpp  src/Server.h
+    src/Client_Thread_Executor.cpp  src/Client_Thread_Executor.h    src/Runnable.h  
+    src/SocketIO.cpp  src/SocketIO.h)
