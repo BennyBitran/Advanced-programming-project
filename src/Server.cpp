@@ -8,6 +8,7 @@
 #include "Search.h"
 #include <map>
 #include <string>
+#include <memory>
 //include "runnable"
 
 using namespace std;
@@ -53,22 +54,17 @@ void Server::start() {
 }
 // Create App instance for each client
 //CHANGE TO RETURN A RUNNABLE POINTER
-App Server::AppFactory(int client_fd) {
-    // Create SocketIO for client
-    SocketIO io(client_fd);
-    //define commands map 
-    Add add(compressor, io, fs);
-    Get get(compressor, io, fs);
-    Search search(compressor, io, fs);
+unique_ptr<Runnable> Server::AppFactory(int client_fd) {
+    auto io = make_unique<SocketIO>(client_fd);
 
-    map<string, ICommand*> commands;
-
-    commands["post"] = &add;
-    commands["get"] = &get;
-    commands["search"] = &search;
-
-    App app(io, commands);
-    return &app;
+    map<string, unique_ptr<ICommand>> commands;
+    
+    commands["post"] = make_unique<Add>(compressor, *io, fs);
+    commands["get"] = make_unique<Get>(compressor, *io, fs);
+    commands["search"] = make_unique<Search>(compressor, *io, fs);
+    //commands["delete"] = make_unique<Delete>(compressor, *io, fs);
+    //move the unique pointers to the app constructor
+    return make_unique<App>(move(io), move(commands));
 }
 
 Server::~Server() {
