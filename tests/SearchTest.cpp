@@ -8,6 +8,8 @@
 
 #include "FakeIO.h"
 #include "helpers.h"
+#include "../src/FileManager.h"
+
 using namespace std;
 
 // Test that the Search command correctly finds and outputs filenames containing the search term.
@@ -15,7 +17,7 @@ TEST(SearchTest, FindsAndOutputsMatchingFilenames) {
     // Set up a temporary directory and create test files
     string dir = "test_dir_search";
     createTestDir(dir);
-   RLE comp; // using real RLE compressor for this test
+    RLE comp; // using real RLE compressor for this test
 
     ofstream file1(dir + "/apple.txt");
     file1 << comp.compress("This is a file about apples.");
@@ -28,7 +30,8 @@ TEST(SearchTest, FindsAndOutputsMatchingFilenames) {
     file3.close();
     // Set up FakeIO to simulate user input and capture output
     FakeIO io = createFakeIO("", "ap"); // simulate SEARCH command with argument "ap"
-    Search search(comp, io); // create Search command with real compressor and fake IO
+    FileManager fs;
+    Search search(comp, io, fs); // create Search command with real compressor and fake IO
     search.execute(); // execute the command
     // Verify that the output captured by FakeIO contains the expected filenames
     ASSERT_NE(io.output.find("apple.txt"), string::npos); // should find apple.txt
@@ -45,7 +48,8 @@ TEST(SearchTest, NoMatchingFilenames) {
     file1 << comp.compress("Just some content.");
     file1.close();
     FakeIO io = createFakeIO("", "xyz"); // simulate SEARCH command with non-matching argument
-    Search search(comp, io);
+    FileManager fs;
+    Search search(comp, io, fs);
     search.execute();
     // Verify that the output indicates no matches found
     ASSERT_EQ(io.output, ""); // no output expected

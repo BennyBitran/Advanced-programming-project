@@ -3,6 +3,14 @@ this repository is our project and its main objective is to start the implementa
 this app (for now) implements the ability to add files, get their content and search content in all files.
 the app compresses the data into files and saves them in a folder passed by an environment vriable (that needs to be exported into FILES_DIR)
 
+
+## PART 2
+our previous code was NOT "closed to changes - open to extension" enough since we (with the stubbornness of Benny) didn't implement an interface for a File System that will handle the app's file management.
+this change is important for a few reasons:
+first and foremost, if in the future we don't want a folder file system but anything else, let's say a database, we would have to change ALL our current implementations, forcing changes into our current code.
+and second, more relevant to this specific part of the project - locking each part of the code that accesses the files is just ugly and unreliable since we would need a global mutex lock, instead of simply having a file system that makes sure the access to the files happens exclusively for each thread.
+
+
 ## Requirements:
 Docker
 To build and run locally: CMake + GCC
@@ -84,3 +92,5 @@ Gilad Tenenbaum
 Ilya vladimirskiy
 
 Benny Bitran
+
+
