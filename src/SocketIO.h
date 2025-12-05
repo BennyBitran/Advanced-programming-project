@@ -2,7 +2,6 @@
 #define SOCKET_IO_H
 
 #include "IO.h"
-#include "CLI_IO.h"
 #include <string>
 #include <sstream>
 

@@ -69,9 +69,5 @@ string SocketIO:: tolowerCase(const string& text) const {
 }
 
 SocketIO:: ~SocketIO(){
-    if(parser) {
-        delete parser;
-        parser = nullptr;
-    }
     close(sockfd);
 }
