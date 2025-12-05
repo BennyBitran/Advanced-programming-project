@@ -5,10 +5,11 @@
 #include "IO.h"
 #include <map>
 #include <string>
+#include "Runnable.h"
 
 using namespace std;
 
-class App
+class App : public Runnable
 {
     private:
     IO& io;
@@ -16,8 +17,8 @@ class App
 
     public:
         App(IO&, map<string, ICommand*>&);
-        void run();
+        void run() override;
 
-        ~App() = default;
+        ~App() override = default;
 };
 #endif

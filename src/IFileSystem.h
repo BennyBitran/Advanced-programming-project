@@ -11,11 +11,13 @@ public:
 
     virtual vector<string> listFiles() = 0;
 
+    // Throws std::runtime_error if file exists
     virtual string getFile(const string& name) = 0;
 
     virtual void addFile(const string& name, const string& data) = 0;
 
-    //virtual void deleteFile(const string& name) = 0; add later
+    // Throws std::runtime_error if file not found
+    virtual void deleteFile(const string& name) = 0;
 
     virtual ~IFileSystem() = default;
 };
