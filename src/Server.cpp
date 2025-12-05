@@ -48,7 +48,7 @@ void Server::start() {
         if (client_fd < 0) continue;
 
         // Delegate to executor (Executor will start the thread)
-        executor.execute(AppFactory());
+        executor.execute(AppFactory(client_fd));
     }
 }
 // Create App instance for each client
