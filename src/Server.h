@@ -15,14 +15,14 @@ private:
     int listen_sock;
     Executor& executor;  
     const ICompress& compressor;
-    const IFileSystem& fs;
+    IFileSystem& fs;
 
     void bindAndListen();
     int acceptClient() const;
     unique_ptr<Runnable> AppFactory(int client_fd);
 
 public:
-    Server(int port, Executor& exec);
+    Server(int port, Executor& exec, ICompress& comp, IFileSystem& filesystem);
     void start();
     ~Server();
 };
