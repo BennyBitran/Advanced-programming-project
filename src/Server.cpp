@@ -13,7 +13,7 @@
 
 using namespace std;
 
-Server::Server(int port, Executor& exec, Icompress& comp, IFileSystem& filesystem)
+Server::Server(int port, Executor& exec, ICompress& comp, IFileSystem& filesystem)
     : port(port), listen_sock(-1), executor(exec), compressor(comp), fs(filesystem) {}
 
 // Setup server socket
