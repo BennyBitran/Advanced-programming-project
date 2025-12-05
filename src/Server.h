@@ -19,7 +19,7 @@ private:
 
     void bindAndListen();
     int acceptClient() const;
-    App AppFactory(int client_fd);
+    unique_ptr<Runnable> AppFactory(int client_fd);
 
 public:
     Server(int port, Executor& exec);
