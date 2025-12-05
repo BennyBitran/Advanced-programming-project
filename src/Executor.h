@@ -3,6 +3,7 @@
 #include "Runnable.h"
 
 #include <string>
+#include <memory>
 
 using namespace std;
 
@@ -10,7 +11,7 @@ class Executor
 {
     public:
 
-        virtual void execute(Runnable& command) const = 0;
+        virtual void execute(unique_ptr<Runnable> command) = 0;
 
         virtual ~Executor() = default;
         
