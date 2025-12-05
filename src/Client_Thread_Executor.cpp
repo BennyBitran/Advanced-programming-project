@@ -7,10 +7,11 @@ using namespace std;
 
 Client_Thread_Executor::Client_Thread_Executor() {}
 
-void Client_Thread_Executor::execute(Runnable& command) {
-    //create new Thread, pass the run method and the specific object to call the function on
-    thread t(&Runnable::run, &command);
-    
+void Client_Thread_Executor::execute(unique_ptr<Runnable> command) {
+    //now cmd is the unique pointer to the runnable object, and run on the new thread
+    thread t([cmd = std::move(command)]() {
+        cmd->run();
+    });
     /* detach the thread from the thread group so they can run independently */
     /* in our specific design the server doesnt need to wait for the clinet to finish */
     /* since the server should keep running */
