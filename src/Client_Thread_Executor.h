@@ -2,7 +2,7 @@
 #define CLIENT_THREAD_EXECUTOR_H
 #include "Runnable.h"
 #include "Executor.h"
-
+#include <memory>
 #include <string>
 
 using namespace std;
