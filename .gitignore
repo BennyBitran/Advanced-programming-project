@@ -46,3 +46,10 @@ CMakeFiles/
 CMakeCache.txt
 Makefile
 /tests/build/
+
+# For my mac files
+.DS_Store
+.vscode/
+Advanced-programming-project-main.txt
+collect_project.py
+files/
