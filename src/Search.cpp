@@ -2,6 +2,7 @@
 #include "ICompress.h"
 #include "IO.h"
 #include "Globals.h"
+#include "FilesystemExceptions.h"
 #include <iostream>
 #include <sstream>
 #include <filesystem>
@@ -33,28 +34,36 @@ void Search::execute()
 
     // If the search text is empty, return, the program keeps running to allow next commands
     if (text_to_search.empty()) {
-        return;     //throw exception later
+        io.write("400 Bad Request");
+        return;    
     }
-
 
     //iterate through files in MY_FILES directory
     string files_found = "";
-    for (const string& file : fs.listFiles()) {
-        //check if file name matches text search, add it to results, no need to check content
-        if (file.find(text_to_search) != string::npos) {
-            files_found += (file + " ");
-            continue;
-        }
-        //get the content of the file and decompress it
-        string decompressed_content = compressor.decompress(fs.getFile(file)); 
+    try {
+        for (const string& file : fs.listFiles()) {
+            //check if file name matches text search, add it to results, no need to check content
+            if (file.find(text_to_search) != string::npos) {
+                files_found += (file + " ");
+                continue;
+            }
+            //get the content of the file and decompress it
+            string decompressed_content = compressor.decompress(fs.getFile(file)); 
 
-        //search for the text in the decompressed content
-        if (decompressed_content.find(text_to_search) != string::npos) {
-            files_found += (file + " ");
+            //search for the text in the decompressed content
+            if (decompressed_content.find(text_to_search) != string::npos) {
+                files_found += (file + " ");
+            }
         }
+    } catch (const FileNotFoundException&) {
+        io.write("404 Not Found");
+        return;
+    } catch (const std::exception&) {
+            io.write("400 Bad Request");
+            return;
     }
-    //if any files matched, output their names
-    if (!files_found.empty()) {
-        io.write(files_found);
-    }
+
+        io.write("200 Ok\n");
+        io.write(files_found); // can be empty
 }
+

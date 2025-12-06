@@ -17,7 +17,7 @@ class App : public Runnable
 
     public:
         App(IO&, map<string, ICommand*>&);
-        void run() override;
+        void run() const override;
 
         ~App() override = default;
 };

@@ -5,7 +5,7 @@ using namespace std;
 
 App::App(IO& ioHandler, map<string, ICommand*>& cmd) : io(ioHandler), commands(cmd) {}
 
-void App::run()
+void App::run() const
 {
     //loop forever because the program never stops
     while (true)
