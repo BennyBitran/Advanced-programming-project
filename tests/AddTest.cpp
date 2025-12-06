@@ -33,6 +33,8 @@ TEST(AddTest, CreatesCompressedFile) {
     getline(f, content); // read the first line from the file
 
     ASSERT_EQ(content, "FAKE_COMPRESSED");
+    // now add is always post
+    EXPECT_EQ(io.output, "201 Created\n");
 }
 
 // test case where no arguments are provided
@@ -46,6 +48,8 @@ TEST(AddTest, NoArgumentsProvided) {
     Add add(comp, io, fs);  // create Add command with fake components
     add.execute(); // execute the command
     ASSERT_TRUE(filesystem::is_empty(dir)); // check that no file was created
+
+    EXPECT_EQ(io.output, "400 Bad Request\n");
 }
 
 // test case where the input format is invalid, yaani extra spaces
@@ -59,4 +63,22 @@ TEST(AddTest, InvalidInputFormat) {
     add.execute(); // execute the command
     string path = dir + "/fileName"; // expected file path
     ASSERT_FALSE(filesystem::exists(path)); // check that no file was created
+
+    EXPECT_EQ(io.output, "400 Bad Request\n");
+}
+
+TEST(AddTest, FileExistsReturns400) {
+    string dir = "test_dir_add_exists";
+    createTestDir(dir);
+    
+    FileManager fs;
+    fs.addFile("file1", "initial_data");
+
+    FakeIO io("", "file1 new_data"); 
+    FakeCompress comp("FAKE");
+
+    Add add(comp, io, fs);
+    add.execute();
+
+    EXPECT_EQ(io.output, "400 Bad Request\n");
 }

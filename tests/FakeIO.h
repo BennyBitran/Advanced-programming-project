@@ -20,9 +20,12 @@ public:
     string getLine() const override {
         return line;
     }
-
+    // make FakeIO::write same like CLIIO::write but store output in 'output' string
     void write(const string& s) const override {
-        output += s;
+        if (s.empty()) {
+            return;
+        }
+        output += s + "\n";
     }
 };
 
