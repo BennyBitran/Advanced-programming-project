@@ -39,27 +39,33 @@ void Search::execute()
     }
 
     //iterate through files in MY_FILES directory
-    string files_found = "";
+    string files_found;
+    vector<string> files;
     try {
-        for (const string& file : fs.listFiles()) {
-            //check if file name matches text search, add it to results, no need to check content
-            if (file.find(text_to_search) != string::npos) {
-                files_found += (file + " ");
-                continue;
-            }
-            //get the content of the file and decompress it
-            string decompressed_content = compressor.decompress(fs.getFile(file)); 
+        files = fs.listFiles();
+        } catch (const std::exception&) {
+            io.write("500 Internal Server Error");
+            return;
+        }
+    for (const string& file : files) {
+        try {
+        //check if file name matches text search, add it to results, no need to check content
+        if (file.find(text_to_search) != string::npos) {
+            files_found += (file + " ");
+            continue;
+        }
+        //get the content of the file and decompress it
+        string decompressed_content = compressor.decompress(fs.getFile(file)); 
 
-            //search for the text in the decompressed content
-            if (decompressed_content.find(text_to_search) != string::npos) {
-                files_found += (file + " ");
-            }
+        //search for the text in the decompressed content
+        if (decompressed_content.find(text_to_search) != string::npos) {
+            files_found += (file + " ");
         }
     } catch (const FileNotFoundException&) {
         io.write("404 Not Found");
         return;
     } catch (const std::exception&) {
-            io.write("400 Bad Request");
+            io.write("500 Internal Server Error");
             return;
     }
 
