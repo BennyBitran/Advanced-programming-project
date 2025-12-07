@@ -60,16 +60,15 @@ void Search::execute()
         //search for the text in the decompressed content
         if (decompressed_content.find(text_to_search) != string::npos) {
             files_found += (file + " ");
-        }
-    } catch (const FileNotFoundException&) {
-        io.write("404 Not Found");
-        return;
-    } catch (const std::exception&) {
-            io.write("500 Internal Server Error");
+            }
+        } catch (const FileNotFoundException&) {
+            io.write("404 Not Found");
             return;
+        } catch (const std::exception&) {
+                io.write("500 Internal Server Error");
+                return;
+        }
     }
-
-        io.write("200 Ok\n");
-        io.write(files_found); // can be empty
+    io.write("200 Ok\n");
+    io.write(files_found); // can be empty
 }
-
