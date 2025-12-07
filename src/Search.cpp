@@ -39,6 +39,7 @@ void Search::execute()
             io.write("500 Internal Server Error");
             return;
         }
+    string decompressed_content;
     for (const string& file : files) {
         try {
         //check if file name matches text search, add it to results, no need to check content
@@ -49,7 +50,7 @@ void Search::execute()
         //get the content of the file and decompress it
         try
         {
-            string decompressed_content = compressor.decompress(fs.getFile(file)); 
+            decompressed_content = compressor.decompress(fs.getFile(file)); 
         }
         catch(const exception& e)
         {
