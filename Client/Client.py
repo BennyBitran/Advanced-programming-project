@@ -22,15 +22,18 @@ while msg.lower() != "quit":
 
     # Receive a line from the server
     data = b"" 
-    while not data.endswith(b"\n"):
-        chunk = client_socket.recv(1024)
+    toRead = int.from_bytes(client_socket.recv(4), byteorder='big')
+    while toRead > 0:
+        chunk = client_socket.recv(toRead)
         if not chunk:
             break # i dont know what to do here
         data += chunk
+        toRead -= len(chunk)
+   
     
     # Process and print the received line 
     line = data.decode().split("\n")[0]
-    print("Server sent: " + line)
+    print("Server sent: " + line + "\n")
 
     msg = input("Message to send: ")
 
