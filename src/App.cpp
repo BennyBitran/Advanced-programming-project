@@ -3,15 +3,17 @@
 #include "IO.h"
 using namespace std;
 
-App::App(IO& ioHandler, map<string, ICommand*>& cmd) : io(ioHandler), commands(cmd) {}
+App::App(unique_ptr<IO> ioHandler,
+         map<string, unique_ptr<ICommand>> cmdMap)
+    : io(move(ioHandler)), commands(move(cmdMap)) {}
 
-void App::run() const
+void App::run()
 {
     //loop forever because the program never stops
     while (true)
     {   
         //read next from IO (app doesnt need to know from where)
-        string cmd = io.read();
+        string cmd = io->read();
         //check if command exists in the map
         if(commands.count(cmd)) {
             try
