@@ -28,7 +28,7 @@ string SocketIO::readLine() {
     }
 }
 
-// in this func we extract the first word (command) from the client line and save the rest for getLine
+// extract first word (command) from the client line and save the rest for getLine
 string SocketIO::read() {
     string rawLine = readLine(); // read a full line from socket
     stringstream ss(rawLine);   // use stringstream to parse the line
@@ -43,18 +43,31 @@ string SocketIO:: getLine() const {
     return line;
 }
 
-// we send over bytes and check if we sucssesfully sent everything
+void SocketIO::sendData(string status) {
+    // Always force the protocol structure
+    this.write("200 Ok\n\n" + content);
+
+
+}
+
+// send over bytes and check if we sucssesfully sent everything
 void SocketIO::write(const string& text) const {
     int total = 0;
-    int remaining = text.length();
-
-    while(total < remaining) {
-        // third argument = number of bytes left to send
-        // text.c_str() = pointer to the string we need to send
-        int sent = send(sockfd, text.c_str() + total, remaining - total, 0); 
-
-        if(sent <= 0) {
+    int tot_to_send = text.length();
+    //change to little endian and send length of the package first
+    uint32_t len = htonl(tot_to_send);
+    if (send(client_sock, &len, 4, 0) <= 0) {
+        throw runtime_error("Failed to send data length to client");
+    }
+    //while we havent sent everything yet, keep sending
+    while(total < tot_to_send) {
+        int sent = send(sockfd, text.c_str() + total, tot_to_send - total, 0); 
+        //if we sent 0 bytes, that means the connection is closed
+        if(sent == 0) {
             return;
+        }
+        if (sent < 0) {
+            throw runtime_error("Failed to send data to client");
         }
         total += sent;
     }
