@@ -42,8 +42,7 @@ void Get::execute()
     try {
         string compressed = fs.getFile(fileName);
         string content    = compressor.decompress(compressed);
-        io.write("200 Ok\n");
-        io.write(content);
+        io.sendData(content);
     } catch (const FileNotFoundException&) {
         io.write("404 Not Found");
     } catch (const std::exception&) {
