@@ -53,7 +53,6 @@ void Server::start() {
     }
 }
 // Create App instance for each client
-//CHANGE TO RETURN A RUNNABLE POINTER
 unique_ptr<Runnable> Server::AppFactory(int client_fd) {
     auto io = make_unique<SocketIO>(client_fd);
 
