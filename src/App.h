@@ -6,18 +6,19 @@
 #include <map>
 #include <string>
 #include "Runnable.h"
+#include <memory>
 
 using namespace std;
 
 class App : public Runnable
 {
     private:
-    IO& io;
-    map<string, ICommand*>& commands;
+    unique_ptr<IO> io;
+    map<string, unique_ptr<ICommand>> commands;
 
     public:
-        App(IO&, map<string, ICommand*>&);
-        void run() const override;
+        App(unique_ptr<IO> ioHandler, map<string, unique_ptr<ICommand>> cmdMap);
+        void run() override;
 
         ~App() override = default;
 };
