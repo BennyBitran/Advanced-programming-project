@@ -11,7 +11,7 @@ class IO
         virtual string getLine() const = 0;
         virtual string read() = 0;
         virtual void write(const string&) const = 0;
-
+        virtual void sendData(string content) = 0;
         virtual ~IO() = default;
 };
 #endif
