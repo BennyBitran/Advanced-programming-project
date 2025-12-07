@@ -35,6 +35,6 @@ while msg.lower() != "quit":
     line = data.decode().split("\n")[0]
     print("Server sent: " + line + "\n")
 
-    msg = input("Message to send: ")
+    #msg = input("Message to send: ")
 
 client_socket.close()
