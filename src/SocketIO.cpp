@@ -1,6 +1,9 @@
 #include "SocketIO.h"
 #include <sys/socket.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <iostream>
+
 using namespace std;
 
 SocketIO::SocketIO(int fd) : sockfd(fd), buffer(""), line("") {}
@@ -43,11 +46,9 @@ string SocketIO:: getLine() const {
     return line;
 }
 
-void SocketIO::sendData(string status) {
+void SocketIO::sendData(string content) {
     // Always force the protocol structure
-    this.write("200 Ok\n\n" + content);
-
-
+    this->write("200 Ok\n\n" + content);
 }
 
 // send over bytes and check if we sucssesfully sent everything
@@ -56,7 +57,7 @@ void SocketIO::write(const string& text) const {
     int tot_to_send = text.length();
     //change to little endian and send length of the package first
     uint32_t len = htonl(tot_to_send);
-    if (send(client_sock, &len, 4, 0) <= 0) {
+    if (send(sockfd, &len, 4, 0) <= 0) {
         throw runtime_error("Failed to send data length to client");
     }
     //while we havent sent everything yet, keep sending
