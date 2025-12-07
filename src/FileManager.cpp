@@ -14,19 +14,21 @@ using namespace std;
 
 //return a vector of file names in MY_FILES directory
 vector<string> FileManager::listFiles() {
-    
-    files_lock.lock();
-
     vector<string> files_names;
+    files_lock.lock();
+    try{
     //iterate through directory entries and collect file names into names vector
     for (const auto& entry : filesystem::directory_iterator(MY_FILES)) {
         if (entry.is_regular_file()) {
             files_names.push_back(entry.path().filename().string());
         }
     }
-
     files_lock.unlock();
-    
+    } 
+    catch (const filesystem::filesystem_error& e){
+        files_lock.unlock();
+        throw runtime_error(string("Failed to list files: ") + e.what());
+    }
     return files_names;
 }
 //return the content of the file with the given name (uncompressed)
