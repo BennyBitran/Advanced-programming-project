@@ -47,6 +47,6 @@ void Get::execute()
     } catch (const FileNotFoundException&) {
         io.write("404 Not Found");
     } catch (const std::exception&) {
-        io.write("400 Bad Request");
+        io.write("500 Internal Server Error");
     }
 }

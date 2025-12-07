@@ -51,6 +51,6 @@ void Add::execute()
         io.write("400 Bad Request");
     } catch (const std::exception&) {
         // every other exception
-        io.write("400 Bad Request");
+        io.write("500 Internal Server Error");
     }
 }
