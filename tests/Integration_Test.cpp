@@ -123,7 +123,7 @@ TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
     // The code in Add.cpp checks: if (fileName.empty() || fileData.empty()) return;
     mock_input << "add only_filename_no_content"; 
     add_cmd.execute();
-    
-    // output should be empty
-    EXPECT_EQ(mock_output.str(), "") << "Command should remain silent on invalid arguments";
+    // new logic
+    EXPECT_EQ(mock_output.str(), "400 Bad Request\n")
+    << "Invalid ADD arguments should return 400 Bad Request";
 }

@@ -29,8 +29,8 @@ TEST(GetTest, OutputsDecompressedContent) {
     Get get(comp, io, fs); // create Get command with fake components
     get.execute(); // execute the command
 
-    // Verify that the output captured by FakeIO matches the expected decompressed content
-    ASSERT_EQ(io.output, "hello world");
+    // Verify that the output captured by FakeIO matches the expected decompressed content wirh proper post response
+    EXPECT_EQ(io.output, "200 Ok\n\nhello world\n");
 }
 
 // Test that the Get command handles the case where the requested file does not exist.
@@ -43,6 +43,6 @@ TEST(GetTest, FileDoesNotExist) {
     Get get(comp, io, fs);
     get.execute();
 
-    // Verify that the output indicates the file does not exist
-    ASSERT_EQ(io.output, "");
+    // Verify that the output indicates a 404 Not Found error
+    EXPECT_EQ(io.output, "404 Not Found\n");
 }
