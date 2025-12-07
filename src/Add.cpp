@@ -41,7 +41,7 @@ void Add::execute()
     
     if (fileName.empty() || fileData.empty()) {
         io.write("400 Bad Request");
-        return; //add exception throw
+        return;
     }
     //add the file to the file system
     try {

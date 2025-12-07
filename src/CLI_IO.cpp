@@ -31,4 +31,7 @@ void CLI_IO:: write(const string& content) const {
     }
     output << content << "\n";
 }
- 
+
+void CLI_IO:: sendData(string content) {
+    this->write(content);
+}
