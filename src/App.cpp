@@ -26,6 +26,9 @@ void App::run()
                 continue;
             }
         }
-        continue;
+        else {
+            io->write("400 Bad Request");
+            continue;
+        }
     }
 }
