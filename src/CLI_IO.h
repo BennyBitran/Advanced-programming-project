@@ -23,7 +23,7 @@ class CLI_IO : public IO
         string getLine() const override;
         string read() override;
         void write(const string&) const override;
-
+        void sendData(string content) override;
         ~CLI_IO() = default;
 };
 #endif
