@@ -12,26 +12,19 @@
 #include "App.h"
 #include "IFileSystem.h"
 #include "FileManager.h"
+#include "Client_Thread_Executor.h"
+#include "Runnable.h"
+#include <memory>
+#include "Server.h"
+#include <unistd.h>
 
 using namespace std;
 
 int main() {
-    CLI_IO io;
+    Client_Thread_Executor executor;
+    FileManager filesystem;
     RLE compressor;
-    FileManager fs;
-    
-    Add add(compressor, io, fs);
-    Get get(compressor, io, fs);
-    Search search(compressor, io, fs);
-
-    map<string, ICommand*> commands;
-
-    commands["add"] = &add;
-    commands["get"] = &get;
-    commands["search"] = &search;
-
-    App app(io, commands);
-    app.run();
-
+    Server server(8080, executor, compressor, filesystem);
+    server.start();
     return 0;
 }
