@@ -32,7 +32,6 @@ while msg.lower() != "quit":
    
     
     # Process and print the received line 
-    #line = data.decode().split("\n")[0]
     line = data.decode()
     print(line)
 
