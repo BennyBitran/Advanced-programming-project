@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "Globals.h"
+#include "FilesystemExceptions.h"
 #include <vector>
 #include <string>
 #include <mutex>
@@ -37,9 +38,13 @@ string FileManager::getFile(const string& name) {
 
     if (!filesystem::exists(fullPath)) {
         files_lock.unlock();    
-        throw runtime_error("File not found");
+        throw FileNotFoundException("File not found: " + name);
     }
-    ifstream fileStream(fullPath); 
+    ifstream fileStream(fullPath, ios::binary); 
+    if (!fileStream.is_open()) {
+        files_lock.unlock();
+        throw runtime_error("Failed to open file: " + name);
+    }
     
     //read the entire file content and dump it all to a string named "content"
     string content((istreambuf_iterator<char>(fileStream)), istreambuf_iterator<char>());
@@ -59,10 +64,14 @@ void FileManager::addFile(const string& fileName, const string& data) {
     //check if file already exists - for now, if it does, we do nothing
     if (filesystem::exists(file_full_path)) {
         files_lock.unlock();
-        throw runtime_error("File already exists");
+        throw FileExistsException("File already exists: " + fileName);
     }
     //create and open the file, write compressed data into it
     ofstream newFile(file_full_path);
+    if (!newFile.is_open()) {
+        files_lock.unlock();
+        throw runtime_error("Failed to create file: " + fileName);
+    }
     newFile << (data);
     newFile.close();
     files_lock.unlock();

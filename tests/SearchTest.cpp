@@ -52,5 +52,6 @@ TEST(SearchTest, NoMatchingFilenames) {
     Search search(comp, io, fs);
     search.execute();
     // Verify that the output indicates no matches found
-    ASSERT_EQ(io.output, ""); // no output expected
+    // for part 2
+    EXPECT_EQ(io.output, "200 Ok\n\n");
 }

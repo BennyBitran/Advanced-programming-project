@@ -20,6 +20,7 @@ public:
     string getFile(const string& name) override;
 
     void addFile(const string& name, const string& data) override;
+    void deleteFile(const string& name) override;
 
         void deleteFile(const string& name) override;
     

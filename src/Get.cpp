@@ -7,6 +7,7 @@
 #include "ICompress.h"
 #include "IO.h"
 #include "Globals.h"
+#include "FilesystemExceptions.h"
 
 using namespace std;
 
@@ -20,6 +21,7 @@ void Get::execute()
     
     //if there was more than one space - do nothing and move on
     if (!argument.empty() && argument[0] == ' ') {
+        io.write("400 Bad Request");
         return; //throw exception later
     }
 
@@ -34,8 +36,17 @@ void Get::execute()
 
     //if no argument provided, or there are extra arguments - return
     if (fileName.empty() || !restOfLine.empty()) {
-        return; //throw exception later
+        io.write("400 Bad Request");
+        return;
     }
-
-    io.write(compressor.decompress(fs.getFile(fileName)));
+    try {
+        string compressed = fs.getFile(fileName);
+        string content    = compressor.decompress(compressed);
+        io.write("200 Ok\n");
+        io.write(content);
+    } catch (const FileNotFoundException&) {
+        io.write("404 Not Found");
+    } catch (const std::exception&) {
+        io.write("500 Internal Server Error");
+    }
 }
