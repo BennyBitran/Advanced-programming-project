@@ -24,14 +24,6 @@ void Search::execute()
     string text_to_search;
     getline(inStream, text_to_search);
 
-    /*
-    no need to remove leading space - CLI_IO already does that
-    // Remove leading space if present 
-    if (!text_to_search.empty() && text_to_search[0] == ' ') {
-        text_to_search.erase(0, 1);
-    }
-    */
-
     // If the search text is empty, return, the program keeps running to allow next commands
     if (text_to_search.empty()) {
         io.write("400 Bad Request");
@@ -55,7 +47,14 @@ void Search::execute()
             continue;
         }
         //get the content of the file and decompress it
-        string decompressed_content = compressor.decompress(fs.getFile(file)); 
+        try
+        {
+            string decompressed_content = compressor.decompress(fs.getFile(file)); 
+        }
+        catch(const exception& e)
+        {
+            io.write("500 Internal Server Error");
+        }
 
         //search for the text in the decompressed content
         if (decompressed_content.find(text_to_search) != string::npos) {
@@ -64,11 +63,10 @@ void Search::execute()
         } catch (const FileNotFoundException&) {
             io.write("404 Not Found");
             return;
-        } catch (const std::exception&) {
+        } catch (const exception&) {
                 io.write("500 Internal Server Error");
                 return;
         }
     }
-    io.write("200 Ok\n");
-    io.write(files_found); // can be empty
+    io.sendData(files_found); // can be empty
 }

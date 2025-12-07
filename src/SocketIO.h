@@ -29,7 +29,7 @@ public:
     string read() override;          
     string getLine() const override; 
     void write(const string&) const override;
-    
+    void sendData(string content) override;
     ~SocketIO() override;
 };
 
