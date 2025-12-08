@@ -26,6 +26,14 @@ void App::run()
                 continue;
             }
         }
+        else if (cmd.empty()) {
+            //client disconnected, just end the app
+            break;
+        }
+        else {
+            //invalid command, just continue
+            io->write("400 Bad Request");
+        }
         continue;
     }
 }

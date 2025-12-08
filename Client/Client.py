@@ -14,7 +14,7 @@ server_port = int(sys.argv[2])
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((server_ip, server_port))
 
-msg = input("Message to send: ")
+msg = input()
 
 # Main loop to send and receive messages
 while msg.lower() != "quit":
@@ -32,9 +32,9 @@ while msg.lower() != "quit":
    
     
     # Process and print the received line 
-    line = data.decode().split("\n")[0]
-    print("Server sent: " + line + "\n")
+    line = data.decode()
+    print(line)
 
-    msg = input("Message to send: ")
+    msg = input()
 
 client_socket.close()
