@@ -23,6 +23,7 @@ add_executable(
   AddTest.cpp
   GetTest.cpp
   SearchTest.cpp
+  DeleteTest.cpp
   Integration_Test.cpp
   FakeCompress.h
   CLI_IO_Test.cpp
@@ -36,6 +37,7 @@ add_executable(
   ../src/Add.cpp
   ../src/Get.cpp
   ../src/Search.cpp
+  ../src/Delete.cpp
   ../src/CLI_IO.cpp
   ../src/FileManager.cpp
   ../src/SocketIO.cpp
