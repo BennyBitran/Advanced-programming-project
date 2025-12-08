@@ -69,5 +69,8 @@ void Search::execute()
                 return;
         }
     }
+    if (!files_found.empty()) {
+        files_found.pop_back(); // Removes the last space if any files were found
+    }
     io.sendData(files_found); // can be empty
 }
