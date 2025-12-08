@@ -38,14 +38,13 @@ int main(int argc, char* argv[]) {
         send(sock, toSend.c_str(), toSend.size(), 0);
 
         // receive response length from server
-
         uint32_t msg_length = 0;
-        int bytes_received = recv(sock, &msg_length, sizeof(msg_length), MSG_WAITALL);
-        if (bytes_received <= 0) {
-            // what to do if server closed connection or error
-            
+        if (recv(sock, &msg_length, sizeof(msg_length), MSG_WAITALL) <= 0) {
+            return 1;
         }
-        uint32_t toRead = ntohl(msg_length);
+        //convert into correct indian to save a number
+        msg_length = ntohl(msg_length);
+
         string data;
         data.resize(toRead);
         size_t received = 0;
@@ -53,7 +52,6 @@ int main(int argc, char* argv[]) {
             int chunk = recv(sock, &data[received], toRead - received, 0);
             if (chunk <= 0) {
                 // what to do if server closed connection or error
-                
                 break;
             }
             received += chunk;
@@ -63,14 +61,9 @@ int main(int argc, char* argv[]) {
             break;
         }
         cout << data << endl;
-
         // send another message to continue
-}
+    }
     close(sock);
     return 0;
-
-    
-    
-   
 
 }
