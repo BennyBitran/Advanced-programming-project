@@ -46,17 +46,17 @@ int main(int argc, char* argv[]) {
         msg_length = ntohl(msg_length);
 
         string data;
-        data.resize(toRead);
+        data.resize(msg_length);
         size_t received = 0;
-        while (received < toRead) {
-            int chunk = recv(sock, &data[received], toRead - received, 0);
+        while (received < msg_length) {
+            int chunk = recv(sock, &data[received], msg_length - received, 0);
             if (chunk <= 0) {
                 // what to do if server closed connection or error
                 break;
             }
             received += chunk;
         }
-        if (received < toRead) {
+        if (received < msg_length) {
             // incomplete message, i dont know what to do here
             break;
         }
