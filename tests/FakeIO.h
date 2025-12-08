@@ -11,7 +11,7 @@ public:
     mutable std::string output; // collects write()
 
     FakeIO(const string& cmd, const string& rest)
-        : command(cmd), line(rest) {}
+        : command(cmd), line(rest), output("") {}
 
     string read() override {
         return command;
@@ -26,6 +26,9 @@ public:
             return;
         }
         output += s + "\n";
+    }
+    void sendData(string content) override {
+        output += "200 Ok\n\n" + content; // same like Socket_IO
     }
 };
 
