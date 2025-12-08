@@ -121,8 +121,14 @@ TEST(SocketIOTest, WriteSendsAllBytes) {
     char buf[128];
     int n = recv(sp[1], buf, sizeof(buf), 0);
     ASSERT_GT(n, 0);
+    // read length big endian
+    uint32_t len = ((unsigned char)buf[0] << 24) |
+                   ((unsigned char)buf[1] << 16) |
+                   ((unsigned char)buf[2] << 8)  |
+                   (unsigned char)buf[3];
 
-    string received(buf, n);
+    EXPECT_EQ(len, text.size());
+    string received(buf + 4, n - 4);
     EXPECT_EQ(received, text);
 
     close(sp[1]);
