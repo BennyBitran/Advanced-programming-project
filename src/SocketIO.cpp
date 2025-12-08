@@ -3,37 +3,58 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
 SocketIO::SocketIO(int fd) : sockfd(fd), buffer(""), line("") {}
 
 string SocketIO::readLine() {
+    bool received = false;
     char tmp[1024];
     while (true) {
         // check if we already have a full line in the buffer
         int pos = buffer.find('\n');
-        //if yes, extract and return the line
-        if (pos != std::string::npos) {
+        // extract and return the line
+        if (pos != string::npos) {
             string rawLine = buffer.substr(0, pos);
             buffer.erase(0, pos + 1);
             return rawLine;
         }
-        // try to receive more data
+        // keep receiving data from socket until \n
         int n = recv(sockfd, tmp, sizeof(tmp), 0);
-        // no more data - return what's left
-        if (n <= 0) {
+
+        // error while receiving
+        if (n < 0) {
+            throw runtime_error("Failed to receive data from client");
+        }
+
+        // could be either end of data or connection closed (client disconnected)
+        if (n == 0) {
+            // if we never received any data, connection is closed
+            if (!received) {
+                throw runtime_error("Connection closed by client");
+            }
             string leftOver = buffer;
             buffer.clear();
             return leftOver;
         }
+        // flag data received at least once
+        received = true;
         buffer.append(tmp, n);  //add received data to buffer
     }
 }
 
 // extract first word (command) from the client line and save the rest for getLine
 string SocketIO::read() {
-    string rawLine = readLine(); // read a full line from socket
+    string rawLine;
+    try {
+        rawLine = readLine(); // read a full line from socket
+    }
+    catch (...) {
+        throw;  // rethrow any exceptions
+    }
+
     stringstream ss(rawLine);   // use stringstream to parse the line
     string command; 
     ss >> command; // Extract the first word as command
