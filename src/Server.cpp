@@ -6,6 +6,7 @@
 #include "Add.h"
 #include "Get.h"
 #include "Search.h"
+#include "Delete.h"
 #include <map>
 #include <string>
 #include <memory>
@@ -61,7 +62,7 @@ unique_ptr<Runnable> Server::AppFactory(int client_fd) {
     commands["post"] = make_unique<Add>(compressor, *io, fs);
     commands["get"] = make_unique<Get>(compressor, *io, fs);
     commands["search"] = make_unique<Search>(compressor, *io, fs);
-    //commands["delete"] = make_unique<Delete>(compressor, *io, fs);
+    commands["delete"] = make_unique<Delete>(compressor, *io, fs);
     //move the unique pointers to the app constructor
     return make_unique<App>(move(io), move(commands));
 }
