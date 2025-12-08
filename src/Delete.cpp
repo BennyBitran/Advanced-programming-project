@@ -14,7 +14,8 @@ void Delete::execute() {
 
     // Remove a single leading space if present
     if (!argument.empty() && argument[0] == ' ') {
-        argument = argument.substr(1);
+        io.write("400 Bad Request");
+        return;
     }
 
     // First token should be the file name
