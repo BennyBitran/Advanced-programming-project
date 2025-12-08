@@ -87,8 +87,13 @@ void FileManager::deleteFile(const string& fileName) {
     string fullPath = MY_FILES + "/" + fileName;
 
     if (!filesystem::exists(fullPath)) {
-        throw runtime_error("File not found");
+        throw FileNotFoundException("File not found: " + fileName);
     }
 
-    filesystem::remove(fullPath);
+    try {
+        filesystem::remove(fullPath);
+    } catch (const filesystem::filesystem_error& e) {
+        // Any failure to remove is turned into runtime_error -> 500
+        throw runtime_error(string("Failed to delete file: ") + e.what());
+    }
 }
