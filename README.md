@@ -13,24 +13,30 @@ To build and run locally: CMake + GCC
 FILES_DIR=... (export this variable in the wanted directory when run locally)
 
 
-## Usage:
-after build and run simply use these commands format:
-to add a file just write:
-post [file name] [file content]
+## APP USAGE:
 
-to get a file content:
-get [file name]
+### to add a file:
+POST [file_name] [file_content]
 
-to search which files contain a certain content:
-search [text to serach]
+### to get file:
+GET [file_name]
 
-to delete a file:
-delete [file name]
+### to search file content or file name:
+SEARCH [content]
 
-# NOTE: careful to put exactly 1 space between the command and the next argument
+### to demete a file:
+DELETE [file_name]
 
 
-##  Build and Run
+### NOTE: careful to put exactly 1 space between the command and the next argument
+
+
+#  Build and Run
+
+### Client side:
+to run the clients you must ensure server is running on the ip and port you pass in the command line arguments. if you run server locally just do ip = 127.0.0.1 port = 8080
+
+### for client only side run instructions - go to ./client/README.md
 
 ### Option 1: Docker Compose (Recommended)
 
@@ -56,6 +62,7 @@ docker-compose run --rm client_cpp
 
 **3. Run Integration Tests**
 Builds and runs the Google Test suite against the containerized server.
+this command will also run the client in the background. so no need to run the server before this.
 
 ```bash
 docker-compose up --build tests
