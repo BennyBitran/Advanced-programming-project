@@ -127,9 +127,9 @@ TEST(SocketIOTest, WriteSendsAllBytes) {
                    ((unsigned char)buf[2] << 8)  |
                    (unsigned char)buf[3];
 
-    EXPECT_EQ(len, text.size());
+    EXPECT_EQ(len, text.size() + 1); // +1 for the added newline
     string received(buf + 4, n - 4);
-    EXPECT_EQ(received, text);
+    EXPECT_EQ(received, text + "\n");
 
     close(sp[1]);
     close(sp[0]);
