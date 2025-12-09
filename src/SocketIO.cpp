@@ -55,6 +55,8 @@ string SocketIO::read() {
         throw;  // rethrow any exceptions
     }
 
+    this->line.clear(); // clear previous line content
+
     stringstream ss(rawLine);   // use stringstream to parse the line
     string command; 
     ss >> command; // Extract the first word as command
