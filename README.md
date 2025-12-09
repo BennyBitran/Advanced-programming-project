@@ -3,6 +3,14 @@ this repository is our project and its main objective is to start the implementa
 this app (for now) implements the ability to add files, get their content and search content in all files.
 the app compresses the data into files and saves them in a folder passed by an environment vriable (that needs to be exported into FILES_DIR)
 
+## Part 2 changes
+Fortunately, we put a lot of effort and thought on building the structure of part 1 such that it will be closed for changes and open for extensions. thanks to that, the following did not force us to change our code:
+1. the fact that commands names changed
+2. the fact that new commands were added
+3. the fact that we moved from cli to socket
+however, we are only humans after all, so we didnt think of everything. we had to implement a new level, the IfileSystem interface, which allowed us to handle mutex in this part more cleanly. in addition, we had to change a bit in order to handle the commands outputs more correctly.
+overall, we believe our implemntation was rather fine SOLID wise, and we certainley learned some valuable lessons
+
 
 ## Requirements:
 Docker
@@ -42,12 +50,8 @@ to run the clients you must ensure server is running on the ip and port you pass
 
 This is the easiest way to run the project.
 
-**1.Build project and Run the Server**
+**1. Run the Server**
 Starts the server on `127.0.0.1:8080`.
-
-
-
-docker-compose build
 
 ```bash
 docker-compose up --build server
