@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             // incomplete message, i dont know what to do here
             break;
         }
-        cout << data << endl;
+        cout << data;
         // send another message to continue
     }
     close(sock);

@@ -48,7 +48,7 @@ void Add::execute()
         fs.addFile(fileName, compressor.compress(fileData));
         io.write("201 Created");
     } catch (const FileExistsException&) {
-        io.write("400 Bad Request");
+        io.write("404 Not Found");
     } catch (const std::exception&) {
         // every other exception
         io.write("500 Internal Server Error");
