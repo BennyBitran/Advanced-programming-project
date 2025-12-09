@@ -4,13 +4,6 @@ this app (for now) implements the ability to add files, get their content and se
 the app compresses the data into files and saves them in a folder passed by an environment vriable (that needs to be exported into FILES_DIR)
 
 
-## PART 2
-our previous code was NOT "closed to changes - open to extension" enough since we (with the stubbornness of Benny) didn't implement an interface for a File System that will handle the app's file management.
-this change is important for a few reasons:
-first and foremost, if in the future we don't want a folder file system but anything else, let's say a database, we would have to change ALL our current implementations, forcing changes into our current code.
-and second, more relevant to this specific part of the project - locking each part of the code that accesses the files is just ugly and unreliable since we would need a global mutex lock, instead of simply having a file system that makes sure the access to the files happens exclusively for each thread.
-
-
 ## Requirements:
 Docker
 To build and run locally: CMake + GCC
@@ -23,68 +16,82 @@ FILES_DIR=... (export this variable in the wanted directory when run locally)
 ## Usage:
 after build and run simply use these commands format:
 to add a file just write:
-add [file name] [file content]
+post [file name] [file content]
 
 to get a file content:
 get [file name]
 
 to search which files contain a certain content:
 search [text to serach]
+
+to delete a file:
+delete [file name]
+
 # NOTE: careful to put exactly 1 space between the command and the next argument
 
-### HOW TO BUILD AND RUN:
 
+##  Build and Run
 
-## to run locally do:
-run: 
+### Option 1: Docker Compose (Recommended)
 
-1. mkdir -p files
+This is the easiest way to run the project.
 
-2. export FILES_DIR="$(pwd)/files"
+**1. Run the Server**
+Starts the server on `127.0.0.1:8080`.
 
-3. mkdir build
+```bash
+docker-compose up --build server
+```
 
-4. cd build
+**2. Run the Clients**
+You can run the Python or C++ client in a separate terminal.
 
-5. cmake .. && make
+```bash
+# Run Python Client
+docker-compose run --rm client_py
 
-6. ./runProject
+# Run C++ Client
+docker-compose run --rm client_cpp
+```
 
+**3. Run Integration Tests**
+Builds and runs the Google Test suite against the containerized server.
 
-## to run from docker:
-go to root of the project
+```bash
+docker-compose up --build tests
+```
 
-run:  
+**4. Stop Everything**
 
-1. mkdir -p files
+```bash
+docker-compose down
+```
 
-2. docker build -t myproj .
+-----
 
-3. docker run -it -v "$(pwd)/files:/usr/files" -e FILES_DIR=/usr/files myproj
+### Option 2: Run Locally
 
+If you prefer to run locally
 
-## to run tests from Docker:
-cd to project root
+**1. Run the Server**
 
-run:
+```bash
+mkdir -p files build
+export FILES_DIR="$(pwd)/files"
+cd build
+cmake .. && make
+./runProject
+```
 
-1. docker build -f tests/Dockerfile -t gtests . 
+**2. Run the Tests**
 
-2. docker run gtests
-
-## to run tests locally:
-run:
-
-1. export FILES_DIR="$(pwd)/files" 
-
-2. cd tests
-
-3. mkdir build
-
-4. cmake .. && make
-
-5. ./runTests
-
+```bash
+export FILES_DIR="$(pwd)/files" 
+cd tests
+mkdir -p build && cd build
+cmake .. && make
+./runTests
+```
 
 ## authors:
 Gilad Tenenbaum
