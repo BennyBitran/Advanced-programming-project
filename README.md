@@ -42,8 +42,12 @@ to run the clients you must ensure server is running on the ip and port you pass
 
 This is the easiest way to run the project.
 
-**1. Run the Server**
+**1.Build project and Run the Server**
 Starts the server on `127.0.0.1:8080`.
+
+
+
+docker-compose build
 
 ```bash
 docker-compose up --build server
@@ -103,7 +107,7 @@ cmake .. && make
 ## authors:
 Gilad Tenenbaum
 
-Ilya vladimirskiy
+Ilya Vladimirskiy
 
 Benny Bitran
 

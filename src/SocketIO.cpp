@@ -76,8 +76,14 @@ void SocketIO::sendData(string content) {
 
 // send over bytes and check if we sucssesfully sent everything
 void SocketIO::write(const string& text) const {
+    // ensure newline at the end for non-empty messages
+    std::string msg = text;
+    if (!msg.empty() && msg.back() != '\n') {
+        msg.push_back('\n');
+    }
+
     int total = 0;
-    int tot_to_send = text.length();
+    int tot_to_send = msg.length();
     //change to little endian and send length of the package first
     uint32_t len = htonl(tot_to_send);
     if (send(sockfd, &len, 4, 0) <= 0) {
@@ -85,7 +91,7 @@ void SocketIO::write(const string& text) const {
     }
     //while we havent sent everything yet, keep sending
     while(total < tot_to_send) {
-        int sent = send(sockfd, text.c_str() + total, tot_to_send - total, 0); 
+        int sent = send(sockfd, msg.c_str() + total, tot_to_send - total, 0); 
         //if we sent 0 bytes, that means the connection is closed
         if(sent == 0) {
             return;
