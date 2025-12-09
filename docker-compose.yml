@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # MAIN SERVER
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cpp_server
+    ports:
+      - "8080:8080"             #map host port 8080 to container port 8080
+    volumes:
+      - ./files:/usr/files      #map to local files folder
+    environment:
+      - FILES_DIR=/usr/files    #set the environment variable
+    stdin_open: true            #this line makes it possible to interact with the container
+    tty: true
+
+  # TESTS
+  tests:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    container_name: cpp_tests
+    network_mode: service:server
+    depends_on:
+      - server
+
+  # C++ CLIENT
+  client_cpp:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: cpp_client_runner
+    network_mode: service:server
+    # Running the compiled C++ client
+    command: ./cpp_client 127.0.0.1 8080
+    stdin_open: true
+    tty: true
+
+  # PYTHON CLIENT
+  client_py:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    container_name: py_client_runner
+    network_mode: service:server
+    # Running the Python client
+    command: python3 Client.py 127.0.0.1 8080
+    stdin_open: true
+    tty: true
