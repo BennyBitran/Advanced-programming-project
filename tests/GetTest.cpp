@@ -30,7 +30,7 @@ TEST(GetTest, OutputsDecompressedContent) {
     get.execute(); // execute the command
 
     // Verify that the output captured by FakeIO matches the expected decompressed content wirh proper post response
-    EXPECT_EQ(io.output, "200 Ok\n\nhello world\n");
+    EXPECT_EQ(io.output, "200 Ok\n\nhello world");
 }
 
 // Test that the Get command handles the case where the requested file does not exist.

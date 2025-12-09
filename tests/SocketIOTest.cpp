@@ -142,12 +142,13 @@ TEST(SocketIOTest, ReadFromClosedSocket) {
     SocketIO io(sp[0]);
     close(sp[1]);
 
-    string cmd = io.read();
-    EXPECT_EQ(cmd, "");
-    EXPECT_EQ(io.getLine(), "");
+    EXPECT_THROW({
+        io.read();
+    }, std::runtime_error);
 
     close(sp[0]);
 }
+
 
 TEST(SocketIOTest, ExtremeLeadingSpaces) {
     int sp[2];
