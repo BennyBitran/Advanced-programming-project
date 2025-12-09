@@ -32,7 +32,7 @@ while msg.lower() != "quit":
     
     # Process and print the received line 
     line = data.decode()
-    print(line)
+    print(line, end='')
 
     msg = input()
 
