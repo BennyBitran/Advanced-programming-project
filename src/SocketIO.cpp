@@ -76,6 +76,12 @@ void SocketIO::sendData(string content) {
 
 // send over bytes and check if we sucssesfully sent everything
 void SocketIO::write(const string& text) const {
+    // ensure newline at the end for non-empty messages
+    std::string msg = text;
+    if (!msg.empty() && msg.back() != '\n') {
+        msg.push_back('\n');
+    }
+
     int total = 0;
     int tot_to_send = text.length();
     //change to little endian and send length of the package first
