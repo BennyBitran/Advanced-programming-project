@@ -8,12 +8,12 @@ services:
       dockerfile: Dockerfile
     container_name: cpp_server
     ports:
-      - "8080:8080"             #map host port 8080 to container port 8080
+      - "8080:8080"
     volumes:
-      - ./files:/usr/files      #map to local files folder
+      - ./files:/usr/files
     environment:
-      - FILES_DIR=/usr/files    #set the environment variable
-    stdin_open: true            #this line makes it possible to interact with the container
+      - FILES_DIR=/usr/files   
+    stdin_open: true
     tty: true
 
   # TESTS
