@@ -3,7 +3,6 @@ import socket
 
 # Check for correct number of command-line arguments
 if len(sys.argv) < 3:
-    print("Usage: python pyClient.py <server_ip> <server_port>")
     sys.exit(1)
 
 # Parse command-line arguments
