@@ -7,7 +7,9 @@
 #include <unistd.h>
 
 using namespace std;
-
+//---------------------------------IMPORTANT NOTE-----------------------------//
+//-------------RUN SERVER ON A DIFFERENT TERMINAL IF RUN LOCALLY--------------//
+//-------------NO NEED IF YOU USE DOCKER - COMPOSE ---------------------------//
 // Helper function to connect to server
 int connectToServer() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
