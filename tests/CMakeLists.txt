@@ -31,6 +31,7 @@ add_executable(
   FakeIO.h
   helpers.h
   helpers.cpp
+  ServerIntegrationTests.cpp
 
   ../src/RLE.cpp 
   ../src/Globals.cpp
