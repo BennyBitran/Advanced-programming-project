@@ -103,7 +103,7 @@ cmake .. && make
 ## authors:
 Gilad Tenenbaum
 
-Ilya vladimirskiy
+Ilya Vladimirskiy
 
 Benny Bitran
 
