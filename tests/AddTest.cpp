@@ -67,7 +67,7 @@ TEST(AddTest, InvalidInputFormat) {
     EXPECT_EQ(io.output, "400 Bad Request\n");
 }
 
-TEST(AddTest, FileExistsReturns400) {
+TEST(AddTest, FileExistsReturns404) {
     string dir = "test_dir_add_exists";
     createTestDir(dir);
     
@@ -80,5 +80,5 @@ TEST(AddTest, FileExistsReturns400) {
     Add add(comp, io, fs);
     add.execute();
 
-    EXPECT_EQ(io.output, "400 Bad Request\n");
+    EXPECT_EQ(io.output, "404 Not Found\n");
 }
