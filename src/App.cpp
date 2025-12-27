@@ -5,8 +5,7 @@
 
 using namespace std;
 
-App::App(unique_ptr<IO> ioHandler,
-         map<string, unique_ptr<ICommand>>& cmdMap)
+App::App(unique_ptr<IO> ioHandler, map<string, unique_ptr<ICommand>>& cmdMap)
     : io(move(ioHandler)), commands(cmdMap) {}
 
 void App::run()
