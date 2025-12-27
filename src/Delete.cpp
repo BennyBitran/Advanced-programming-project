@@ -4,11 +4,11 @@
 
 using namespace std;
 
-Delete::Delete(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
-    : compressor(comp), io(ioHandler), fs(fileSystem) {}
+Delete::Delete(const ICompress& comp, IFileSystem& fileSystem)
+    : compressor(comp), fs(fileSystem) {}
 
 // DELETE [file name]
-void Delete::execute() {
+void Delete::execute(IO& io) {
     // Read the argument part of the command from IO
     string argument = io.getLine();
 

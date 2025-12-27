@@ -6,8 +6,8 @@
 using namespace std;
 
 App::App(unique_ptr<IO> ioHandler,
-         map<string, unique_ptr<ICommand>> cmdMap)
-    : io(move(ioHandler)), commands(move(cmdMap)) {}
+         map<string, unique_ptr<ICommand>>& cmdMap)
+    : io(move(ioHandler)), commands(cmdMap) {}
 
 void App::run()
 {
@@ -28,7 +28,7 @@ void App::run()
             try
             {
                 //execute the command found in the map
-                commands[cmd]->execute();
+                commands[cmd]->execute(*io);
             }
             //if command not found, or anything goes wrong - just continue
             catch(...) {

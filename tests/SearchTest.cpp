@@ -31,8 +31,8 @@ TEST(SearchTest, FindsAndOutputsMatchingFilenames) {
     // Set up FakeIO to simulate user input and capture output
     FakeIO io = createFakeIO("", "ap"); // simulate SEARCH command with argument "ap"
     FileManager fs;
-    Search search(comp, io, fs); // create Search command with real compressor and fake IO
-    search.execute(); // execute the command
+    Search search(comp, fs); // create Search command with real compressor and fake IO
+    search.execute(io); // execute the command
     // Verify that the output captured by FakeIO contains the expected filenames
     ASSERT_NE(io.output.find("apple.txt"), string::npos); // should find apple.txt
     ASSERT_NE(io.output.find("tapuz.txt"), string::npos); // should find tapuz.txt
@@ -49,8 +49,8 @@ TEST(SearchTest, NoMatchingFilenames) {
     file1.close();
     FakeIO io = createFakeIO("", "xyz"); // simulate SEARCH command with non-matching argument
     FileManager fs;
-    Search search(comp, io, fs);
-    search.execute();
+    Search search(comp, fs);
+    search.execute(io);
     // Verify that the output indicates no matches found
     // for part 2
     EXPECT_EQ(io.output, "200 Ok\n\n");

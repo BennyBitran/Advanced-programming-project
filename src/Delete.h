@@ -10,12 +10,11 @@
 class Delete : public ICommand {
 private:
     const ICompress& compressor; // i added for symmetry with other commands but not sure
-    IO& io;
     IFileSystem& fs;
 
 public:
-    Delete(const ICompress&, IO&, IFileSystem&);
-    void execute() override;
+    Delete(const ICompress&, IFileSystem&);
+    void execute(IO& io) override;
     ~Delete() override = default;
 };
 

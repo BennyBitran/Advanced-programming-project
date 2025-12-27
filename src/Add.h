@@ -11,12 +11,11 @@ class Add : public ICommand
 {
     private:
     const ICompress& compressor;
-    IO& io;
     IFileSystem& fs;
 
     public:
-        Add(const ICompress&, IO&, IFileSystem&);
-        void execute() override;
+        Add(const ICompress&, IFileSystem&);
+        void execute(IO& io) override;
 
         ~Add() override = default;
 };
