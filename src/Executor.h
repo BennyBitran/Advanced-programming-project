@@ -11,7 +11,7 @@ class Executor
 {
     public:
 
-        virtual void execute(unique_ptr<Runnable> command) = 0;
+        virtual void execute(unique_ptr<Runnable> task) = 0;
 
         virtual ~Executor() = default;
         

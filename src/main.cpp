@@ -14,6 +14,7 @@
 #include "IFileSystem.h"
 #include "FileManager.h"
 #include "Client_Thread_Executor.h"
+#include "ThreadPool.h"
 #include "Runnable.h"
 #include <memory>
 #include "Server.h"
@@ -22,7 +23,7 @@
 using namespace std;
 
 int main() {
-    Client_Thread_Executor executor;
+    ThreadPool executor(2);
     FileManager fs;
     RLE compressor;
 
