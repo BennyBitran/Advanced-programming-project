@@ -11,12 +11,11 @@ class Get : public ICommand
 {
     private:
     const ICompress& compressor;
-    IO& io;
     IFileSystem& fs;
     
     public:
-        Get(const ICompress&, IO&, IFileSystem&);
-        virtual void execute() override;
+        Get(const ICompress&, IFileSystem&);
+        virtual void execute(IO& io) override;
 
         virtual ~Get() = default;
 };

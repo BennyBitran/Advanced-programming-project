@@ -51,14 +51,14 @@ TEST_F(IntegrationTest, FullFlow_AddAndGet) {
     RLE real_compressor;
     FileManager fs;
     // real dependecies
-    Add add_cmd(real_compressor, real_io, fs);
-    Get get_cmd(real_compressor, real_io, fs);
+    Add add_cmd(real_compressor, fs);
+    Get get_cmd(real_compressor, fs);
 
     // execute ADD
     // simulate input for ADD
     mock_input << "add file1 hello_world"; 
     real_io.read();
-    add_cmd.execute();
+    add_cmd.execute(real_io);
 
     // check if file exists physically
     ASSERT_TRUE(filesystem::exists(test_dir + "/file1"));
@@ -69,7 +69,7 @@ TEST_F(IntegrationTest, FullFlow_AddAndGet) {
     mock_input.clear();
     mock_input << "get file1\n"; 
     real_io.read();
-    get_cmd.execute();
+    get_cmd.execute(real_io);
 
     // expect "hello_world" followed by newline from Get.cpp logic
     EXPECT_NE(mock_output.str().find("hello_world\n"), string::npos);
@@ -84,8 +84,8 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
     RLE real_compressor;
     FileManager fs;
     // real dependecies
-    Add add_cmd(real_compressor, real_io, fs);
-    Get get_cmd(real_compressor, real_io, fs);
+    Add add_cmd(real_compressor, fs);
+    Get get_cmd(real_compressor, fs);
 
     // create a string that will result in a byte 10 (newline) in RLE
     // RLE writes [count][char].
@@ -94,14 +94,14 @@ TEST_F(IntegrationTest, BinaryDataSafety_NewlineByte) {
     
     mock_input << "add tricky_file " << tricky_string;
     real_io.read();
-    add_cmd.execute();
+    add_cmd.execute(real_io);
 
     // try to GET it back
     mock_input.str(""); 
     mock_input.clear();
     mock_input << "git tricky_file";
     real_io.read();
-    get_cmd.execute();
+    get_cmd.execute(real_io);
 
     // uf Get.cpp uses getline, it might fail here because it hits the 10 byte
     // and thinks the line ended, returning incomplete data.
@@ -117,12 +117,12 @@ TEST_F(IntegrationTest, InvalidCommand_IsIgnoredSilently) {
     RLE real_compressor;
     FileManager fs;
     
-    Add add_cmd(real_compressor, real_io, fs);
+    Add add_cmd(real_compressor, fs);
     
     // Case: Add with missing arguments (e.g. just "add")
     // The code in Add.cpp checks: if (fileName.empty() || fileData.empty()) return;
     mock_input << "add only_filename_no_content"; 
-    add_cmd.execute();
+    add_cmd.execute(real_io);
     // new logic
     EXPECT_EQ(mock_output.str(), "400 Bad Request\n")
     << "Invalid ADD arguments should return 400 Bad Request";

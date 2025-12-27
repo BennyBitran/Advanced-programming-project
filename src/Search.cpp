@@ -12,11 +12,11 @@
 
 using namespace std;
 
-Search::Search(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
-         : compressor(comp), io(ioHandler), fs(fileSystem) {}  
+Search::Search(const ICompress& comp, IFileSystem& fileSystem)
+         : compressor(comp), fs(fileSystem) {}  
 
 
-void Search::execute()
+void Search::execute(IO& io)
 {
     // Read the entire line containing the text to search for
     string line = io.getLine();
