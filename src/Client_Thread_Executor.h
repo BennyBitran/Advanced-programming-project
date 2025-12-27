@@ -13,7 +13,7 @@ class Client_Thread_Executor : public Executor
         
         Client_Thread_Executor();
 
-        void execute(unique_ptr<Runnable> command) override;
+        void execute(unique_ptr<Runnable> task) override;
 
         ~Client_Thread_Executor() = default;
         

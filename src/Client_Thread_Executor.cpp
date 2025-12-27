@@ -7,9 +7,9 @@ using namespace std;
 
 Client_Thread_Executor::Client_Thread_Executor() {}
 
-void Client_Thread_Executor::execute(unique_ptr<Runnable> command) {
+void Client_Thread_Executor::execute(unique_ptr<Runnable> task) {
     //now cmd is the unique pointer to the runnable object, and run on the new thread
-    thread t([cmd = std::move(command)]() {
+    thread t([cmd = move(task)]() {
         cmd->run();
     });
     /* detach the thread from the thread group so they can run independently */
