@@ -9,11 +9,10 @@
 
 class Delete : public ICommand {
 private:
-    const ICompress& compressor; // i added for symmetry with other commands but not sure
     IFileSystem& fs;
 
 public:
-    Delete(const ICompress&, IFileSystem&);
+    Delete(IFileSystem&);
     void execute(IO& io) override;
     ~Delete() override = default;
 };
