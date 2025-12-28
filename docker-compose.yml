@@ -15,6 +15,7 @@ services:
       - FILES_DIR=/usr/files   
     stdin_open: true
     tty: true
+    command: ./runProject 8080 5  #arguments for main
 
   # TESTS
   tests:

@@ -95,8 +95,10 @@ mkdir -p files build
 export FILES_DIR="$(pwd)/files"
 cd build
 cmake .. && make
-./runProject
+./runProject 8080 5
 ```
+(or choose your prefered port and number of working threads)
+
 
 **2. Run the Tests**
 
