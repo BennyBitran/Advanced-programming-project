@@ -9,20 +9,21 @@
 #include "ICommand.h"
 #include "App.h"
 
+using namespace std;
+
 class Server {
 private:
     int port;
     int listen_sock;
     Executor& executor;  
-    const ICompress& compressor;
-    IFileSystem& fs;
+    map<string, unique_ptr<ICommand>>& commands;
 
     void bindAndListen();
     int acceptClient() const;
     unique_ptr<Runnable> AppFactory(int client_fd);
 
 public:
-    Server(int port, Executor& exec, ICompress& comp, IFileSystem& filesystem);
+    Server(int port, Executor& exec, map<string, unique_ptr<ICommand>>& cmdMap);
     void start();
     ~Server();
 };

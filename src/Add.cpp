@@ -12,10 +12,10 @@
 
 using namespace std;
 
-Add::Add(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
-         : compressor(comp), io(ioHandler), fs(fileSystem) {}  
+Add::Add(const ICompress& comp, IFileSystem& fileSystem)
+         : compressor(comp), fs(fileSystem) {}  
 
-void Add::execute() 
+void Add::execute(IO& io) 
 {
     string line = io.getLine();
     if (line.empty()) {

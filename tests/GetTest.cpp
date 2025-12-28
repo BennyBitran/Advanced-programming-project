@@ -26,8 +26,8 @@ TEST(GetTest, OutputsDecompressedContent) {
     FakeIO io = createFakeIO("", "file1"); // simulate GET command with argument "file1"
     FakeCompress comp = createFakeCompress("hello world"); // simulate decompression output
     FileManager fs;
-    Get get(comp, io, fs); // create Get command with fake components
-    get.execute(); // execute the command
+    Get get(comp, fs); // create Get command with fake components
+    get.execute(io); // execute the command
 
     // Verify that the output captured by FakeIO matches the expected decompressed content wirh proper post response
     EXPECT_EQ(io.output, "200 Ok\n\nhello world");
@@ -40,8 +40,8 @@ TEST(GetTest, FileDoesNotExist) {
     FakeIO io = createFakeIO("", "nonexistent_file"); // simulate GET command with non-existent file 
     FakeCompress comp = createFakeCompress(""); // decompression won't be called
     FileManager fs;
-    Get get(comp, io, fs);
-    get.execute();
+    Get get(comp, fs);
+    get.execute(io);
 
     // Verify that the output indicates a 404 Not Found error
     EXPECT_EQ(io.output, "404 Not Found\n");
