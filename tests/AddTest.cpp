@@ -22,8 +22,8 @@ TEST(AddTest, CreatesCompressedFile) {
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); //simulate compression output
     FileManager fs;
 
-    Add add(comp, io, fs); // create Add command with fake components
-    add.execute(); // let the magic begin
+    Add add(comp, fs); // create Add command with fake components
+    add.execute(io); // let the magic begin
 
     string path = dir + "/file1"; // expected file path
     ASSERT_TRUE(filesystem::exists(path)); // check that file was created
@@ -45,8 +45,8 @@ TEST(AddTest, NoArgumentsProvided) {
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
     FileManager fs;
 
-    Add add(comp, io, fs);  // create Add command with fake components
-    add.execute(); // execute the command
+    Add add(comp, fs);  // create Add command with fake components
+    add.execute(io); // execute the command
     ASSERT_TRUE(filesystem::is_empty(dir)); // check that no file was created
 
     EXPECT_EQ(io.output, "400 Bad Request\n");
@@ -59,8 +59,8 @@ TEST(AddTest, InvalidInputFormat) {
     FakeIO io = createFakeIO("", " fileName hello"); // simulate ADD command with invalid input
     FakeCompress comp = createFakeCompress("FAKE_COMPRESSED"); // simulate compression output
     FileManager fs;
-    Add add(comp, io, fs); // create Add command with fake components
-    add.execute(); // execute the command
+    Add add(comp, fs); // create Add command with fake components
+    add.execute(io); // execute the command
     string path = dir + "/fileName"; // expected file path
     ASSERT_FALSE(filesystem::exists(path)); // check that no file was created
 
@@ -77,8 +77,8 @@ TEST(AddTest, FileExistsReturns404) {
     FakeIO io("", "file1 new_data"); 
     FakeCompress comp("FAKE");
 
-    Add add(comp, io, fs);
-    add.execute();
+    Add add(comp, fs);
+    add.execute(io);
 
     EXPECT_EQ(io.output, "404 Not Found\n");
 }

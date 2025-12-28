@@ -11,10 +11,10 @@
 
 using namespace std;
 
-Get::Get(const ICompress& comp, IO& ioHandler, IFileSystem& fileSystem)
-         : compressor(comp), io(ioHandler), fs(fileSystem) {} 
+Get::Get(const ICompress& comp, IFileSystem& fileSystem)
+         : compressor(comp), fs(fileSystem) {} 
 
-void Get::execute()
+void Get::execute(IO& io)
 {
     //get the full command line (without the "get" part)
     string argument = io.getLine();

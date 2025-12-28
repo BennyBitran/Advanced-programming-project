@@ -11,12 +11,11 @@ class Search : public ICommand
 {
     private:
     const ICompress& compressor;
-    IO& io;
     IFileSystem& fs;
     
     public:
-        Search(const ICompress&, IO&, IFileSystem&);
-        virtual void execute() override;
+        Search(const ICompress&, IFileSystem&);
+        virtual void execute(IO& io) override;
 
         virtual ~Search() = default;
 };

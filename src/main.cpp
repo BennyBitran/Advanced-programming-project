@@ -7,6 +7,7 @@
 #include "Add.h"
 #include "Get.h"
 #include "Search.h"
+#include "Delete.h"
 #include "ICompress.h"
 #include "RLE.h"
 #include "App.h"
@@ -22,9 +23,18 @@ using namespace std;
 
 int main() {
     Client_Thread_Executor executor;
-    FileManager filesystem;
+    FileManager fs;
     RLE compressor;
-    Server server(8080, executor, compressor, filesystem);
+
+    using CommandMap = map<string, unique_ptr<ICommand>>;
+    CommandMap commands;
+
+    commands["post"] = make_unique<Add>(compressor, fs);
+    commands["get"] = make_unique<Get>(compressor, fs);
+    commands["search"] = make_unique<Search>(compressor, fs);
+    commands["delete"] = make_unique<Delete>(compressor, fs);
+
+    Server server(8080, executor, commands);
     server.start();
     return 0;
 }

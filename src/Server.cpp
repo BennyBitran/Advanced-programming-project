@@ -14,8 +14,8 @@
 
 using namespace std;
 
-Server::Server(int port, Executor& exec, ICompress& comp, IFileSystem& filesystem)
-    : port(port), listen_sock(-1), executor(exec), compressor(comp), fs(filesystem) {}
+Server::Server(int port, Executor& exec, map<string, unique_ptr<ICommand>>& cmdMap)
+    : port(port), listen_sock(-1), executor(exec), commands(cmdMap) {}
 
 // Setup server socket
 void Server::bindAndListen() {
@@ -53,18 +53,13 @@ void Server::start() {
         executor.execute(AppFactory(client_fd));
     }
 }
+
 // Create App instance for each client
 unique_ptr<Runnable> Server::AppFactory(int client_fd) {
     auto io = make_unique<SocketIO>(client_fd);
 
-    map<string, unique_ptr<ICommand>> commands;
-    
-    commands["post"] = make_unique<Add>(compressor, *io, fs);
-    commands["get"] = make_unique<Get>(compressor, *io, fs);
-    commands["search"] = make_unique<Search>(compressor, *io, fs);
-    commands["delete"] = make_unique<Delete>(compressor, *io, fs);
-    //move the unique pointers to the app constructor
-    return make_unique<App>(move(io), move(commands));
+    //move the unique IO to the app constructor
+    return make_unique<App>(move(io), commands);
 }
 
 Server::~Server() {

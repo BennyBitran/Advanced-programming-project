@@ -14,10 +14,10 @@ class App : public Runnable
 {
     private:
     unique_ptr<IO> io;
-    map<string, unique_ptr<ICommand>> commands;
+    map<string, unique_ptr<ICommand>>& commands;
 
     public:
-        App(unique_ptr<IO> ioHandler, map<string, unique_ptr<ICommand>> cmdMap);
+        App(unique_ptr<IO> ioHandler, map<string, unique_ptr<ICommand>>& cmdMap);
         void run() override;
 
         ~App() override = default;
