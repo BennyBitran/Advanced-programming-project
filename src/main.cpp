@@ -22,8 +22,8 @@
 
 using namespace std;
 
-int main() {
-    ThreadPool executor(2);
+int main(int argc, char* argv[]) {
+    ThreadPool executor(stoi(argv[2]));
     FileManager fs;
     RLE compressor;
 
@@ -35,7 +35,7 @@ int main() {
     commands["search"] = make_unique<Search>(compressor, fs);
     commands["delete"] = make_unique<Delete>(compressor, fs);
 
-    Server server(8080, executor, commands);
+    Server server(stoi(argv[1]), executor, commands);
     server.start();
     return 0;
 }
