@@ -6,7 +6,7 @@ function listFiles(ownerId) {
   return files.filter((file) => file.ownerId === ownerId);
 }
 
-function createFile({name, ownerId}) {
+function createFile({name, ownerId, type, parentId}) {
   let id;
   const normalizedType = type === "folder" ? "folder" : "file";
   do {

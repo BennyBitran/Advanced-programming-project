@@ -19,9 +19,9 @@ app.use((err, req, res, next) => {
 
 // API routes
 app.use("/api/users", usersRoutes);
-app.use("/api/tokens", tokensRoutes);
+//app.use("/api/tokens", tokensRoutes);
 app.use("/api/files", filesRoutes);
-app.use("/api/search", searchRoutes);
+//app.use("/api/search", searchRoutes);
 
 // 404 JSON for /api/*
 app.use((req, res) => {
