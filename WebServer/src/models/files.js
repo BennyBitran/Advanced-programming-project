@@ -2,17 +2,61 @@ const crypto = require("crypto");
 
 const files = [];
 
-function listFiles() {}
+function listFiles(ownerId) {
+  return files.filter((file) => file.ownerId === ownerId);
+}
 
-function createFile() {}
+function createFile({name, ownerId, type, parentId}) {
+  let id;
+  const normalizedType = type === "folder" ? "folder" : "file";
+  do {
+    id = crypto.randomUUID();
+  } while (files.some((file) => file.id === id));
+  const newFile = {
+    id,
+    name,
+    ownerId,
+    type: normalizedType,
+    parentId: parentId ?? null
+  }
 
-function getFile() {}
+  files.push(newFile);
+  return newFile;
 
-function updateFile() {}
+}
 
-function deleteFile() {}
+function getFile(id) {
+  return files.find((file) => file.id === id) || null;
 
-function searchFiles(query) {}
+}
+
+function updateFile(id, newName) {
+  const file = files.find((file) => file.id === id);
+  if (!file) {
+    return false;
+  }
+  file.name = newName;
+  return true;
+}
+
+function deleteFile(id) {
+  const index = files.findIndex((file) => file.id === id);
+  if (index === -1) {
+    return false;
+  }
+  files.splice(index, 1);
+  return true;
+}
+
+function searchFiles(query) {
+  const lowerQuery = (query || "").toLowerCase();
+  if (lowerQuery === "") {
+    return [];
+  }
+  return files.filter((file) =>
+  (file.name || "").toLowerCase().includes(lowerQuery));
+
+}
 
 module.exports = {
   listFiles,
@@ -21,4 +65,4 @@ module.exports = {
   updateFile,
   deleteFile,
   searchFiles,
-};
+}
