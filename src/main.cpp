@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     commands["post"] = make_unique<Add>(compressor, fs);
     commands["get"] = make_unique<Get>(compressor, fs);
     commands["search"] = make_unique<Search>(compressor, fs);
-    commands["delete"] = make_unique<Delete>(compressor, fs);
+    commands["delete"] = make_unique<Delete>(fs);
 
     Server server(stoi(argv[1]), executor, commands);
     server.start();

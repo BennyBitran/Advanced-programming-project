@@ -36,10 +36,9 @@ TEST(DeleteTest, DeleteExistingFileReturns204AndRemovesFile) {
     }
 
     FileManager fs;
-    FakeCompress comp = createFakeCompress("");        // not used
     FakeIO io = createFakeIO("", "file1");             // argument: file name only
 
-    Delete del(comp, fs);
+    Delete del(fs);
     del.execute(io);
 
     EXPECT_EQ(io.output, "204 No Content\n");
@@ -51,10 +50,9 @@ TEST(DeleteTest, DeleteMissingFileReturns404) {
     createTestDir(dir);
 
     FileManager fs;
-    FakeCompress comp = createFakeCompress("");
     FakeIO io = createFakeIO("", "ghost");
 
-    Delete del(comp, fs);
+    Delete del(fs);
     del.execute(io);
 
     EXPECT_EQ(io.output, "404 Not Found\n");
@@ -65,27 +63,25 @@ TEST(DeleteTest, DeleteBadRequestOnMissingOrExtraArgs) {
     createTestDir(dir);
 
     FileManager fs;
-    FakeCompress comp = createFakeCompress("");
 
     // If no argument
     FakeIO ioEmpty = createFakeIO("", "");
-    Delete delEmpty(comp, fs);
+    Delete delEmpty(fs);
     delEmpty.execute(ioEmpty);
     EXPECT_EQ(ioEmpty.output, "400 Bad Request\n");
 
     // If extra arguments
     FakeIO ioExtra = createFakeIO("", "file1 extra");
-    Delete delExtra(comp, fs);
+    Delete delExtra(fs);
     delExtra.execute(ioExtra);
     EXPECT_EQ(ioExtra.output, "400 Bad Request\n");
 }
 
 TEST(DeleteTest, InternalErrorReturns500) {
     ThrowingFileSystem fs;
-    FakeCompress comp = createFakeCompress("");
     FakeIO io = createFakeIO("", "file1");
 
-    Delete del(comp, fs);
+    Delete del(fs);
     del.execute(io);
 
     EXPECT_EQ(io.output, "500 Internal Server Error\n");

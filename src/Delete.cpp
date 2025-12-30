@@ -4,8 +4,8 @@
 
 using namespace std;
 
-Delete::Delete(const ICompress& comp, IFileSystem& fileSystem)
-    : compressor(comp), fs(fileSystem) {}
+Delete::Delete(IFileSystem& fileSystem)
+    : fs(fileSystem) {}
 
 // DELETE [file name]
 void Delete::execute(IO& io) {
