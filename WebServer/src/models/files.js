@@ -65,4 +65,4 @@ module.exports = {
   updateFile,
   deleteFile,
   searchFiles,
-};
+}
