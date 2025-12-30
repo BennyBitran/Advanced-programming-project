@@ -1,0 +1,113 @@
+const {getFile: getFileModel} = require("../models/files");
+const {getUserById} = require("../models/users");
+const {
+    listPermissions: listPermissionsModel,
+    addPermission: addPermissionModel,
+    updatePermission: updatePermissionModel,
+    removePermission: removePermissionModel,
+    getPermissionById: getPermissionModel,
+} = require("../models/permissions");
+
+
+function listPermissions(req, res) {
+    const ownerId = req.get("X-User-Id");
+    const fileId = req.params.id;
+
+    if (!ownerId || !getUserById(ownerId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
+    }
+    const file = getFileModel(fileId);
+    if (!file || file.ownerId !== ownerId) {
+        return res.status(404).json({ error: "File not found" });
+    }
+    const permissions = listPermissionsModel(fileId).map((perm) => ({
+        id: perm.pid,
+        userId: perm.userId,
+        permissionType: perm.permissionType,
+    }));
+    return res.status(200).json(permissions);
+}
+
+function addPermission(req, res) {
+    const ownerId = req.get("X-User-Id");
+    if (!ownerId || !getUserById(ownerId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
+    }
+    const fileId = req.params.id;
+    const file = getFileModel(fileId);
+    if (!file || file.ownerId !== ownerId) {
+        return res.status(404).json({ error: "File not found" });
+    }
+    const { userId, permissionType } = req.body || {};
+    if (typeof userId !== "string" || userId.trim() === "") {
+        return res.status(400).json({ error: "Invalid or missing userId" });
+    }
+    if (permissionType !== "read" && permissionType !== "write") {
+        return res.status(400).json({ error: "Invalid permissionType, must be 'read' or 'write'" });
+    }
+    if (!getUserById(userId.trim())) {
+        return res.status(400).json({ error: "User with the specified userId does not exist" });
+    }
+    // maybe check if you trying to add permission for the ownerId
+    const newPermission = addPermissionModel(fileId, userId.trim(), permissionType);
+    if (!newPermission) {
+        return res.status(409).json({ error: "Failed to add permission" });
+    }
+    res.set("Location", `/api/files/${fileId}/permissions/${newPermission.pid}`);
+    return res.status(201).send();
+
+}
+
+function updatePermission(req, res) {
+    const ownerId = req.get("X-User-Id");
+    const fileId = req.params.id;
+    const permissionId = req.params.permissionId;
+
+    if (!ownerId || !getUserById(ownerId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
+    }
+    const file = getFileModel(fileId);
+    if (!file || file.ownerId !== ownerId) {
+        return res.status(404).json({ error: "File not found" });
+    }
+    const { permissionType } = req.body || {};
+
+    if (permissionType !== "read" && permissionType !== "write") {
+        return res.status(400).json({ error: "Invalid permissionType, must be 'read' or 'write'" });
+    }
+    const permission = getPermissionModel(permissionId);
+    if (!permission || permission.fileId !== fileId) {
+        return res.status(404).json({ error: "Permission not found for the specified file" });
+    }
+    const success = updatePermissionModel(permissionId, permissionType);
+    if (!success) {
+        return res.status(404).json({ error: "Permission not found" });
+    }
+    return res.status(204).send();
+    
+}
+
+function removePermission(req, res) {
+    const ownerId = req.get("X-User-Id");
+    const fileId = req.params.id;
+    const permissionId = req.params.permissionId;
+    if (!ownerId || !getUserById(ownerId)) {
+        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
+    }
+    const file = getFileModel(fileId);
+
+    if (!file || file.ownerId !== ownerId) {
+        return res.status(404).json({ error: "File not found" });
+    }
+    const permission = getPermissionModel(permissionId);
+    if (!permission || permission.fileId !== fileId) {
+        return res.status(404).json({ error: "Permission not found for the specified file" });
+    }
+    const success = removePermissionModel(permissionId);
+    if (!success) {
+        return res.status(404).json({ error: "Permission not found" });
+    }
+    return res.status(204).send();
+}
+
+module.exports = { listPermissions, addPermission, updatePermission, removePermission };
