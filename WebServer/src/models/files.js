@@ -1,9 +1,9 @@
 const crypto = require("crypto");
-
+// each file: {id, name, ownerId, type, parentId}
 const files = [];
 
 function listFiles(ownerId) {
-  return files.filter((file) => file.ownerId === ownerId);
+  return files.filter((file) => file.ownerId === ownerId && file.parentId === null);
 }
 
 function createFile({name, ownerId, type, parentId}) {

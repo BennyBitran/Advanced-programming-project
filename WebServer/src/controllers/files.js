@@ -3,13 +3,24 @@ const { listFiles: listFilesModel,
         getFile: getFileModel,
         updateFile: updateFileModel,
         deleteFile: deleteFileModel } = require("../models/files"); 
+const {getUserById} = require("../models/users");
+
+function validateUser(req, res) {
+    const userId = req.get("X-User-Id");
+    if (!userId || !getUserById(userId)) {
+        res.status(401).json({ error: "Unauthorized" });
+        return null;
+    }
+    return userId;
+}
+
 
 
 function listFiles(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
-    const userId = req.get("X-User-Id");
+    const userId = validateUser(req, res);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" }); // maybe we will change it later
+        return; // response already sent in validateUser
     }
 
     const parentIdParam = req.query.parentId || null;
@@ -29,9 +40,9 @@ function listFiles(req, res) {
 }
 
 function createFile(req, res) {
-    const userId = req.get("X-User-Id");
+    const userId = validateUser(req, res);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return; // response already sent in validateUser
     }
 
     const { name, type = "file", parentId } = req.body || {};
@@ -66,9 +77,9 @@ function createFile(req, res) {
 
 function getFile(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
-    const userId = req.get("X-User-Id");
+    const userId = validateUser(req, res);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return; // response already sent in validateUser
     }
     // get file by id
     const { id } = req.params;
@@ -88,9 +99,9 @@ function getFile(req, res) {
 
 function updateFile(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
-    const userId = req.get("X-User-Id");
+    const userId = validateUser(req, res);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return; // response already sent in validateUser
     }
     // get file id from params and new name from body
     const { id } = req.params;
@@ -104,9 +115,9 @@ function updateFile(req, res) {
     if (!file || file.ownerId !== userId) {
         return res.status(404).json({ error: "File not found" });
     }
-    const updatedFile = updateFileModel(id, name.trim());
+    const updated = updateFileModel(id, name.trim());
 
-    if (!updatedFile || updatedFile.ownerId !== userId) {
+    if (!updated) {
         return res.status(404).json({ error: "File not found" });
     }
     return res.status(204).send();
@@ -114,9 +125,9 @@ function updateFile(req, res) {
 
 function deleteFile(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
-    const userId = req.get("X-User-Id");
+    const userId = validateUser(req, res);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return; // response already sent in validateUser
     }
     // get file id from params
     const { id } = req.params;
@@ -127,7 +138,7 @@ function deleteFile(req, res) {
     const deleted = deleteFileModel(id);
 
     // check if file existed and belonged to the user
-    if (!deleted || deleted.ownerId !== userId) {
+    if (!deleted) {
         return res.status(404).json({ error: "File not found" });
     }
     return res.status(204).send();
