@@ -22,7 +22,15 @@ function getUserById(id) {
     return users.find((user) => user.id === id) || null;
 }
 
+function findUserByCredentials(username, password) {
+    return users.find(
+        (user) => user.username === username && user.password === password
+    ) || null;
+}   
+    
+
 module.exports = {
     createUser,
     getUserById,
+    findUserByCredentials,
 };
