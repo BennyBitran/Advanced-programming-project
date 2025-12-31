@@ -3,8 +3,9 @@ const { listFiles: listFilesModel,
         getFile: getFileModel,
         updateFile: updateFileModel,
         deleteFile: deleteFileModel } = require("../models/files"); 
-const {getUserById} = require("../models/users");
 
+const {getUserById} = require("../models/users");
+// Helper function to validate that user sent correct X-User-Id header and that user exists in system
 function validateUser(req, res) {
     const userId = req.get("X-User-Id");
     if (!userId || !getUserById(userId)) {
@@ -15,14 +16,13 @@ function validateUser(req, res) {
 }
 
 
-
 function listFiles(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
     const userId = validateUser(req, res);
     if (!userId) {
         return; // response already sent in validateUser
     }
-
+    //force parentId to be null if not provided, and convert to string otherwise
     const parentIdParam = req.query.parentId || null;
     const parentId = parentIdParam === undefined || parentIdParam === 'null' || parentIdParam === '' ? null : String(parentIdParam);
 
@@ -55,6 +55,7 @@ function createFile(req, res) {
         return res.status(400).json({ error: "Type must be either 'file' or 'folder'" });
     }
     const pid = parentId === undefined || parentId === 'null' || parentId === '' ? null : String(parentId);
+    // if parentId is provided, check if it exists and belongs to the user and is a folder
     if (pid) {
         const parentFile = getFileModel(pid);
         if (!parentFile || parentFile.ownerId !== userId || parentFile.type !== "folder") {
