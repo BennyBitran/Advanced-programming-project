@@ -1,14 +1,21 @@
 const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
-const { listPermissions: listPermissionsModel } = require("./permissions");
+const { listFilePermissions: listFilePermissions,
+        listUserPermissions: listUserPermissions } = require("./permissions");
 
 const files = [];
 
 /**
- * Returns files owned by the user at the root level.
+ * Returns files (metadata) owned by the user at the root level.
  */
-function listFiles(ownerId) {
-  return files.filter((file) => file.ownerId === ownerId && file.parentId === null);
+function listFiles(userId) {
+  // list just the file ids the user has permission to
+  const userPerms = listUserPermissions(userId).map(p => p.fileId);
+
+  return files.filter(file =>
+    file.parentId === null &&
+    (file.ownerId === userId || userPerms.includes(file.id))
+  );
 }
 
 /**
@@ -26,132 +33,204 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     parentId: parentId ?? null
   };
 
-  // Only call backend server if it's a file and has content
-  if (normalizedType === "file" && content && content.trim() !== "") {
-    // Send content to backend
-    const response = await sendRequest(`POST ${id} ${content}`);
-    if (response.status !== 201) {
-      throw new Error(`Backend failed: ${response.statusText}`);
+  try {
+    if (normalizedType === "file" && content?.trim()) {
+      const result = await sendRequest(`POST ${id} ${content}`);
+      if (result?.status && result.status >= 400) {
+        throw result;
+      }
     }
-  }
 
-  files.push(newFile);
-  return newFile;
+    files.push(newFile);
+    return newFile;
+
+  } catch (err) {
+    throw {
+      status: err?.status ?? 500,
+      message: err?.message ?? "Failed to create file in backend"
+    };
+  }
 }
 
 
-async function getFileContent(id) {
-  // request file content from backend
-  const response = await sendRequest(`GET ${id}`);
 
-  // Return content only on 200 Ok
-  if (response.status === 200) {
-    return response.content;
-  }
+async function getFile(id, userId) {
+    const fileMetadata = files.find(f => f.id === id);
+    if (!fileMetadata) {
+        throw { status: 404, message: "File not found" };
+    }
 
-  return null;
+    const permissions = listFilePermissions(id);
+    const hasAccess = fileMetadata.ownerId === userId || permissions.some(p => p.userId === userId);
+
+    if (!hasAccess) {
+        throw { status: 403, message: "Access denied" };
+    }
+
+    try {
+        let fileContent = null;
+        if (fileMetadata.type === "file") {
+            const response = await sendRequest(`GET ${id}`);
+            fileContent = response.content;
+        }
+        return {
+            id: fileMetadata.id,
+            name: fileMetadata.name,
+            ownerId: fileMetadata.ownerId,
+            type: fileMetadata.type,
+            content: fileContent ?? ""
+        };
+    } catch (err) {
+        throw {
+            status: err?.status ?? 500,
+            message: err?.message ?? "Failed to fetch content from backend"
+        };
+    }
 }
+
 
 
 // Search files by logical name or content
 async function searchFiles(query, userId) {
-  if (query === undefined || query === null || query === "") {
-    return [];
-  }
-  const lowerQuery = (query || "").toLowerCase();
-
-  // List files user has access to
-  const allowedFiles = files.filter(f => {
-    const isOwner = f.ownerId === userId;
-    const hasPerm = listPermissionsModel(f.id).some(p => p.userId === userId);
-    return isOwner || hasPerm;
-  });
-
-  // Request backend search
-  const cppResponse = await sendRequest(`SEARCH ${query}`);
-  const physicalIds = cppResponse.status === 200 ? cppResponse.content.trim().split(/\s+/) : [];
-
-  const finalResults = [];
-
-  // Use a loop to allow await inside
-  for (const file of allowedFiles) {
-    // Check logical name match
-    if (file.name.toLowerCase().includes(lowerQuery)) {
-      finalResults.push(file);
-      continue;
+  try {
+    if (query === undefined || query === null || query.trim() === "") {
+      return [];
     }
+    const lowerQuery = (query || "").toLowerCase();
+    const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
-    // Check if C++ found this specific file ID
-    const inCppResults = physicalIds.includes(file.id);
+    // List files user has access to
+    const allowedFiles = files.filter(f => {
+      const isOwner = f.ownerId === userId;
+      const hasPerm = f.ownerId === userId || userPerms.includes(f.id);
+      return isOwner || hasPerm;
+    });
 
-    if (inCppResults) {
-      // If the ID itself matches the query, we MUST verify content
-      if (file.id.toLowerCase().includes(lowerQuery)) {
-        const requestFile = await sendRequest(`GET ${file.id}`);
-        const fileContent = requestFile.content || "";
-        
-        if (requestFile.status === 200 && fileContent.toLowerCase().includes(lowerQuery)) {
+    // Request backend search
+    const cppResponse = await sendRequest(`SEARCH ${query}`);
+    const physicalIds = cppResponse.status === 200
+        ? (cppResponse.content || "").trim().split(/\s+/).filter(Boolean)
+        : [];
+
+    const finalResults = [];
+
+    // Use a loop to allow await inside
+    for (const file of allowedFiles) {
+      // Check logical name match
+      if (file.name.toLowerCase().includes(lowerQuery)) {
+        finalResults.push(file);
+        continue;
+      }
+
+      // Check if C++ found this specific file ID
+      const inCppResults = physicalIds.includes(file.id);
+
+      if (inCppResults) {
+        // If the ID includes the query, we MUST verify content
+        if (file.id.toLowerCase().includes(lowerQuery)) {
+          const requestFile = await sendRequest(`GET ${file.id}`);
+          const fileContent = requestFile.content || "";
+
+          if (requestFile.status === 200 && fileContent.toLowerCase().includes(lowerQuery)) {
+            finalResults.push(file);
+          }
+        }
+        // If ID doesn't include query but C++ found it then content must match
+        else {
           finalResults.push(file);
         }
-      } 
-      // If ID doesn't include query but C++ found it then content must match
-      else {
-        finalResults.push(file);
       }
     }
-  }
 
-  return finalResults;
+    return finalResults;
+  } catch (err) {
+    throw {
+      status: err?.status ?? 500,
+      message: err?.message ?? "Search failed"
+    };
+  }
 }
+
 
 async function deleteFile(id) {
-  // Find file index
-  const index = files.findIndex((file) => file.id === id);
-  if (index === -1) return false;
+  try {
+    // Find file index
+    const index = files.findIndex((file) => file.id === id);
+    if (index === -1) {
+      throw { status: 404, message: "File not found" };
+    }
 
-  const file = files[index];
-  if (file.type === "file") {
-    // delete and dont wait for response
-    sendRequest(`DELETE ${id}`).catch(() => {}); 
+    const file = files[index];
+
+    if (file.type === "file") {
+      const result = await sendRequest(`DELETE ${id}`);
+        if (result?.status && result.status >= 400) {
+          throw result;
+        }
+    }
+
+    // delete metadata
+    files.splice(index, 1);
+    return true;
+
+  } catch (err) {
+    throw {
+      status: err?.status ?? 500,
+      message: err?.message ?? "Failed to delete file"
+    };
   }
-  // Remove metadata
-  files.splice(index, 1);
-  return true;
-}
-
-function getFile(id) {
-  return files.find((file) => file.id === id) || null;
 }
 
 /**
  * Updates file metadata and/or physical content.
  * If content is provided, it replaces the physical file in C++.
  */
-async function updateFile(id, newName, newContent) {
-  const file = files.find((f) => f.id === id);
-  if (!file) return false;
+async function updateFile(fileId, userId, { name, content }) {
+  try {
+    const file = files.find(f => f.id === fileId);
+    if (!file) throw { status: 404, message: "File not found" };
 
-  // 1. Update Logical Name in Node.js memory if provided
-  if (newName) {
-    file.name = newName;
-  }
+    const hasAccess =
+      file.ownerId === userId ||
+      listFilePermissions(fileId).some(p => p.userId === userId && p.permissionType === "write");
 
-  // 2. If content is provided, update physical storage in C++
-  if (newContent !== undefined && file.type === "file") {
-    // Delete the old physical file first
-    await sendRequest(`DELETE ${id}`);
+    if (!hasAccess) throw { status: 403, message: "Write permission required" };
 
-    // Create it again with the same ID but new content
-    // Only send to C++ if the new content isn't empty
-    if (newContent.trim() !== "") {
-      const response = await sendRequest(`CREATE ${id} ${newContent}`);
-      if (response.status !== 201 && response.status !== 200) {
-        throw new Error("Failed to update physical content on backend");
+    // rename (logical name) - metadata only
+    if (name !== undefined) {
+      const newName = String(name).trim();
+      if (!newName) throw { status: 400, message: "Name is required" };
+      file.name = newName;
+    }
+
+    // content update (files only) - delete+post on backend
+    if (content !== undefined) {
+      if (file.type !== "file") throw { status: 400, message: "Cannot patch content of a folder" };
+
+      const newContent = String(content);
+
+      // delete physical if exists; 404 is ok (empty file case)
+      try {
+        const del = await sendRequest(`DELETE ${fileId}`);
+        if (del?.status && del.status >= 400 && del.status !== 404) throw del;
+      } catch (err) {
+        if (err?.status !== 404) throw err;
+      }
+
+      // create physical only if non-empty
+      if (newContent.trim() !== "") {
+        const post = await sendRequest(`POST ${fileId} ${newContent}`);
+        if (post?.status && post.status >= 400) throw post;
       }
     }
-  }
 
-  return true;
+    return { ...file };
+  } catch (err) {
+    throw {
+      status: err?.status ?? 500,
+      message: err?.message ?? "Failed to patch file"
+    };
+  }
 }
 
 
@@ -162,4 +241,5 @@ module.exports = {
   updateFile,
   deleteFile,
   searchFiles,
+  getFileContent,
 };
