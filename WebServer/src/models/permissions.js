@@ -1,10 +1,14 @@
 const crypto = require("crypto");
-
+// pid: unique permission id
 // each permission: {pid, fileId, userId, permissionType}
 const permissions = [];
 
-function listPermissions(fileId) {
+function listFilePermissions(fileId) {
     return permissions.filter((perm) => perm.fileId === fileId);
+}
+
+function listUserPermissions(userID) {
+    return permissions.filter((perm) => perm.userId === userID);
 }
 
 
@@ -56,7 +60,8 @@ function getPermissionById(permissionId) {
     return permissions.find((perm) => perm.pid === permissionId) || null;
 }
 module.exports = {
-    listPermissions,
+    listFilePermissions,
+    listUserPermissions,
     addPermission,
     updatePermission,
     removePermission,
