@@ -11,6 +11,13 @@ function listUserPermissions(userID) {
     return permissions.filter((perm) => perm.userId === userID);
 }
 
+function checkUserPermission(fileId, userId, permissionType) {
+    const permission = permissions.find((perm) => perm.fileId === fileId && perm.userId === userId);
+    if (!permission) {
+        return false;
+    }
+    return permissionType === 'read' || ( permissionType === 'write' && permission.permissionType === 'write');
+}
 
 function addPermission(fileId, userId, permissionType) {
     if(permissionType !== 'read' && permissionType !== 'write') {
@@ -66,4 +73,5 @@ module.exports = {
     updatePermission,
     removePermission,
     getPermissionById,
+    checkUserPermission,
 };

@@ -5,15 +5,17 @@ const { listFilePermissions: listFilePermissions,
 
 const files = [];
 
-/**
- * Returns files (metadata) owned by the user at the root level.
- */
-function listFiles(userId) {
+function getFileMetadata(id) {
+  return files.find(f => f.id === id);
+}
+
+// List files for a user under a specific parent folder (or root if parentId is null)
+function listFiles(userId, parentId = null) {
   // list just the file ids the user has permission to
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
   return files.filter(file =>
-    file.parentId === null &&
+    file.parentId === parentId &&
     (file.ownerId === userId || userPerms.includes(file.id))
   );
 }
@@ -164,9 +166,9 @@ async function deleteFile(id) {
 
     if (file.type === "file") {
       const result = await sendRequest(`DELETE ${id}`);
-        if (result?.status && result.status >= 400) {
-          throw result;
-        }
+      if (result?.status && result.status >= 400 && result.status !== 404) {
+        throw result;
+      }
     }
 
     // delete metadata
@@ -189,12 +191,6 @@ async function updateFile(fileId, userId, { name, content }) {
   try {
     const file = files.find(f => f.id === fileId);
     if (!file) throw { status: 404, message: "File not found" };
-
-    const hasAccess =
-      file.ownerId === userId ||
-      listFilePermissions(fileId).some(p => p.userId === userId && p.permissionType === "write");
-
-    if (!hasAccess) throw { status: 403, message: "Write permission required" };
 
     // rename (logical name) - metadata only
     if (name !== undefined) {
@@ -241,5 +237,5 @@ module.exports = {
   updateFile,
   deleteFile,
   searchFiles,
-  getFileContent,
+  getFileMetadata,
 };
