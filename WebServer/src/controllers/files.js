@@ -4,6 +4,9 @@ const { listFiles: listFilesModel,
         updateFile: updateFileModel,
         deleteFile: deleteFileModel } = require("../models/files"); 
 const {getUserById} = require("../models/users");
+const {listPermissions: listPermissionsModel} = require("../models/permissions");
+
+//helper functions
 
 function validateUser(req, res) {
     const userId = req.get("X-User-Id");
@@ -13,6 +16,27 @@ function validateUser(req, res) {
     }
     return userId;
 }
+
+function getPermissionTypeForUser(fileId, userId) {
+    const perms = listPermissionsModel(fileId);
+    const perm = perms.find(p => p.userId === userId);
+    return perm ? perm.permissionType : null; // "read" | "write" | null
+}
+
+function canRead(userId, file) {
+    if (!file) return false;
+    if (file.ownerId === userId) return true;
+    const p = getPermissionTypeForUser(file.id, userId);
+    return p === "read" || p === "write";
+}
+
+function canWrite(userId, file) {
+    if (!file) return false;
+    if (file.ownerId === userId) return true;
+    const p = getPermissionTypeForUser(file.id, userId);
+    return p === "write";
+}
+
 
 
 
@@ -26,10 +50,17 @@ function listFiles(req, res) {
     const parentIdParam = req.query.parentId || null;
     const parentId = parentIdParam === undefined || parentIdParam === 'null' || parentIdParam === '' ? null : String(parentIdParam);
 
+    if (parentId) {
+        const parentFile = getFileModel(parentId);
+        if (!parentFile || !canRead(userId, parentFile) || parentFile.type !== "folder") {
+            return res.status(400).json({ error: "Invalid parentId" });
+        }
+    }
+
     // returns all files for the specified user only
     const rawFiles = listFilesModel(userId, parentId); 
 
-    // return only id and name (can have more fields like size, date created, etc. we will see later)
+    // return only id, name, type, and parentId. (can have more fields like size, date created, etc. we will see later)
     const files = rawFiles.map(file => ({
         id: file.id,
         name: file.name,
@@ -57,7 +88,7 @@ function createFile(req, res) {
     const pid = parentId === undefined || parentId === 'null' || parentId === '' ? null : String(parentId);
     if (pid) {
         const parentFile = getFileModel(pid);
-        if (!parentFile || parentFile.ownerId !== userId || parentFile.type !== "folder") {
+        if (!parentFile || !canWrite(userId, parentFile) || parentFile.type !== "folder") {
             return res.status(400).json({ error: "Invalid parentId" });
         }
     }
@@ -86,7 +117,7 @@ function getFile(req, res) {
     const file = getFileModel(id);
 
     // check if file exists and belongs to the user
-    if (!file || file.ownerId !== userId) {
+    if (!file || !canRead(userId, file)) {
         return res.status(404).json({ error: "File not found" });
     }
     return res.status(200).json({ 
@@ -112,7 +143,7 @@ function updateFile(req, res) {
         return res.status(400).json({ error: "Name is required" });
     }
     const file = getFileModel(id);
-    if (!file || file.ownerId !== userId) {
+    if (!file || !canWrite(userId, file)) {
         return res.status(404).json({ error: "File not found" });
     }
     const updated = updateFileModel(id, name.trim());
