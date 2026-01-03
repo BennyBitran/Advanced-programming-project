@@ -9,7 +9,7 @@ const app = express();
 
 app.use(express.json());
 
-// Return JSON (not HTML) on invalid JSON body
+// if there was a syntax error in the JSON, handle it:
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     return res.status(400).json({ error: "Invalid JSON" });
