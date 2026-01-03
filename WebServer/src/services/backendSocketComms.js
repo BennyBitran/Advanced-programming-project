@@ -72,3 +72,8 @@ function parseResponse(raw) {
         content: content
     };
 }
+
+
+module.exports = {
+    sendRequest
+};
