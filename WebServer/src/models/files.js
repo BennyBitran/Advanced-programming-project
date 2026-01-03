@@ -154,34 +154,40 @@ async function searchFiles(query, userId) {
 }
 
 
-async function deleteFile(id) {
-  try {
-    // Find file index
-    const index = files.findIndex((file) => file.id === id);
-    if (index === -1) {
-      throw { status: 404, message: "File not found" };
-    }
+async function deleteFile(id, userId) {
+  const root = getFileMetadata(id);
+  if (!root) throw { status: 404, message: "File not found" };
+  //check if user can delete file/folder
+  const canDelete = root.ownerId === userId ||
+    listFilePermissions(id).some(p => p.userId === userId && p.permissionType === "write");
 
-    const file = files[index];
+  if (!canDelete) throw { status: 403, message: "Write permission required" };
 
-    if (file.type === "file") {
-      const result = await sendRequest(`DELETE ${id}`);
-      if (result?.status && result.status >= 400 && result.status !== 404) {
-        throw result;
-      }
-    }
+  // recursively delete subtree without checking permissions again
+  await deleteSubtree(id);
 
-    // delete metadata
-    files.splice(index, 1);
-    return true;
-
-  } catch (err) {
-    throw {
-      status: err?.status ?? 500,
-      message: err?.message ?? "Failed to delete file"
-    };
-  }
+  return true;
 }
+
+async function deleteSubtree(id) {
+  //find children
+  const children = files.filter(f => f.parentId === id);
+
+  for (const child of children) {
+    await deleteSubtree(child.id);
+  }
+
+  const node = files.find(f => f.id === id);
+  if (node?.type === "file") {
+    const result = await sendRequest(`DELETE ${id}`);
+    if (result?.status >= 400 && result.status !== 404) throw result;
+  }
+
+  // remove metadata for this node
+  const idx = files.findIndex(f => f.id === id);
+  if (idx !== -1) files.splice(idx, 1);
+}
+
 
 /**
  * Updates file metadata and/or physical content.
