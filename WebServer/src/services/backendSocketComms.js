@@ -25,9 +25,13 @@ async function sendRequest(message, host = '127.0.0.1', port = 5555) {
                 const rawResponse = buffer.slice(4, 4 + expectedLength).toString();
                 //close connection instantly (free backend connection + thread)
                 client.destroy();
-                //parse to a JSON and return result
+                //parse to a JSON and return result, or reject on error status
                 const result = parseResponse(rawResponse);
-                resolve(result);
+                if (result?.status && result.status >= 400) {
+                    reject(result);
+                } else {
+                    resolve(result);
+                }
             }
         });
 
@@ -68,3 +72,8 @@ function parseResponse(raw) {
         content: content
     };
 }
+
+
+module.exports = {
+    sendRequest
+};

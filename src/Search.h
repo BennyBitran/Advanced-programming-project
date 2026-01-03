@@ -13,6 +13,7 @@ class Search : public ICommand
     const ICompress& compressor;
     IFileSystem& fs;
     
+    std::string tolowerCase(const std::string& text) const;
     public:
         Search(const ICompress&, IFileSystem&);
         virtual void execute(IO& io) override;

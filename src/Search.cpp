@@ -42,8 +42,8 @@ void Search::execute(IO& io)
     string decompressed_content;
     for (const string& file : files) {
         try {
-        //check if file name matches text search, add it to results, no need to check content
-        if (file.find(text_to_search) != string::npos) {
+        //check if file name matches text search, add it to results, no need to check content (case insensitive)
+        if (toLowerCase(file).find(toLowerCase(text_to_search)) != string::npos) {
             files_found += (file + " ");
             continue;
         }
@@ -57,8 +57,8 @@ void Search::execute(IO& io)
             io.write("500 Internal Server Error");
         }
 
-        //search for the text in the decompressed content
-        if (decompressed_content.find(text_to_search) != string::npos) {
+        //search for the text in the decompressed content (case insensitive)
+        if (toLowerCase(decompressed_content).find(toLowerCase(text_to_search)) != string::npos) {
             files_found += (file + " ");
             }
         } catch (const FileNotFoundException&) {
@@ -73,4 +73,12 @@ void Search::execute(IO& io)
         files_found.pop_back(); // Removes the last space if any files were found
     }
     io.sendData(files_found); // can be empty
+}
+
+string Search:: tolowerCase(const string& text) const {
+    string result = text;
+    for(char& c : result) {
+        c = tolower(c);
+    }
+    return result;
 }

@@ -2,9 +2,13 @@ const { listFiles: listFilesModel,
         createFile: createFileModel,
         getFile: getFileModel,
         updateFile: updateFileModel,
-        deleteFile: deleteFileModel } = require("../models/files"); 
+        deleteFile: deleteFileModel,
+        getFileMetadata: getFileMetadata } = require("../models/files"); 
 
 const {getUserById} = require("../models/users");
+
+const { checkUserPermission: checkUserPermission } = require("../models/permissions");
+
 // Helper function to validate that user sent correct X-User-Id header and that user exists in system
 function validateUser(req, res) {
     const userId = req.get("X-User-Id");
@@ -39,111 +43,126 @@ function listFiles(req, res) {
     return res.status(200).json(files);       
 }
 
-function createFile(req, res) {
-    const userId = validateUser(req, res);
-    if (!userId) {
-        return; // response already sent in validateUser
-    }
+async function createFile(req, res) {
+  const userId = validateUser(req, res);
+  if (!userId) return;
 
-    const { name, type = "file", parentId } = req.body || {};
+  const { name, type = "file", parentId, content } = req.body || {};
 
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-        return res.status(400).json({ error: "Name is required" });
-    }
+  if (!name || typeof name !== "string" || name.trim() === "") {
+    return res.status(400).json({ error: "Name is required" });
+  }
 
-    if (type !== "file" && type !== "folder") {
-        return res.status(400).json({ error: "Type must be either 'file' or 'folder'" });
-    }
-    const pid = parentId === undefined || parentId === 'null' || parentId === '' ? null : String(parentId);
-    // if parentId is provided, check if it exists and belongs to the user and is a folder
+  if (type !== "file" && type !== "folder") {
+    return res.status(400).json({ error: "Type must be either 'file' or 'folder'" });
+  }
+
+  const pid = parentId === undefined || parentId === "null" || parentId === "" ? null : String(parentId);
+
     if (pid) {
-        const parentFile = getFileModel(pid);
-        if (!parentFile || parentFile.ownerId !== userId || parentFile.type !== "folder") {
+        const parentFile = getFileMetadata(pid);
+        if (!parentFile || parentFile.type !== "folder") {
             return res.status(400).json({ error: "Invalid parentId" });
         }
+        
+        const hasWriteAccess = parentFile.ownerId === userId || checkUserPermission(pid, userId, 'write');
+
+        if (!hasWriteAccess) {
+            return res.status(403).json({ error: "Write permission required on parent folder" });
+        }
     }
-    const newFile = createFileModel({
-        name: name.trim(),
-        type,
-        parentId: pid,
-        ownerId: userId
+
+  try {
+    const newFile = await createFileModel({
+      name: name.trim(),
+      ownerId: userId,
+      type,
+      parentId: pid,
+      content,
     });
-    if (!newFile) {
-        return res.status(500).json({ error: "Failed to create file" });
-    }
-    // set Location header to new file URL
-    res.set('Location', `/api/files/${newFile.id}`);
+
+    res.set("Location", `/api/files/${newFile.id}`);
     return res.status(201).send();
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || "Failed to create file" });
+  }
 }
 
-function getFile(req, res) {
-    // check for user id in header - in real app we would use authentication middleware with tokens
+async function getFile(req, res) {
     const userId = validateUser(req, res);
+    const fileId = req.params.id;
+
+    if (!fileId) {
+        return res.status(400).json({ error: "File id is required" });
+    }
     if (!userId) {
-        return; // response already sent in validateUser
+        return res.status(401).json({ error: "User not authenticated" });
     }
-    // get file by id
-    const { id } = req.params;
-    const file = getFileModel(id);
 
-    // check if file exists and belongs to the user
-    if (!file || file.ownerId !== userId) {
-        return res.status(404).json({ error: "File not found" });
+    try {
+        const data = await getFileModel(fileId, userId);
+        res.status(200).json(data);
+    } catch (err) {
+        res.status(err.status || 500).json({ error: err.message });
     }
-    return res.status(200).json({ 
-        id: file.id,
-        name: file.name,
-        type: file.type,
-        parentId: file.parentId
-    });
-}      
+}
+  
 
-function updateFile(req, res) {
+async function updateFile(req, res) {
     // check for user id in header - in real app we would use authentication middleware with tokens
     const userId = validateUser(req, res);
     if (!userId) {
         return; // response already sent in validateUser
     }
     // get file id from params and new name from body
-    const { id } = req.params;
-    const { name } = req.body || {};
-
-    // validate new name
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-        return res.status(400).json({ error: "Name is required" });
+    const fileId = req.params.id;
+    if (!fileId) {
+        return res.status(400).json({ error: "File id is required" });
     }
-    const file = getFileModel(id);
-    if (!file || file.ownerId !== userId) {
+    //find file
+    const file = getFileMetadata(fileId);
+    if (!file) {
         return res.status(404).json({ error: "File not found" });
     }
-    const updated = updateFileModel(id, name.trim());
 
-    if (!updated) {
-        return res.status(404).json({ error: "File not found" });
-    }
-    return res.status(204).send();
+    //check permissions
+    const hasAccess = file.ownerId === userId || checkUserPermission(fileId, userId, 'write');
+    if (!hasAccess) return res.status(403).json({ error: "Write permission required" });
+
+    const { name , content } = req.body || {};
+
+    try {
+        await updateFileModel(fileId, userId, { name, content });
+        return res.status(204).send();
+    } catch (err) {
+        return res.status(err.status || 500).json({ error: err.message || "Failed to update file" });
+  }
 }
 
-function deleteFile(req, res) {
-    // check for user id in header - in real app we would use authentication middleware with tokens
-    const userId = validateUser(req, res);
-    if (!userId) {
-        return; // response already sent in validateUser
-    }
-    // get file id from params
-    const { id } = req.params;
-    const file = getFileModel(id);
-    if (!file || file.ownerId !== userId) {
-        return res.status(404).json({ error: "File not found" });
-    }
-    const deleted = deleteFileModel(id);
+async function deleteFile(req, res) {
+  const userId = validateUser(req, res);
+  if (!userId) return;
 
-    // check if file existed and belonged to the user
-    if (!deleted) {
-        return res.status(404).json({ error: "File not found" });
-    }
+  const { id } = req.params;
+  const file = getFileMetadata(id);
+  if (!file) return res.status(404).json({ error: "File not found" });
+
+  const hasWriteAccess =
+    file.ownerId === userId || checkUserPermission(id, userId, "write");
+
+  if (!hasWriteAccess) {
+    return res.status(403).json({ error: "Write permission required" });
+  }
+
+  try {
+    await deleteFileModel(id);
     return res.status(204).send();
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || "Failed to delete file" });
+  }
 }
+
+
 module.exports = { listFiles, createFile, getFile, updateFile, deleteFile };
   
   
