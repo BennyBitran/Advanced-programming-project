@@ -75,7 +75,7 @@ void Search::execute(IO& io)
     io.sendData(files_found); // can be empty
 }
 
-string Search:: tolowerCase(const string& text) const {
+string Search:: toLowerCase(const string& text) const {
     string result = text;
     for(char& c : result) {
         c = tolower(c);
