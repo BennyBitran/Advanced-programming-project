@@ -27,8 +27,11 @@ function listFiles(req, res) {
         return; // response already sent in validateUser
     }
     //force parentId to be null if not provided, and convert to string otherwise
-    const parentIdParam = req.query.parentId || null;
-    const parentId = parentIdParam === undefined || parentIdParam === 'null' || parentIdParam === '' ? null : String(parentIdParam);
+    // fixed not to handle null === "null" → false
+    const parentIdParam = req.query.parentId;
+    const parentId = parentIdParam === undefined || parentIdParam === 'null' || parentIdParam === ''
+    ? null
+    : String(parentIdParam);
 
     // returns all files for the specified user only
     const rawFiles = listFilesModel(userId, parentId); 
@@ -155,7 +158,7 @@ async function deleteFile(req, res) {
   }
 
   try {
-    await deleteFileModel(id);
+    await deleteFileModel(id, userId);
     return res.status(204).send();
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || "Failed to delete file" });
