@@ -50,3 +50,18 @@ services:
     command: python3 Client.py 127.0.0.1 8080
     stdin_open: true
     tty: true
+
+  # WEB SERVER
+  webserver:
+    build:
+      context: ./WebServer
+      dockerfile: Dockerfile
+    container_name: node_webserver
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - BACKEND_HOST=server
+      - BACKEND_PORT=8080
+    depends_on:
+      - server
