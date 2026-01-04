@@ -1,4 +1,4 @@
-const { searchFiles } = require('../services/fileSearchService');
+const filesModel = require("../models/files");
 
 async function search(req, res) {
      const userId = req.get("X-User-Id");
@@ -8,10 +8,10 @@ async function search(req, res) {
     const query = req.params.query;
 
     try {
-        const results =await searchFiles(query, userId);
+        const results =await filesModel.searchFiles(query, userId);
         return res.status(200).json(results);
       } catch (e) {
-        return res.status(500).json({ error: e.message || 'Search failed' });
+        return res.status(500).json({ error: "Search failed" });
     }
 }
 
