@@ -158,7 +158,7 @@ async function deleteFile(req, res) {
   }
 
   try {
-    await deleteFileModel(id);
+    await deleteFileModel(id, userId);
     return res.status(204).send();
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || "Failed to delete file" });
