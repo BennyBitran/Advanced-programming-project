@@ -1,4 +1,4 @@
-const {getFile: getFileModel} = require("../models/files");
+const { getFileMetadata } = require("../models/files");
 const {getUserById} = require("../models/users");
 const {
     listPermissions: listPermissionsModel,
@@ -16,7 +16,7 @@ function listPermissions(req, res) {
     if (!ownerId || !getUserById(ownerId)) {
         return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
     }
-    const file = getFileModel(fileId);
+    const file = getFileMetadata(fileId);
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
@@ -34,7 +34,7 @@ function addPermission(req, res) {
         return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
     }
     const fileId = req.params.id;
-    const file = getFileModel(fileId);
+    const file = getFileMetadata(fileId);
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
@@ -66,7 +66,7 @@ function updatePermission(req, res) {
     if (!ownerId || !getUserById(ownerId)) {
         return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
     }
-    const file = getFileModel(fileId);
+    const file = getFileMetadata(fileId);
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
@@ -94,7 +94,7 @@ function removePermission(req, res) {
     if (!ownerId || !getUserById(ownerId)) {
         return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
     }
-    const file = getFileModel(fileId);
+    const file = getFileMetadata(fileId);
 
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
