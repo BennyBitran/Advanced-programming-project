@@ -1,6 +1,6 @@
 const net = require('net');
 //hard coded - need to cahnge later
-async function sendRequest(message, host = '127.0.0.1', port = 5555) {
+async function sendRequest(message, host = '127.0.0.1', port = 8080) {
     return new Promise((resolve, reject) => {
         const client = new net.Socket();
         let buffer = Buffer.alloc(0);
