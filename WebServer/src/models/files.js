@@ -57,11 +57,12 @@ async function createFile({ name, ownerId, type, parentId, content }) {
 
 
 async function getFile(id, userId) {
+    // Fetch metadata
     const fileMetadata = files.find(f => f.id === id);
     if (!fileMetadata) {
         throw { status: 404, message: "File not found" };
     }
-
+    // Check access permissions
     const permissions = listFilePermissions(id);
     const hasAccess = fileMetadata.ownerId === userId || permissions.some(p => p.userId === userId);
 
@@ -69,12 +70,32 @@ async function getFile(id, userId) {
         throw { status: 403, message: "Access denied" };
     }
 
+    // Fetch file names if it's a folder
+    if (fileMetadata.type === "folder") {
+        const children = files.filter(f => f.parentId === id).map(child => ({
+            id: child.id,
+            name: child.name,
+            ownerId: child.ownerId,
+            type: child.type,
+            parentId: child.parentId
+        }));
+        // Return folder metadata with children
+        return {
+            id: fileMetadata.id,
+            name: fileMetadata.name,
+            ownerId: fileMetadata.ownerId,
+            type: fileMetadata.type,
+            children
+        };
+    }
+    // Fetch file content from backend server if it's a file  
     try {
         let fileContent = null;
         if (fileMetadata.type === "file") {
             const response = await sendRequest(`GET ${id}`);
             fileContent = response.content;
         }
+        // Return file metadata with content
         return {
             id: fileMetadata.id,
             name: fileMetadata.name,
