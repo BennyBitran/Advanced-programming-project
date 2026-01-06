@@ -24,7 +24,10 @@ function listFiles(userId, parentId = null) {
  * Creates metadata in Node.js and physical content in C++.
  */
 async function createFile({ name, ownerId, type, parentId, content }) {
+  do {
   const id = crypto.randomUUID();
+  } while (files.some((file) => file.id === id));
+
   const normalizedType = type === "folder" ? "folder" : "file";
 
   const newFile = {
