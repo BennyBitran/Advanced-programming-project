@@ -26,7 +26,7 @@ function listFiles(userId, parentId = null) {
 async function createFile({ name, ownerId, type, parentId, content }) {
         let id;
         do {
-                const id = crypto.randomUUID();
+                id = crypto.randomUUID();
         } while (files.some((file) => file.id === id));
 
   const normalizedType = type === "folder" ? "folder" : "file";
