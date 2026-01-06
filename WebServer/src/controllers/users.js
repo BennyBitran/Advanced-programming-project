@@ -9,6 +9,9 @@ function createUser(req, res) {
     if (!password || typeof password !== 'string' || password.trim() === '') {
         return res.status(400).json({ error: "Password is required" });
     }
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+        return res.status(400).json({ error: "Name is required" });
+    }
     try {
     const newUser = userModel.createUser({
         username: username.trim(),
