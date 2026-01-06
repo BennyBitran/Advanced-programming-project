@@ -1,7 +1,8 @@
 const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
 const { listFilePermissions: listFilePermissions,
-        listUserPermissions: listUserPermissions } = require("./permissions");
+  listUserPermissions: listUserPermissions,
+  checkUserPermission: checkUserPermission } = require("./permissions");
 
 const files = [];
 
@@ -20,10 +21,26 @@ function listFiles(userId, parentId = null) {
   );
 }
 
-/**
- * Creates metadata in Node.js and physical content in C++.
- */
+
+// Creates metadata in Node.js and physical content in C++
 async function createFile({ name, ownerId, type, parentId, content }) {
+  // if given a parentId check it exists and user has write permission
+  if (parentId) {
+    const parent = getFileMetadata(parentId);
+    if (!parent) {
+      throw { status: 404, message: "Parent directory not found" };
+    }
+
+    if (parent.type !== "folder") {
+      throw { status: 400, message: "Cannot create items inside a file" };
+    }
+    //check writing permissions
+    const hasWriteAccess = checkUserPermission(parentId, ownerId, 'write');
+    if (!hasWriteAccess) {
+      throw { status: 403, message: "Permission denied: Cannot write to this folder" };
+    }
+  }
+  
   const id = crypto.randomUUID();
   const normalizedType = type === "folder" ? "folder" : "file";
 
@@ -57,37 +74,36 @@ async function createFile({ name, ownerId, type, parentId, content }) {
 
 
 async function getFile(id, userId) {
-    const fileMetadata = files.find(f => f.id === id);
-    if (!fileMetadata) {
-        throw { status: 404, message: "File not found" };
-    }
+  const fileMetadata = files.find(f => f.id === id);
+  if (!fileMetadata) {
+    throw { status: 404, message: "File not found" };
+  }
 
-    const permissions = listFilePermissions(id);
-    const hasAccess = fileMetadata.ownerId === userId || permissions.some(p => p.userId === userId);
+  const hasAccess = checkUserPermission(id, userId, 'read');
 
-    if (!hasAccess) {
-        throw { status: 403, message: "Access denied" };
-    }
+  if (!hasAccess) {
+    throw { status: 403, message: "Access denied" };
+  }
 
-    try {
-        let fileContent = null;
-        if (fileMetadata.type === "file") {
-            const response = await sendRequest(`GET ${id}`);
-            fileContent = response.content;
-        }
-        return {
-            id: fileMetadata.id,
-            name: fileMetadata.name,
-            ownerId: fileMetadata.ownerId,
-            type: fileMetadata.type,
-            content: fileContent ?? ""
-        };
-    } catch (err) {
-        throw {
-            status: err?.status ?? 500,
-            message: err?.message ?? "Failed to fetch content from backend"
-        };
+  try {
+    let fileContent = null;
+    if (fileMetadata.type === "file") {
+      const response = await sendRequest(`GET ${id}`);
+      fileContent = response.content;
     }
+    return {
+      id: fileMetadata.id,
+      name: fileMetadata.name,
+      ownerId: fileMetadata.ownerId,
+      type: fileMetadata.type,
+      content: fileContent ?? ""
+    };
+  } catch (err) {
+    throw {
+      status: err?.status ?? 500,
+      message: err?.message ?? "Failed to fetch content from backend"
+    };
+  }
 }
 
 
@@ -99,20 +115,17 @@ async function searchFiles(query, userId) {
       return [];
     }
     const lowerQuery = (query || "").toLowerCase();
-    const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
     // List files user has access to
     const allowedFiles = files.filter(f => {
-      const isOwner = f.ownerId === userId;
-      const hasPerm = f.ownerId === userId || userPerms.includes(f.id);
-      return isOwner || hasPerm;
+      return checkUserPermission(f.id, userId, 'read');
     });
 
     // Request backend search
     const cppResponse = await sendRequest(`SEARCH ${query}`);
     const physicalIds = cppResponse.status === 200
-        ? (cppResponse.content || "").trim().split(/\s+/).filter(Boolean)
-        : [];
+      ? (cppResponse.content || "").trim().split(/\s+/).filter(Boolean)
+      : [];
 
     const finalResults = [];
 
@@ -158,8 +171,7 @@ async function deleteFile(id, userId) {
   const root = getFileMetadata(id);
   if (!root) throw { status: 404, message: "File not found" };
   //check if user can delete file/folder
-  const canDelete = root.ownerId === userId ||
-    listFilePermissions(id).some(p => p.userId === userId && p.permissionType === "write");
+  const canDelete = root.ownerId === checkUserPermission(id, userId, 'write');
 
   if (!canDelete) throw { status: 403, message: "Write permission required" };
 
