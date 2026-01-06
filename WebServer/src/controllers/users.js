@@ -9,18 +9,25 @@ function createUser(req, res) {
     if (!password || typeof password !== 'string' || password.trim() === '') {
         return res.status(400).json({ error: "Password is required" });
     }
-
+    try {
     const newUser = userModel.createUser({
         username: username.trim(),
         password: password.trim(),
         name: name ? name.trim() : '',
         image: image ? image.trim() : '',
     })
-    if (!newUser) {
-        return res.status(500).json({ error: "Failed to create user" });
-    }
+    
     res.set('Location', `/api/users/${newUser.id}`);
     return res.status(201).send();
+    } catch (err) {
+        if (err.message === "Username is required.") {
+            return res.status(400).json({ error: err.message });
+        }
+        if (err.message === "Username already exists.") {
+            return res.status(409).json({ error: err.message });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
 
 
 }
