@@ -49,7 +49,7 @@ function listFiles(req, res) {
 async function createFile(req, res) {
   const userId = validateUser(req, res);
   if (!userId) return;
-
+  
   const { name, type = "file", parentId, content } = req.body || {};
 
   if (!name || typeof name !== "string" || name.trim() === "") {
@@ -83,9 +83,9 @@ async function createFile(req, res) {
       parentId: pid,
       content,
     });
-
+    
     res.set("Location", `/api/files/${newFile.id}`);
-    return res.status(201).send();
+    return res.status(201).json(newFile);
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || "Failed to create file" });
   }

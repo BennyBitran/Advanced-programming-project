@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getFileMetadata } = require("./files");
 // pid: unique permission id
 // each permission: {pid, fileId, userId, permissionType}
 const permissions = [];
@@ -10,13 +11,24 @@ function listFilePermissions(fileId) {
 function listUserPermissions(userID) {
     return permissions.filter((perm) => perm.userId === userID);
 }
-
+// Recursively check permissions up the file hierarchy
 function checkUserPermission(fileId, userId, permissionType) {
+    const file = getFileMetadata(fileId);
+    if (!file) return false;
+    if (file.ownerId === userId) return true;
+
     const permission = permissions.find((perm) => perm.fileId === fileId && perm.userId === userId);
-    if (!permission) {
-        return false;
+    if (permission) {
+        const hasDirectAccess = permissionType === 'read' || 
+                               (permissionType === 'write' && permission.permissionType === 'write');
+        if (hasDirectAccess) return true;
     }
-    return permissionType === 'read' || ( permissionType === 'write' && permission.permissionType === 'write');
+
+    if (file.parentId) {
+        return checkUserPermission(file.parentId, userId, permissionType);
+    }
+    
+    return false;
 }
 
 function addPermission(fileId, userId, permissionType) {
