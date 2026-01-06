@@ -7,8 +7,6 @@ const { listFiles: listFilesModel,
 
 const {getUserById} = require("../models/users");
 
-const { checkUserPermission: checkUserPermission } = require("../models/permissions");
-
 // Helper function to validate that user sent correct X-User-Id header and that user exists in system
 function validateUser(req, res) {
     const userId = req.get("X-User-Id");
@@ -35,14 +33,15 @@ function listFiles(req, res) {
     // returns all files for the specified user only
     const rawFiles = listFilesModel(userId, parentId); 
 
-    // return only id and name (can have more fields like size, date created, etc. we will see later)
     const files = rawFiles.map(file => ({
         id: file.id,
         name: file.name,
         type: file.type,
-        parentId: file.parentId
+        parentId: file.parentId,
+        creationTime: file.creationTime,
+        lastUpdateTime: file.lastUpdateTime
     }));
-    return res.status(200).json(files);       
+    return res.status(200).json(files);
 }
 
 async function createFile(req, res) {

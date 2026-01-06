@@ -49,7 +49,9 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     name,
     ownerId,
     type: normalizedType,
-    parentId: parentId ?? null
+    parentId: parentId ?? null,
+    creationTime: new Date().toISOString(),
+    lastUpdateTime: new Date().toISOString()
   };
 
   try {
@@ -96,7 +98,9 @@ async function getFile(id, userId) {
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
       type: fileMetadata.type,
-      content: fileContent ?? ""
+      content: fileContent ?? "",
+      creationTime: fileMetadata.creationTime,
+      lastUpdateTime: fileMetadata.lastUpdateTime
     };
   } catch (err) {
     throw {
@@ -241,6 +245,8 @@ async function updateFile(fileId, userId, { name, content }) {
         if (post?.status && post.status >= 400) throw post;
       }
     }
+    
+    file.lastUpdateTime = new Date().toISOString();
 
     return { ...file };
   } catch (err) {
