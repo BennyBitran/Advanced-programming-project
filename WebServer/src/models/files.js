@@ -209,11 +209,15 @@ async function updateFile(fileId, userId, { name, content }) {
   try {
     const file = files.find(f => f.id === fileId);
     if (!file) throw { status: 404, message: "File not found" };
+    
+    // check write permissions
+    const hasAccess = checkUserPermission(fileId, userId, 'write');
+    if (!hasAccess) throw { status: 403, message: "Write permission required" };
 
     // rename (logical name) - metadata only
     if (name !== undefined) {
       const newName = String(name).trim();
-      if (!newName) throw { status: 400, message: "Name is required" };
+      if (!newName) throw { status: 400, message: "Non empty name is required" };
       file.name = newName;
     }
 
