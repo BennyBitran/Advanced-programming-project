@@ -79,7 +79,7 @@ async function createFile(req, res) {
     });
     
     res.set("Location", `/api/files/${newFile.id}`);
-    return res.status(201).json(newFile);
+    return res.status(201).send();
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || "Failed to create file" });
   }
