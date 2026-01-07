@@ -3,13 +3,21 @@ const crypto = require("crypto");
 const users = [];
 
 function createUser({username, password, name, image}) {
+    let finalUsername = username.trim();
+    if (finalUsername.length === 0) {
+        throw new Error("Username is required.");
+    }
+    if (users.some((user) => user.username === finalUsername)) {
+        throw new Error("Username already exists.");
+    }
+
     let id;
     do {
         id = crypto.randomUUID();
     } while (users.some((user) => user.id === id));
     const newUser = {
         id,
-        username,
+        username: finalUsername,
         password,
         name,
         image,
