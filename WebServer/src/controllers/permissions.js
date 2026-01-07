@@ -35,16 +35,20 @@ function addPermission(req, res) {
     }
     const fileId = req.params.id;
     const file = getFileMetadata(fileId);
+    //check if file exists and user is owner
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
+    
     const { userId, permissionType } = req.body || {};
     if (typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ error: "Invalid or missing userId" });
     }
+
     if (permissionType !== "read" && permissionType !== "write") {
         return res.status(400).json({ error: "Invalid permissionType, must be 'read' or 'write'" });
     }
+    
     if (!getUserById(userId.trim())) {
         return res.status(400).json({ error: "User with the specified userId does not exist" });
     }
@@ -55,7 +59,6 @@ function addPermission(req, res) {
     }
     res.set("Location", `/api/files/${fileId}/permissions/${newPermission.pid}`);
     return res.status(201).send();
-
 }
 
 function updatePermission(req, res) {

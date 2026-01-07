@@ -30,8 +30,7 @@ function listFiles(req, res) {
     // fixed not to handle null === "null" → false
     const parentIdParam = req.query.parentId;
     const parentId = parentIdParam === undefined || parentIdParam === 'null' || parentIdParam === ''
-    ? null
-    : String(parentIdParam);
+    ? null : String(parentIdParam);
 
     // returns all files for the specified user only
     const rawFiles = listFilesModel(userId, parentId); 
@@ -49,7 +48,7 @@ function listFiles(req, res) {
 async function createFile(req, res) {
   const userId = validateUser(req, res);
   if (!userId) return;
-
+  
   const { name, type = "file", parentId, content } = req.body || {};
 
   if (!name || typeof name !== "string" || name.trim() === "") {
@@ -67,12 +66,7 @@ async function createFile(req, res) {
         if (!parentFile || parentFile.type !== "folder") {
             return res.status(400).json({ error: "Invalid parentId" });
         }
-        
-        const hasWriteAccess = parentFile.ownerId === userId || checkUserPermission(pid, userId, 'write');
-
-        if (!hasWriteAccess) {
-            return res.status(403).json({ error: "Write permission required on parent folder" });
-        }
+        // parent permission check moved to model
     }
 
   try {
@@ -83,7 +77,7 @@ async function createFile(req, res) {
       parentId: pid,
       content,
     });
-
+    
     res.set("Location", `/api/files/${newFile.id}`);
     return res.status(201).send();
   } catch (err) {
@@ -128,10 +122,6 @@ async function updateFile(req, res) {
         return res.status(404).json({ error: "File not found" });
     }
 
-    //check permissions
-    const hasAccess = file.ownerId === userId || checkUserPermission(fileId, userId, 'write');
-    if (!hasAccess) return res.status(403).json({ error: "Write permission required" });
-
     const { name , content } = req.body || {};
 
     try {
@@ -149,13 +139,6 @@ async function deleteFile(req, res) {
   const { id } = req.params;
   const file = getFileMetadata(id);
   if (!file) return res.status(404).json({ error: "File not found" });
-
-  const hasWriteAccess =
-    file.ownerId === userId || checkUserPermission(id, userId, "write");
-
-  if (!hasWriteAccess) {
-    return res.status(403).json({ error: "Write permission required" });
-  }
 
   try {
     await deleteFileModel(id, userId);
