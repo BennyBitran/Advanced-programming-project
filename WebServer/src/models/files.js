@@ -41,7 +41,11 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     }
   }
   
-  const id = crypto.randomUUID();
+        let id;
+        do {
+                id = crypto.randomUUID();
+        } while (files.some((file) => file.id === id));
+
   const normalizedType = type === "folder" ? "folder" : "file";
 
   const newFile = {
@@ -87,11 +91,44 @@ async function getFile(id, userId) {
     throw { status: 403, message: "Access denied" };
   }
 
-  try {
-    let fileContent = null;
-    if (fileMetadata.type === "file") {
-      const response = await sendRequest(`GET ${id}`);
-      fileContent = response.content;
+    // Fetch file names if it's a folder
+    if (fileMetadata.type === "folder") {
+        const children = files.filter(f => f.parentId === id).map(child => ({
+            id: child.id,
+            name: child.name,
+            ownerId: child.ownerId,
+            type: child.type,
+            parentId: child.parentId
+        }));
+        // Return folder metadata with children
+        return {
+            id: fileMetadata.id,
+            name: fileMetadata.name,
+            ownerId: fileMetadata.ownerId,
+            type: fileMetadata.type,
+            children
+        };
+    }
+    // Fetch file content from backend server if it's a file  
+    try {
+        let fileContent = null;
+        if (fileMetadata.type === "file") {
+            const response = await sendRequest(`GET ${id}`);
+            fileContent = response.content;
+        }
+        // Return file metadata with content
+        return {
+            id: fileMetadata.id,
+            name: fileMetadata.name,
+            ownerId: fileMetadata.ownerId,
+            type: fileMetadata.type,
+            content: fileContent ?? ""
+        };
+    } catch (err) {
+        throw {
+            status: err?.status ?? 500,
+            message: err?.message ?? "Failed to fetch content from backend"
+        };
     }
     return {
       id: fileMetadata.id,
@@ -172,16 +209,11 @@ async function searchFiles(query, userId) {
 
 
 async function deleteFile(id, userId) {
-  const root = getFileMetadata(id);
-  if (!root) throw { status: 404, message: "File not found" };
-  //check if user can delete file/folder
-  const canDelete = checkUserPermission(id, userId, 'write');
-
+  const canDelete = checkUserPermission(id, userId, 'write'); //method checks existance and ownership
   if (!canDelete) throw { status: 403, message: "Write permission required" };
 
   // recursively delete subtree without checking permissions again
   await deleteSubtree(id);
-
   return true;
 }
 
