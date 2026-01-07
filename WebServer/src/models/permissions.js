@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { getFileMetadata } = require("./files");
+//const { getFileMetadata } = require("./files"); consider changing to a service or something
 // pid: unique permission id
 // each permission: {pid, fileId, userId, permissionType}
 const permissions = [];
@@ -13,6 +13,7 @@ function listUserPermissions(userID) {
 }
 // Recursively check permissions up the file hierarchy
 function checkUserPermission(fileId, userId, permissionType) {
+    const { getFileMetadata } = require("./files");
     const file = getFileMetadata(fileId);
     if (!file) return false;
     if (file.ownerId === userId) return true;
