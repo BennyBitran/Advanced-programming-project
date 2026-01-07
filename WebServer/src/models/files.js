@@ -168,16 +168,11 @@ async function searchFiles(query, userId) {
 
 
 async function deleteFile(id, userId) {
-  const root = getFileMetadata(id);
-  if (!root) throw { status: 404, message: "File not found" };
-  //check if user can delete file/folder
-  const canDelete = root.ownerId === checkUserPermission(id, userId, 'write');
-
+  const canDelete = checkUserPermission(id, userId, 'write'); //method checks existance and ownership
   if (!canDelete) throw { status: 403, message: "Write permission required" };
 
   // recursively delete subtree without checking permissions again
   await deleteSubtree(id);
-
   return true;
 }
 
