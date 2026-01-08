@@ -111,17 +111,17 @@ async function getFile(id, userId) {
     }
     // Fetch file content from backend server if it's a file  
     try {
-        let fileContent = null;
-        if (fileMetadata.type === "file") {
-            const response = await sendRequest(`GET ${id}`);
-            fileContent = response.content;
-        }
+      const response = await sendRequest(`GET ${id}`);
+      const fileContent = response?.content ?? "";
         // Return file metadata with content
         return {
             id: fileMetadata.id,
             name: fileMetadata.name,
             ownerId: fileMetadata.ownerId,
             type: fileMetadata.type,
+            parentId: fileMetadata.parentId,
+            creationTime: fileMetadata.creationTime,
+            lastUpdateTime: fileMetadata.lastUpdateTime,
             content: fileContent ?? ""
         };
     } catch (err) {
@@ -130,22 +130,7 @@ async function getFile(id, userId) {
             message: err?.message ?? "Failed to fetch content from backend"
         };
     }
-    return {
-      id: fileMetadata.id,
-      name: fileMetadata.name,
-      ownerId: fileMetadata.ownerId,
-      type: fileMetadata.type,
-      content: fileContent ?? "",
-      creationTime: fileMetadata.creationTime,
-      lastUpdateTime: fileMetadata.lastUpdateTime
-    };
-  } catch (err) {
-    throw {
-      status: err?.status ?? 500,
-      message: err?.message ?? "Failed to fetch content from backend"
-    };
   }
-}
 
 
 
