@@ -143,7 +143,33 @@ curl -i "http://localhost:3000/api/search/hello" \
   -H "X-User-Id: $USER_ID"
 ```
 
-**4. Delete file:**
+**4. Give another user read access to the file (save permission id):**
+
+```bash
+USER_ID_2=$(curl -s -i -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"u2","username":"user2","password":"pas2"}' \
+  | awk -F'/api/users/' '/^Location:/{gsub("\r","");print $2}')
+
+PERMISSION_ID=$(curl -s -i -X POST http://localhost:3000/api/files/$FILE_ID/permissions \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: $USER_ID" \
+  -d '{"userId":"'"$USER_ID_2"'","permissionType":"read"}' \
+  | awk -F'/permissions/' '/^Location:/{gsub("\r","");print $2}')
+
+echo "PERMISSION_ID=$PERMISSION_ID"
+```
+
+**5. Upgrade that user's access to write:**
+
+```bash
+curl -i -X PATCH "http://localhost:3000/api/files/$FILE_ID/permissions/$PERMISSION_ID" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: $USER_ID" \
+  -d '{"permissionType":"write"}'
+```
+
+**6. Delete file:**
 
 ```bash
 curl -i -X DELETE "http://localhost:3000/api/files/$FILE_ID" \
