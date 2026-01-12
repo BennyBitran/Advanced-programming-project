@@ -1,5 +1,7 @@
 import { useState } from "react";
 import {registerUser} from "../api/api.js";
+import "./register.css";
+
 
 export default function RegisterPage() {  
   const [username, setUsername] = useState("");   
@@ -54,8 +56,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h2>Register</h2>
+  <div className="gd-auth-bg">
+    <div className="gd-auth-card">
+      <div className="gd-auth-brand">
+        <div className="gd-auth-logo" />
+        <h2 className="gd-auth-title">Drive</h2>
+      </div>
+      <p className="gd-auth-subtitle">Create your account to continue</p>
 
       {error && <div className="alert alert-danger">{error}</div>}
       {ok && <div className="alert alert-success">{ok}</div>}
@@ -63,56 +70,43 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label">Username</label>
-          <input
-            className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+          <input className="form-control gd-input" value={username}
+                 onChange={(e) => setUsername(e.target.value)} />
         </div>
 
         <div className="mb-3">
           <label className="form-label">Name</label>
-          <input
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input className="form-control gd-input" value={name}
+                 onChange={(e) => setName(e.target.value)} />
         </div>
 
         <div className="mb-3">
-          <label className="form-label">Image (URL/text)</label>
-          <input
-            className="form-control"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-          />
+          <label className="form-label">Image</label>
+          <input className="form-control gd-input" value={image}
+                 onChange={(e) => setImage(e.target.value)} />
         </div>
 
         <div className="mb-3">
           <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <input type="password" className="form-control gd-input" value={password}
+                 onChange={(e) => setPassword(e.target.value)} />
         </div>
 
         <div className="mb-3">
           <label className="form-label">Confirm password</label>
-          <input
-            type="password"
-            className="form-control"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+          <input type="password" className="form-control gd-input" value={confirmPassword}
+                 onChange={(e) => setConfirmPassword(e.target.value)} />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={loading}>
-          {loading ? "Registering..." : "Register"}
+        <button className="btn btn-primary w-100 gd-btn" type="submit" disabled={loading}>
+          {loading ? "Registering..." : "Create account"}
         </button>
       </form>
-    </div>
-  );
-}
 
+      <div className="gd-footer">
+        Already have an account? <a href="/login">Sign in</a>
+      </div>
+    </div>
+  </div>
+);
+}
