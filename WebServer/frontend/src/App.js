@@ -3,8 +3,10 @@ import LoginPage from "./pages/login";
 import RegisterPage from "./pages/register";
 import DrivePage from "./pages/drive";
 
+// Main application component that sets up routing between different pages
 export default function App() {
   return (
+    // Set up the router for navigation between pages
     <BrowserRouter>
       <div style={{ padding: 20 }}>
         <nav style={{ display: "flex", gap: 12, marginBottom: 16 }}>
@@ -12,7 +14,7 @@ export default function App() {
           <Link to="/register">Register</Link>
           <Link to="/drive">Drive</Link>
         </nav>
-
+        {/* Define application routes */}
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />

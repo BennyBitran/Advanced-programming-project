@@ -2,7 +2,7 @@ import { useState } from "react";
 import {registerUser} from "../api/api.js";
 import "./register.css";
 
-
+// Registration page component, consisting of a form to create a new user account
 export default function RegisterPage() {  
   const [username, setUsername] = useState("");   
   const [name, setName] = useState("");
@@ -13,11 +13,13 @@ export default function RegisterPage() {
   const [ok, setOk] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle form submission
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setOk("");
 
+    // validating username, name, password and confirm password fields
     if (!username.trim()) {
       setError("Username is required");
       return;
@@ -39,8 +41,11 @@ export default function RegisterPage() {
       return;
     }
     setOk("All good my brother, im sending your data to the server...");
+
+    // Attempt to register the user
     setLoading(true);
     try {
+      // Call the registerUser API function
       await registerUser({ 
         username: username.trim(), 
         name: name.trim(), 
@@ -54,7 +59,7 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
-
+  // Render the registration form
   return (
   <div className="gd-auth-bg">
     <div className="gd-auth-card">
