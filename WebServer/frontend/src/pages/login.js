@@ -45,12 +45,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await loginUser({ username: username.trim(), password });
-      localStorage.setItem("token", data.token); // Store token in localStorage
+      localStorage.setItem("userId", data.id); // Store userId in localStorage
       navigate("/drive"); // Redirect to drive page on success
 
       // catch and display error message on failure
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }

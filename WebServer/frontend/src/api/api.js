@@ -42,3 +42,25 @@ export async function loginUser({username, password}) {
     const data = await response.json();
     return data;
 }
+
+export async function listFiles(userId, parentId = null) {
+    const url = parentId ? `/api/files/${encodeURIComponent(parentId)}` : "/api/files";
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "X-User-Id": userId,
+        },
+    });
+    if (!response.ok) {
+        let msg = `HTTP ${response.status}`;
+        try {
+            const data = await response.json();
+            if (data && data.error) {
+                msg = data.error;
+            }
+        } catch {}
+        throw new Error(msg);
+    }
+    return await response.json();
+}
