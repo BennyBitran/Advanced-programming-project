@@ -1,9 +1,12 @@
 import { useState } from "react";
 import {registerUser} from "../api/api.js";
+import {useNavigate} from "react-router-dom";
 import "./register.css";
+
 
 // Registration page component, consisting of a form to create a new user account
 export default function RegisterPage() {  
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");   
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
@@ -40,7 +43,7 @@ export default function RegisterPage() {
       setError("Passwords do not match");
       return;
     }
-    setOk("All good my brother, im sending your data to the server...");
+    setOk("");
 
     // Attempt to register the user
     setLoading(true);
@@ -53,6 +56,7 @@ export default function RegisterPage() {
         password 
       });
       setOk("User registered successfully! You can now log in.");
+      navigate("/login", { state: { justRegistered: true, username: username.trim() } });
     } catch (error) {
       setError(error.message);
     } finally {
