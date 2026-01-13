@@ -5,7 +5,7 @@ import "./register.css";
 
 
 
-
+// Login Page Component
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState("");
+  
+  // Check if redirected from registration, if so, show success message and pre-fill username
   useEffect(() => {
     const state = location.state;
     if (state && state.justRegistered) {
@@ -23,11 +25,14 @@ export default function LoginPage() {
       }
     }
   }, [location.state]);
+
+  // Handle form submission for login, including validation and API call
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setOk("");
-
+    
+    // non-empty validation
     if (!username.trim()) {
       setError("Username is required");
       return;
@@ -36,19 +41,21 @@ export default function LoginPage() {
       setError("Password is required");
       return;
     }
-
+    // Call login API
     setLoading(true);
     try {
       const data = await loginUser({ username: username.trim(), password });
-      localStorage.setItem("token", data.token);
-      navigate("/drive");
+      localStorage.setItem("token", data.token); // Store token in localStorage
+      navigate("/drive"); // Redirect to drive page on success
+
+      // catch and display error message on failure
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   }
-
+  // Render login form with error/success messages
   return (
     <div className="gd-auth-bg">
       <div className="gd-auth-card">
