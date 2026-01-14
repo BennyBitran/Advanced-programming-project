@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {registerUser} from "../api/api.js";
-import {useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./register.css";
 
 
@@ -113,7 +113,7 @@ export default function RegisterPage() {
       </form>
 
       <div className="gd-footer">
-        Already have an account? <a href="/login">Sign in</a>
+        Already have an account? <Link to="/login">Sign in</Link>
       </div>
     </div>
   </div>

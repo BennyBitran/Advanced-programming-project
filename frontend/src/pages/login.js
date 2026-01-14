@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {loginUser} from "../api/api";
 import "./register.css";
 
@@ -45,7 +45,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await loginUser({ username: username.trim(), password });
-      localStorage.setItem("token", data.token); // Store token in localStorage
+      const token = data?.token ?? data?.id ?? "";
+      if (!token) {
+        throw new Error("Login failed");
+      }
+      localStorage.setItem("token", token);
       navigate("/drive"); // Redirect to drive page on success
 
       // catch and display error message on failure
@@ -94,12 +98,11 @@ export default function LoginPage() {
         </form>
 
         <div className="gd-footer">
-          No account? No problemo! <a href="/register">Create one</a>
+          No account? No problemo! <Link to="/register">Create one</Link>
         </div>
       </div>
     </div>
   );
 }
-
 
 
