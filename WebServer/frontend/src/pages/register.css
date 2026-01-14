@@ -1,0 +1,73 @@
+/* Page background like Google */
+.gd-auth-bg {
+  min-height: 100vh;
+  background: #f8f9fa; /* light gray */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Card container */
+.gd-auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 28px;
+}
+
+/* Header with small "Drive-like" mark */
+.gd-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.gd-auth-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34a853, #4285f4);
+}
+
+.gd-auth-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.gd-auth-subtitle {
+  color: #5f6368;
+  font-size: 14px;
+  margin: 0 0 18px 0;
+}
+
+/* Inputs */
+.gd-input {
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.gd-input:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66,133,244,0.15);
+}
+
+/* Primary button like Google */
+.gd-btn {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+/* Small link row */
+.gd-footer {
+  margin-top: 14px;
+  color: #5f6368;
+  font-size: 14px;
+}
