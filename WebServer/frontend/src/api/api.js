@@ -21,3 +21,24 @@ export async function registerUser({ username, name, image, password }) {
         throw new Error(msg);
     }
 }
+
+export async function loginUser({username, password}) {
+    const response = await fetch("/api/tokens", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"}, 
+        body: JSON.stringify({username, password}),
+    });
+    if(!response.ok) {
+        let msg = `HTTP ${response.status}`
+        try {
+            const data = await response.json()
+            if (data && data.error) {
+                msg = data.error
+            }
+
+        } catch {}
+        throw new Error(msg)
+    }
+    const data = await response.json();
+    return data;
+}
