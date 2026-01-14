@@ -16,6 +16,7 @@ export default function DrivePage() {
   const isDark = theme === "dark";
   const [activeNav, setActiveNav] = useState("my-drive");
   const [isNewOpen, setIsNewOpen] = useState(false);
+  const [isEmptyMenuOpen, setIsEmptyMenuOpen] = useState(false);
   const files = [];
   const hasFiles = files.length > 0;
 
@@ -75,7 +76,10 @@ export default function DrivePage() {
               type="button"
               aria-expanded={isNewOpen}
               aria-controls="gd-new-menu"
-              onClick={() => setIsNewOpen((open) => !open)}
+              onClick={() => {
+                setIsNewOpen((open) => !open);
+                setIsEmptyMenuOpen(false);
+              }}
             >
               <span className="material-symbols-outlined">add</span>
               <span>New</span>
@@ -178,10 +182,31 @@ export default function DrivePage() {
               <button
                 className="gd-empty-action"
                 type="button"
-                onClick={() => setIsNewOpen(true)}
+                aria-expanded={isEmptyMenuOpen}
+                aria-controls="gd-empty-menu"
+                onClick={() => {
+                  setIsEmptyMenuOpen((open) => !open);
+                  setIsNewOpen(false);
+                }}
               >
                 Create
               </button>
+              {isEmptyMenuOpen && (
+                <div className="gd-new-menu gd-empty-menu" id="gd-empty-menu" role="menu">
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">create_new_folder</span>
+                    <span>Folder</span>
+                  </button>
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">description</span>
+                    <span>File</span>
+                  </button>
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">upload</span>
+                    <span>Upload</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </main>

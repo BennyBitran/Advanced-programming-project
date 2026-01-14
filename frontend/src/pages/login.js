@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState("");
+  const isDev = process.env.NODE_ENV !== "production";
   
   // Check if redirected from registration, if so, show success message and pre-fill username
   useEffect(() => {
@@ -59,6 +60,11 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  function handleDevLogin() {
+    localStorage.setItem("token", "dev");
+    navigate("/drive");
+  }
   // Render login form with error/success messages
   return (
     <div className="gd-auth-bg">
@@ -92,17 +98,26 @@ export default function LoginPage() {
             />
           </div>
 
-          <button className="btn btn-primary w-100 gd-btn" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
+        <button className="btn btn-primary w-100 gd-btn" type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
 
-        <div className="gd-footer">
-          No account? No problemo! <Link to="/register">Create one</Link>
-        </div>
+      {isDev && (
+        <button
+          className="btn btn-outline-secondary w-100 gd-btn gd-btn-dev"
+          type="button"
+          onClick={handleDevLogin}
+        >
+          Enter Drive without login (temporaraly for development)
+        </button>
+      )}
+
+      <div className="gd-footer">
+        No account? No problemo! <Link to="/register">Create one</Link>
+      </div>
       </div>
     </div>
   );
 }
-
 
