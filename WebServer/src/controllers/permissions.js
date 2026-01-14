@@ -1,7 +1,7 @@
 const { getFileMetadata } = require("../models/files");
 const {getUserById} = require("../models/users");
 const {
-    listPermissions: listPermissionsModel,
+    listFilePermissions: listPermissionsModel,
     addPermission: addPermissionModel,
     updatePermission: updatePermissionModel,
     removePermission: removePermissionModel,
