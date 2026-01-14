@@ -1,15 +1,10 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import "./drive.css";
 
 export default function DrivePage() {
-  // placeholder (later: use your real state/files and handlers)
-  const files = useMemo(
-    () => [
-      { id: "1", name: "Example Folder", type: "folder" },
-      { id: "2", name: "hello.txt", type: "file" },
-    ],
-    []
-  );
+  const [isNewOpen, setIsNewOpen] = useState(false);
+  const files = [];
+  const hasFiles = files.length > 0;
 
   return (
     <div className="gd-app">
@@ -51,10 +46,34 @@ export default function DrivePage() {
       <div className="gd-body">
         {/* Sidebar */}
         <aside className="gd-sidebar">
-          <button className="gd-new">
-            <span className="material-symbols-outlined">add</span>
-            <span>New</span>
-          </button>
+          <div className="gd-new-wrap">
+            <button
+              className="gd-new"
+              type="button"
+              aria-expanded={isNewOpen}
+              aria-controls="gd-new-menu"
+              onClick={() => setIsNewOpen((open) => !open)}
+            >
+              <span className="material-symbols-outlined">add</span>
+              <span>New</span>
+            </button>
+            {isNewOpen && (
+              <div className="gd-new-menu" id="gd-new-menu" role="menu">
+                <button className="gd-new-item" type="button" role="menuitem">
+                  <span className="material-symbols-outlined">create_new_folder</span>
+                  <span>Folder</span>
+                </button>
+                <button className="gd-new-item" type="button" role="menuitem">
+                  <span className="material-symbols-outlined">description</span>
+                  <span>File</span>
+                </button>
+                <button className="gd-new-item" type="button" role="menuitem">
+                  <span className="material-symbols-outlined">upload</span>
+                  <span>Upload</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           <nav className="gd-nav">
             <a className="gd-nav-item gd-active" href="/drive">
@@ -110,29 +129,77 @@ export default function DrivePage() {
             </div>
           </div>
 
-          <div className="gd-table">
-            <div className="gd-table-head">
-              <div>Name</div>
-              <div>Type</div>
-              <div className="gd-col-right">ID</div>
-            </div>
-
-            {files.map((f) => (
-              <div className="gd-row" key={f.id}>
-                <div className="gd-name-cell">
-                  <span className="gd-file-icon">
-                    <span className="material-symbols-outlined">
-                      {f.type === "folder" ? "folder" : "description"}
-                    </span>
-                  </span>
-                  <span className="gd-name">{f.name}</span>
-                </div>
-                <div className="gd-muted">{f.type}</div>
-                <div className="gd-col-right gd-muted">{f.id}</div>
+          {hasFiles ? (
+            <div className="gd-table">
+              <div className="gd-table-head">
+                <div>Name</div>
+                <div>Type</div>
+                <div className="gd-col-right">ID</div>
               </div>
-            ))}
-          </div>
+
+              {files.map((f) => (
+                <div className="gd-row" key={f.id}>
+                  <div className="gd-name-cell">
+                    <span className="gd-file-icon">
+                      <span className="material-symbols-outlined">
+                        {f.type === "folder" ? "folder" : "description"}
+                      </span>
+                    </span>
+                    <span className="gd-name">{f.name}</span>
+                  </div>
+                  <div className="gd-muted">{f.type}</div>
+                  <div className="gd-col-right gd-muted">{f.id}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="gd-empty">
+              <div className="gd-empty-icon">
+                <span className="material-symbols-outlined">cloud_upload</span>
+              </div>
+              <h2 className="gd-empty-title">No files yet</h2>
+              <p className="gd-empty-text">
+                Use the New button to create your first folder or file.
+              </p>
+              <button
+                className="gd-empty-action"
+                type="button"
+                onClick={() => setIsNewOpen(true)}
+              >
+                Create
+              </button>
+            </div>
+          )}
         </main>
+
+        <aside className="gd-details">
+          <div className="gd-details-card">
+            <div className="gd-details-header">
+              <span>Details</span>
+              <button className="gd-icon-btn" type="button" aria-label="Close details">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="gd-details-body">
+              <div className="gd-details-empty">
+                <span className="material-symbols-outlined">info</span>
+                <p>Select a file to preview and see details.</p>
+              </div>
+              <div className="gd-details-section">
+                <div className="gd-details-label">Owner</div>
+                <div className="gd-details-value">Not selected</div>
+              </div>
+              <div className="gd-details-section">
+                <div className="gd-details-label">Location</div>
+                <div className="gd-details-value">Not selected</div>
+              </div>
+              <div className="gd-details-section">
+                <div className="gd-details-label">Last modified</div>
+                <div className="gd-details-value">Not selected</div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
