@@ -23,5 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 logo.svg
 README.md
+package-lock.json
 
 
