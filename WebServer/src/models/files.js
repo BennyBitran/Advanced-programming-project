@@ -14,7 +14,7 @@ function getFileMetadata(id) {
 function listFiles(userId, parentId = null) {
   // list just the file ids the user has permission to
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
-
+  // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
     file.parentId === parentId &&
     (file.ownerId === userId || userPerms.includes(file.id))
@@ -24,27 +24,27 @@ function listFiles(userId, parentId = null) {
 
 // Creates metadata in Node.js and physical content in C++
 async function createFile({ name, ownerId, type, parentId, content }) {
-  // if given a parentId check it exists and user has write permission
+  // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
     if (!parent) {
       throw { status: 404, message: "Parent directory not found" };
     }
-
     if (parent.type !== "folder") {
       throw { status: 400, message: "Cannot create items inside a file" };
     }
-    //check writing permissions
+
+    //check writing permissions to parent folder
     const hasWriteAccess = checkUserPermission(parentId, ownerId, 'write');
     if (!hasWriteAccess) {
       throw { status: 403, message: "Permission denied: Cannot write to this folder" };
     }
   }
-  
-        let id;
-        do {
-                id = crypto.randomUUID();
-        } while (files.some((file) => file.id === id));
+
+  let id;
+  do {
+    id = crypto.randomUUID();
+  } while (files.some((file) => file.id === id));
 
   const normalizedType = type === "folder" ? "folder" : "file";
 
@@ -86,51 +86,59 @@ async function getFile(id, userId) {
   }
 
   const hasAccess = checkUserPermission(id, userId, 'read');
-
   if (!hasAccess) {
     throw { status: 403, message: "Access denied" };
   }
 
-    // Fetch file names if it's a folder
-    if (fileMetadata.type === "folder") {
-        const children = files.filter(f => f.parentId === id).map(child => ({
-            id: child.id,
-            name: child.name,
-            ownerId: child.ownerId,
-            type: child.type,
-            parentId: child.parentId
-        }));
-        // Return folder metadata with children
-        return {
-            id: fileMetadata.id,
-            name: fileMetadata.name,
-            ownerId: fileMetadata.ownerId,
-            type: fileMetadata.type,
-            children
-        };
-    }
-    // Fetch file content from backend server if it's a file  
-    try {
-      const response = await sendRequest(`GET ${id}`);
-      const fileContent = response?.content ?? "";
-        // Return file metadata with content
-        return {
-            id: fileMetadata.id,
-            name: fileMetadata.name,
-            ownerId: fileMetadata.ownerId,
-            type: fileMetadata.type,
-            parentId: fileMetadata.parentId,
-            creationTime: fileMetadata.creationTime,
-            lastUpdateTime: fileMetadata.lastUpdateTime,
-            content: fileContent ?? ""
-        };
-    } catch (err) {
-        throw {
-            status: err?.status ?? 500,
-            message: err?.message ?? "Failed to fetch content from backend"
-        };
+  // Fetch file names if it's a folder
+  if (fileMetadata.type === "folder") {
+    const children = files.filter(f => f.parentId === id).map(child => ({
+      id: child.id,
+      name: child.name,
+      ownerId: child.ownerId,
+      type: child.type,
+      parentId: child.parentId
+    }));
+    // Return folder metadata with children
+    return {
+      id: fileMetadata.id,
+      name: fileMetadata.name,
+      ownerId: fileMetadata.ownerId,
+      type: fileMetadata.type,
+      children
+    };
+  }
+
+  let fileContent = "";
+
+  try {
+    // Fetch content from backend for files
+    const response = await sendRequest(`GET ${id}`);
+    fileContent = response?.content ?? "";
+  } catch (err) {
+    // catch 404 from backend as empty content (for empty files we save only metadata)
+    if (err?.status === 404) {
+      fileContent = "";
+    } else {
+      throw {
+        status: err?.status ?? 500,
+        message: err?.message ?? "Failed to fetch content from backend"
+      };
     }
   }
+
+  return {
+    id: fileMetadata.id,
+    name: fileMetadata.name,
+    ownerId: fileMetadata.ownerId,
+    type: fileMetadata.type,
+    parentId: fileMetadata.parentId,
+    creationTime: fileMetadata.creationTime,
+    lastUpdateTime: fileMetadata.lastUpdateTime,
+    content: fileContent ?? ""
+  };
+}
+
 
 
 
@@ -147,7 +155,7 @@ async function searchFiles(query, userId) {
       return checkUserPermission(f.id, userId, 'read');
     });
 
-    // Request backend search
+    // Request backend search and split results to array of physical IDs
     const cppResponse = await sendRequest(`SEARCH ${query}`);
     const physicalIds = cppResponse.status === 200
       ? (cppResponse.content || "").trim().split(/\s+/).filter(Boolean)
@@ -193,12 +201,16 @@ async function searchFiles(query, userId) {
 }
 
 
-async function deleteFile(id, userId) {
-  const canDelete = checkUserPermission(id, userId, 'write'); //method checks existance and ownership
+async function deleteFile(fileId, userId) {
+  if (files.contains(f => f.id === fileId) === false) {
+    throw { status: 404, message: "File not found" };
+  }
+  //check delete permissions (checks also file existence)
+  const canDelete = checkUserPermission(fileId, userId, 'write');
   if (!canDelete) throw { status: 403, message: "Write permission required" };
 
   // recursively delete subtree without checking permissions again
-  await deleteSubtree(id);
+  await deleteSubtree(fileId);
   return true;
 }
 
@@ -230,7 +242,7 @@ async function updateFile(fileId, userId, { name, content }) {
   try {
     const file = files.find(f => f.id === fileId);
     if (!file) throw { status: 404, message: "File not found" };
-    
+
     // check write permissions
     const hasAccess = checkUserPermission(fileId, userId, 'write');
     if (!hasAccess) throw { status: 403, message: "Write permission required" };
@@ -262,7 +274,7 @@ async function updateFile(fileId, userId, { name, content }) {
         if (post?.status && post.status >= 400) throw post;
       }
     }
-    
+
     file.lastUpdateTime = new Date().toISOString();
 
     return { ...file };
