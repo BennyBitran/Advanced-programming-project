@@ -1,8 +1,22 @@
 import { useState } from "react";
+import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
+const navItems = [
+  { key: "my-drive", label: "My Drive", icon: "home_storage" },
+  { key: "computers", label: "Computers", icon: "computer" },
+  { key: "shared", label: "Shared with me", icon: "group" },
+  { key: "recent", label: "Recent", icon: "schedule" },
+  { key: "starred", label: "Starred", icon: "star" },
+  { key: "trash", label: "Trash", icon: "delete" },
+];
+
 export default function DrivePage() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
+  const [activeNav, setActiveNav] = useState("my-drive");
   const [isNewOpen, setIsNewOpen] = useState(false);
+  const [isEmptyMenuOpen, setIsEmptyMenuOpen] = useState(false);
   const files = [];
   const hasFiles = files.length > 0;
 
@@ -30,6 +44,16 @@ export default function DrivePage() {
         </div>
 
         <div className="gd-topbar-right">
+          <button
+            className="gd-icon-btn"
+            type="button"
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            <span className="material-symbols-outlined">
+              {isDark ? "light_mode" : "dark_mode"}
+            </span>
+          </button>
           <button className="gd-icon-btn" aria-label="Help">
             <span className="material-symbols-outlined">help</span>
           </button>
@@ -52,7 +76,10 @@ export default function DrivePage() {
               type="button"
               aria-expanded={isNewOpen}
               aria-controls="gd-new-menu"
-              onClick={() => setIsNewOpen((open) => !open)}
+              onClick={() => {
+                setIsNewOpen((open) => !open);
+                setIsEmptyMenuOpen(false);
+              }}
             >
               <span className="material-symbols-outlined">add</span>
               <span>New</span>
@@ -76,30 +103,21 @@ export default function DrivePage() {
           </div>
 
           <nav className="gd-nav">
-            <a className="gd-nav-item gd-active" href="/drive">
-              <span className="material-symbols-outlined">home_storage</span>
-              <span>My Drive</span>
-            </a>
-            <a className="gd-nav-item" href="#">
-              <span className="material-symbols-outlined">computer</span>
-              <span>Computers</span>
-            </a>
-            <a className="gd-nav-item" href="#">
-              <span className="material-symbols-outlined">group</span>
-              <span>Shared with me</span>
-            </a>
-            <a className="gd-nav-item" href="#">
-              <span className="material-symbols-outlined">schedule</span>
-              <span>Recent</span>
-            </a>
-            <a className="gd-nav-item" href="#">
-              <span className="material-symbols-outlined">star</span>
-              <span>Starred</span>
-            </a>
-            <a className="gd-nav-item" href="#">
-              <span className="material-symbols-outlined">delete</span>
-              <span>Trash</span>
-            </a>
+            {navItems.map((item) => {
+              const isActive = item.key === activeNav;
+              return (
+                <button
+                  key={item.key}
+                  className={`gd-nav-item${isActive ? " gd-active" : ""}`}
+                  type="button"
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setActiveNav(item.key)}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
           <div className="gd-sidebar-footer">
@@ -164,10 +182,31 @@ export default function DrivePage() {
               <button
                 className="gd-empty-action"
                 type="button"
-                onClick={() => setIsNewOpen(true)}
+                aria-expanded={isEmptyMenuOpen}
+                aria-controls="gd-empty-menu"
+                onClick={() => {
+                  setIsEmptyMenuOpen((open) => !open);
+                  setIsNewOpen(false);
+                }}
               >
                 Create
               </button>
+              {isEmptyMenuOpen && (
+                <div className="gd-new-menu gd-empty-menu" id="gd-empty-menu" role="menu">
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">create_new_folder</span>
+                    <span>Folder</span>
+                  </button>
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">description</span>
+                    <span>File</span>
+                  </button>
+                  <button className="gd-new-item" type="button" role="menuitem">
+                    <span className="material-symbols-outlined">upload</span>
+                    <span>Upload</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </main>
