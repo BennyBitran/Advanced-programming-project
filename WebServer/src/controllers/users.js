@@ -23,16 +23,14 @@ function createUser(req, res) {
     res.set('Location', `/api/users/${newUser.id}`);
     return res.status(201).send();
     } catch (err) {
-        if (err.message === "Username is required.") {
-            return res.status(400).json({ error: err.message });
-        }
         if (err.message === "Username already exists.") {
             return res.status(409).json({ error: err.message });
         }
+        if (err.message === "Password must be at least 8 characters long.") {
+            return res.status(400).json({ error: err.message });
+        }
         return res.status(500).json({ error: "Internal server error" });
     }
-
-
 }
 
 function getUserById(req, res) {
