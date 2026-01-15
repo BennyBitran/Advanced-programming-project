@@ -4,7 +4,7 @@ const usersRoutes = require("./routes/users");
 const tokensRoutes = require("./routes/tokens");
 const filesRoutes = require("./routes/files");
 const searchRoutes = require("./routes/search");
-
+const auth = require("./middleware/auth");
 const app = express();
 
 app.use(express.json());
@@ -20,8 +20,9 @@ app.use((err, req, res, next) => {
 // API routes
 app.use("/api/users", usersRoutes);
 app.use("/api/tokens", tokensRoutes);
-app.use("/api/files", filesRoutes);
-app.use("/api/search", searchRoutes);
+// routes for logged in users only
+app.use("/api/files", auth.verifyToken, filesRoutes);
+app.use("/api/search", auth.verifyToken, searchRoutes);
 
 // 404 JSON for /api/*
 app.use((req, res) => {
