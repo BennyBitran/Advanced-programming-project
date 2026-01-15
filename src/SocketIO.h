@@ -17,9 +17,6 @@ private:
     // whats left after the command
     string line;
 
-    // Extracts a full line from buffer
-    string readLine();
-
     string tolowerCase(const string& text) const;
 
 public:
