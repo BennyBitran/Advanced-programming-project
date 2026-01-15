@@ -5,8 +5,6 @@ const { listFiles: listFilesModel,
     deleteFile: deleteFileModel,
     getFileMetadata: getFileMetadata } = require("../models/files");
 
-const { getUserById } = require("../models/users");
-
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
 function listFiles(req, res) {
     //force parentId to be null if not provided, and convert to string otherwise
