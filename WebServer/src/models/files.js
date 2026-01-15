@@ -202,7 +202,7 @@ async function searchFiles(query, userId) {
 
 
 async function deleteFile(fileId, userId) {
-  if (files.contains(f => f.id === fileId) === false) {
+  if (!files.some(f => f.id === fileId)) {
     throw { status: 404, message: "File not found" };
   }
   //check delete permissions (checks also file existence)
