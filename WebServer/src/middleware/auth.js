@@ -3,7 +3,7 @@ const app = express()
 app.use(express.json());
 const jwt = require('jsonwebtoken');
 const key = 'this is the secret key of BGE (Benny Gilad and Ilya)';
-const userModel = require('../models/user');
+const userModel = require('../models/users');
 
 const login = async (req, res) => {
     const { username, password } = req.body;
