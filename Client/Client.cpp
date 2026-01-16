@@ -44,7 +44,8 @@ int main(int argc, char *argv[])
         // now receive response from server: length header first and then payload
         string len_str = "";
         char c;
-        while (recv(sock, &c, 1, 0) > 0) {
+        while (recv(sock, &c, 1, 0) > 0)
+        {
             if (c == '\n')
                 break;
             len_str += c;
@@ -52,23 +53,23 @@ int main(int argc, char *argv[])
 
         if (len_str.empty())
             break;
-        uint32_t msg_length = stoi(len_str);    //parse to int
+        uint32_t msg_length = stoi(len_str); // parse to int
 
-        //now read actual data with specified length
+        // now read actual data with specified length
         string data;
         data.resize(msg_length);
         size_t received = 0;
-        while (received < msg_length) {
-            //receive, save to buffer and update received count 
+        while (received < msg_length)
+        {
+            // receive, save to buffer and update received count
             int chunk = recv(sock, &data[received], msg_length - received, 0);
             if (chunk <= 0)
                 break;
             received += chunk;
         }
-        cout << data;
+        cout << data << endl;
     }
     // send another message to continue
-}
-close(sock);
-return 0;
+    close(sock);
+    return 0;
 }
