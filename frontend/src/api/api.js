@@ -1,9 +1,15 @@
 // one func to handle all CRUD operations
-export async function apiRequest(path, method = "GET", body, headers = {}) {
+export async function apiRequest(path, method = "GET", body, headers = {}, withAuth = false) {
     const config = {
         method,
-        headers: { ...headers,},
+        headers: { ...headers },
     };
+    if (withAuth && typeof window !== "undefined") {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    }
     if (body !== undefined) {
         config.headers["Content-Type"] = "application/json";
         config.body = JSON.stringify(body);
@@ -16,12 +22,9 @@ export async function apiRequest(path, method = "GET", body, headers = {}) {
 
     if (!response.ok) {
         let msg = `HTTP ${response.status}`;
-        try {
-            const data = await response.json();
-            if (data && data.error) {
-                msg = data.error;
-            }
-        } catch {}
+        if (data && data.error) {
+            msg = data.error;
+        }
         throw new Error(msg);
     }
     return data;
@@ -40,12 +43,12 @@ export async function loginUser({username, password}) {
 }
 
 export async function listFiles() {
-    return apiRequest("/api/files");
+    return apiRequest("/api/files", "GET", undefined, {}, true);
 }
 export async function uploadFile(fileData) {
-    return apiRequest("/api/files", "POST", fileData);
+    return apiRequest("/api/files", "POST", fileData, {}, true);
 }
 
 export async function deleteFile(fileId) {
-    return apiRequest(`/api/files/${fileId}`, "DELETE");
+    return apiRequest(`/api/files/${fileId}`, "DELETE", undefined, {}, true);
 }

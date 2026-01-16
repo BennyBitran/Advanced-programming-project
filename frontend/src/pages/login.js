@@ -46,16 +46,19 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await loginUser({ username: username.trim(), password });
-      const token = data?.token ?? data?.id ?? "";
+      const token = data?.token ?? "";
       if (!token) {
         throw new Error("Login failed");
       }
       localStorage.setItem("token", token);
+      if (data?.userId) {
+        localStorage.setItem("userId", data.userId);
+      }
       navigate("/drive"); // Redirect to drive page on success
 
       // catch and display error message on failure
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -120,4 +123,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
