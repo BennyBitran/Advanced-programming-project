@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { listFiles } from "../api/api";
+import { useEffect, useRef, useState } from "react";
+import { listFiles, uploadFile } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
@@ -21,9 +21,12 @@ export default function DrivePage() {
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef(null);
   const hasFiles = files.length > 0;
 
-  useEffect(() => {
+  const loadFiles = () => {
     let isActive = true;
     setIsLoading(true);
     setError("");
@@ -49,7 +52,56 @@ export default function DrivePage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  };
+
+  useEffect(() => loadFiles(), []);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event) => {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (files.some((existing) => existing.name === file.name)) {
+      setUploadStatus("");
+      setUploadError("A file with this name already exists");
+      input.value = "";
+      setIsNewOpen(false);
+      setIsEmptyMenuOpen(false);
+      return;
+    }
+    setUploadStatus("Uploading...");
+    setUploadError("");
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const content = typeof reader.result === "string" ? reader.result : "";
+        await uploadFile({ name: file.name, type: "file", content });
+        setUploadStatus("Upload completed");
+        loadFiles();
+      } catch (err) {
+        setUploadStatus("");
+        setUploadError(err?.message || "Upload failed");
+      } finally {
+        input.value = "";
+        setIsNewOpen(false);
+        setIsEmptyMenuOpen(false);
+      }
+    };
+    reader.onerror = () => {
+      setUploadError("Failed to read file");
+      setUploadStatus("");
+      input.value = "";
+      setIsNewOpen(false);
+      setIsEmptyMenuOpen(false);
+    };
+    reader.readAsText(file);
+  };
 
   return (
     <div className="gd-app">
@@ -125,12 +177,18 @@ export default function DrivePage() {
                   <span className="material-symbols-outlined">description</span>
                   <span>File</span>
                 </button>
-                <button className="gd-new-item" type="button" role="menuitem">
+                <button className="gd-new-item" type="button" role="menuitem" onClick={handleUploadClick}>
                   <span className="material-symbols-outlined">upload</span>
                   <span>Upload</span>
                 </button>
               </div>
             )}
+            <input
+              className="gd-file-input"
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelected}
+            />
           </div>
 
           <nav className="gd-nav">
@@ -178,6 +236,9 @@ export default function DrivePage() {
             </div>
           </div>
 
+          {uploadStatus && <div className="gd-status">{uploadStatus}</div>}
+          {uploadError && <div className="gd-error">{uploadError}</div>}
+
           {isLoading ? (
             <div className="gd-status">Loading files...</div>
           ) : error ? (
@@ -187,7 +248,6 @@ export default function DrivePage() {
               <div className="gd-table-head">
                 <div>Name</div>
                 <div>Type</div>
-                <div className="gd-col-right">ID</div>
               </div>
 
               {files.map((f) => (
@@ -198,10 +258,11 @@ export default function DrivePage() {
                         {f.type === "folder" ? "folder" : "description"}
                       </span>
                     </span>
-                    <span className="gd-name">{f.name}</span>
+                    <span className="gd-name" title={f.name}>
+                      {f.name}
+                    </span>
                   </div>
                   <div className="gd-muted">{f.type}</div>
-                  <div className="gd-col-right gd-muted">{f.id}</div>
                 </div>
               ))}
             </div>
@@ -236,7 +297,7 @@ export default function DrivePage() {
                     <span className="material-symbols-outlined">description</span>
                     <span>File</span>
                   </button>
-                  <button className="gd-new-item" type="button" role="menuitem">
+                  <button className="gd-new-item" type="button" role="menuitem" onClick={handleUploadClick}>
                     <span className="material-symbols-outlined">upload</span>
                     <span>Upload</span>
                   </button>
