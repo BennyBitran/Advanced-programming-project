@@ -1,8 +1,8 @@
 const express = require("express");
-const tokensController = require("../controllers/tokens");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("/", tokensController.createToken);
+router.post("/", auth.login);
 
 module.exports = router;

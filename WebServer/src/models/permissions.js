@@ -11,6 +11,7 @@ function listFilePermissions(fileId) {
 function listUserPermissions(userID) {
     return permissions.filter((perm) => perm.userId === userID);
 }
+
 // Recursively check permissions up the file hierarchy
 function checkUserPermission(fileId, userId, permissionType) {
     const { getFileMetadata } = require("./files");
@@ -31,6 +32,7 @@ function checkUserPermission(fileId, userId, permissionType) {
     
     return false;
 }
+
 
 function addPermission(fileId, userId, permissionType) {
     if(permissionType !== 'read' && permissionType !== 'write') {
@@ -76,9 +78,12 @@ function removePermission(permissionId) {
     return true;
 }
 
+
 function getPermissionById(permissionId) {
     return permissions.find((perm) => perm.pid === permissionId) || null;
 }
+
+
 module.exports = {
     listFilePermissions,
     listUserPermissions,
