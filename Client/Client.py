@@ -17,23 +17,31 @@ msg = input()
 
 # Main loop to send and receive messages
 while msg.lower() != "quit":
-    client_socket.sendall((msg + "\n").encode())
+    # Protocol (Length + \n + Payload)
+    payload = msg.encode()
+    header = f"{len(payload)}\n".encode()
+    client_socket.sendall(header + payload)
 
-    # Receive a line from the server
+    # read header
+    header_data = b""
+    while True:
+        char = client_socket.recv(1)
+        if not char or char == b'\n':
+            break
+        header_data += char
+    
+    if not header_data: break
+    toRead = int(header_data.decode())  #parse length to int
+
+    # receive Payload
     data = b"" 
-    toRead = int.from_bytes(client_socket.recv(4), byteorder='big')
     while toRead > 0:
-        chunk = client_socket.recv(toRead)
-        if not chunk:
-            break # i dont know what to do here
+        chunk = client_socket.recv(min(toRead, 4096))
+        if not chunk: break
         data += chunk
         toRead -= len(chunk)
    
-    
-    # Process and print the received line 
-    line = data.decode()
-    print(line, end='')
-
+    print(data.decode(), end='')
     msg = input()
 
 client_socket.close()

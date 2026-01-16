@@ -1,4 +1,4 @@
-#include <iostream> 
+#include <iostream>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <netinet/in.h>
@@ -8,15 +8,18 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
+int main(int argc, char *argv[])
+{
+    if (argc != 3)
+    {
         return 1;
     }
-    const char* server_ip = argv[1];
+    const char *server_ip = argv[1];
     int server_port = atoi(argv[2]);
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        //what to dooo
+    if (sock < 0)
+    {
+        // what to dooo
         return 1;
     }
     struct sockaddr_in serv_addr;
@@ -25,44 +28,47 @@ int main(int argc, char* argv[]) {
     serv_addr.sin_addr.s_addr = inet_addr(server_ip);
     serv_addr.sin_port = htons(server_port);
 
-    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
         close(sock);
         return 1;
     }
     // send message to server
     string message;
-    while (getline(cin, message)) {
-        string toSend = message + "\n";
-
-        send(sock, toSend.c_str(), toSend.size(), 0);
-
-        // receive response length from server
-        uint32_t msg_length = 0;
-        if (recv(sock, &msg_length, sizeof(msg_length), MSG_WAITALL) <= 0) {
-            return 1;
+    while (getline(cin, message))
+    {
+        // protocol: send length header + \n + payload
+        string header = to_string(message.length()) + "\n";
+        send(sock, header.c_str(), header.length(), 0);
+        send(sock, message.c_str(), message.length(), 0);
+        // now receive response from server: length header first and then payload
+        string len_str = "";
+        char c;
+        while (recv(sock, &c, 1, 0) > 0) {
+            if (c == '\n')
+                break;
+            len_str += c;
         }
-        //convert into correct indian to save a number
-        msg_length = ntohl(msg_length);
 
+        if (len_str.empty())
+            break;
+        uint32_t msg_length = stoi(len_str);    //parse to int
+
+        //now read actual data with specified length
         string data;
         data.resize(msg_length);
         size_t received = 0;
         while (received < msg_length) {
+            //receive, save to buffer and update received count 
             int chunk = recv(sock, &data[received], msg_length - received, 0);
-            if (chunk <= 0) {
-                // what to do if server closed connection or error
+            if (chunk <= 0)
                 break;
-            }
             received += chunk;
         }
-        if (received < msg_length) {
-            // incomplete message, i dont know what to do here
-            break;
-        }
         cout << data;
-        // send another message to continue
     }
-    close(sock);
-    return 0;
-
+    // send another message to continue
+}
+close(sock);
+return 0;
 }

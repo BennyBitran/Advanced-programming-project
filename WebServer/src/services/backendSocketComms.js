@@ -3,32 +3,42 @@ const net = require('net');
 const DEFAULT_HOST = process.env.BACKEND_HOST || "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.BACKEND_PORT || 8080);
 
+// Sends a request message to the backend C++ server and returns a structured response
 async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
     return new Promise((resolve, reject) => {
         const client = new net.Socket();
         let buffer = Buffer.alloc(0);
         let expectedLength = -1;
+        let headerOffset = -1;
 
         client.connect(port, host, () => {
-            // format for sending: end with a \n (maybe should change to \r\r\n\r)
-            client.write(message + "\n");
+            const payload = message;
+            const length = Buffer.byteLength(payload);
+            // Protocol: Length + \n + Message
+            client.write(length + "\n" + payload);
         });
 
         client.on('data', (chunk) => {
             buffer = Buffer.concat([buffer, chunk]);
 
-            // format for reading: length prefix 4 bytes as big-endian
-            if (expectedLength === -1 && buffer.length >= 4) {
-                expectedLength = buffer.readUInt32BE(0);
+            if (expectedLength === -1) {
+                const bufferString = buffer.toString();
+                const newlineIndex = bufferString.indexOf('\n');
+
+                if (newlineIndex !== -1) {
+                    const lengthStr = bufferString.substring(0, newlineIndex);  //catch length string
+                    expectedLength = parseInt(lengthStr, 10);
+                    headerOffset = newlineIndex + 1;
+                }
             }
 
-            //wait for buffer to get the whole message (checks 4 + expected length)
-            if (expectedLength !== -1 && buffer.length >= (4 + expectedLength)) {
-                //save buffer content
-                const rawResponse = buffer.slice(4, 4 + expectedLength).toString();
-                //close connection instantly (free backend connection + thread)
+            // Check if we have received the full message (header + body)
+            if (expectedLength !== -1 && buffer.length >= (headerOffset + expectedLength)) {
+                // Extract the raw response message
+                const rawResponse = buffer.slice(headerOffset, headerOffset + expectedLength).toString();
+                //disconnect from cpp server
                 client.destroy();
-                //parse to a JSON and return result, or reject on error status
+                
                 const result = parseResponse(rawResponse);
                 if (result?.status && result.status >= 400) {
                     reject(result);
@@ -44,6 +54,7 @@ async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
         });
     });
 }
+
 
 
 // Helper function to parse raw response from backend into structured object (JSON)
@@ -68,7 +79,7 @@ function parseResponse(raw) {
         // The content starts after the \n\n
         content = cleanRaw.substring(doubleNewlineIndex + 2);
     }
-    
+
     return {
         status: statusCode,
         statusText: statusText,

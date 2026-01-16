@@ -27,23 +27,30 @@ int connectToServer() {
 
 // helper function to send a request and receive response
 // This handles the protocol (Send String, Recv Length, Recv Data)
-string sendRequest(int sock, string message) {
-    // Send the command
-    send(sock, message.c_str(), message.size(), 0);
+string sendRequest(int fd, string message) {
+    string sendHeader = to_string(message.length()) + "\n";
+    if (send(fd, sendHeader.c_str(), sendHeader.length(), 0) <= 0) return "SEND_ERR";
+    if (send(fd, message.c_str(), message.length(), 0) <= 0) return "SEND_ERR";
 
-    // Receive Length
-    uint32_t msg_length = 0;
-    int n = recv(sock, &msg_length, sizeof(msg_length), MSG_WAITALL);
-    if (n <= 0) return ""; 
-    
-    msg_length = ntohl(msg_length);
+    string resHeader = "";
+    char c;
+    while (true) {
+        int n = recv(fd, &c, 1, 0);
+        if (n <= 0) return "";
+        if (c == '\n') break;
+        resHeader += c;
+    }
 
-    // Receive message
-    string data;
-    data.resize(msg_length);
-    recv(sock, &data[0], msg_length, 0);
-    
-    return data;
+    int expectedLen = stoi(resHeader);
+    string response = "";
+    response.resize(expectedLen);
+    int totalReceived = 0;
+    while (totalReceived < expectedLen) {
+        int n = recv(fd, &response[totalReceived], expectedLen - totalReceived, 0);
+        if (n <= 0) break;
+        totalReceived += n;
+    }
+    return response;
 }
 
 TEST(serverIntegrationTests, SingleClientFullFlow) {
