@@ -4,13 +4,13 @@ const users = [];
 
 function createUser({username, password, name, image}) {
     let finalUsername = username.trim();
-    if (finalUsername.length === 0) {
-        throw new Error("Username is required.");
-    }
     if (users.some((user) => user.username === finalUsername)) {
         throw new Error("Username already exists.");
     }
-
+    if (password.length < 8) {
+        throw new Error("Password must be at least 8 characters long.");
+    }
+    
     let id;
     do {
         id = crypto.randomUUID();
@@ -31,9 +31,7 @@ function getUserById(id) {
 }
 
 function findUserByCredentials(username, password) {
-    return users.find(
-        (user) => user.username === username && user.password === password
-    ) || null;
+    return users.find((user) => user.username === username && user.password === password) || null;
 }   
     
 

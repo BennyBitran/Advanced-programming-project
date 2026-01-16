@@ -10,12 +10,9 @@ const {
 
 
 function listPermissions(req, res) {
-    const ownerId = req.get("X-User-Id");
+    const ownerId = req.user.id;
     const fileId = req.params.id;
-
-    if (!ownerId || !getUserById(ownerId)) {
-        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
-    }
+    //check if file exists and requesting user is the owner
     const file = getFileMetadata(fileId);
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
@@ -29,13 +26,11 @@ function listPermissions(req, res) {
 }
 
 function addPermission(req, res) {
-    const ownerId = req.get("X-User-Id");
-    if (!ownerId || !getUserById(ownerId)) {
-        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
-    }
+    const ownerId = req.user.id;
     const fileId = req.params.id;
     const file = getFileMetadata(fileId);
-    //check if file exists and user is owner
+
+    //check if file exists and user is its owner
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
@@ -62,13 +57,10 @@ function addPermission(req, res) {
 }
 
 function updatePermission(req, res) {
-    const ownerId = req.get("X-User-Id");
+    const ownerId = req.user.id;
     const fileId = req.params.id;
     const permissionId = req.params.permissionId;
 
-    if (!ownerId || !getUserById(ownerId)) {
-        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
-    }
     const file = getFileMetadata(fileId);
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
@@ -91,17 +83,15 @@ function updatePermission(req, res) {
 }
 
 function removePermission(req, res) {
-    const ownerId = req.get("X-User-Id");
+    const ownerId = req.user.id;
     const fileId = req.params.id;
     const permissionId = req.params.permissionId;
-    if (!ownerId || !getUserById(ownerId)) {
-        return res.status(401).json({ error: "Unauthorized: Invalid or missing user ID" });
-    }
     const file = getFileMetadata(fileId);
 
     if (!file || file.ownerId !== ownerId) {
         return res.status(404).json({ error: "File not found" });
     }
+    
     const permission = getPermissionModel(permissionId);
     if (!permission || permission.fileId !== fileId) {
         return res.status(404).json({ error: "Permission not found for the specified file" });
