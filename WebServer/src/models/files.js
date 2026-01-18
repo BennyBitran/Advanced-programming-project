@@ -12,7 +12,7 @@ function getFileMetadata(id) {
 }
 
 // List files for a user under a specific parent folder (or root if parentId is null)
-function listFiles(userId, parentId = null) {
+function listFiles(userId, parentId = null, view = null) {
   let hasAccess;
   if (parentId) {
     hasAccess = checkUserPermission(parentId, userId, 'read');
@@ -20,7 +20,7 @@ function listFiles(userId, parentId = null) {
   if (parentId && !hasAccess) {
     throw { status: 403, message: "Access denied to the specified folder" };
   }
-
+  
   // list all file ids the user has permissions for
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
@@ -220,24 +220,24 @@ async function deleteFile(fileId, userId) {
     if (!file.isTrashed) {
       //mark trash first
       file.isTrashed = true;
-      return { status: 200, data: file };
+      return { status: 200, message: "Moved to trash", data: file };
     } else {
       //if file already trashed - delete it permanently.
       deleteSubtree(fileId);
-      return { status: 204, data: "Permanently deleted" };
+      return { status: 204, message: "Permanently deleted" };
     }
   } else {
     //if the file is shared with the user - remove the permission
     let permId = getPermissionByUserAndFile(userId, fileId);
     if (permId) {
       removePermission(permId);
-      return { status: 204, data: "Permission removed" };
+      return { status: 204, message: "Permission removed" };
     }
     //if the file is inside a shared folder that user has permission to write 
     // actually delete it (Google implementation)
     if (checkUserPermission(fileId, userId, "write")) {
       deleteSubtree(fileId);
-      return { status: 204, data: "Permanently deleted" };
+      return { status: 204, message: "Permanently deleted" };
     }
   }
   return { status: 403, message: "Permission denied: Cannot delete file or folder"}
