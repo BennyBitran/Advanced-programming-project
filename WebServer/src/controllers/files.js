@@ -20,6 +20,7 @@ function listFiles(req, res) {
         name: file.name,
         type: file.type,
         parentId: file.parentId,
+        isTrashed: file.isTrashed,
         creationTime: file.creationTime,
         lastUpdateTime: file.lastUpdateTime
     }));
