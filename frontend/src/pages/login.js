@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import {loginUser} from "../api/api";
+import { loginUser, registerUser } from "../api/api";
 import "./register.css";
 
 
@@ -15,6 +15,28 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState("");
   const isDev = process.env.NODE_ENV !== "production";
+  const devUser = {
+    username: "dev",
+    name: "Dev User",
+    image: "",
+    password: "devpass123",
+  };
+
+  const clearAuth = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+  };
+
+  const saveAuth = (data) => {
+    const token = data?.token ?? "";
+    if (!token) {
+      throw new Error("Login failed");
+    }
+    localStorage.setItem("token", token);
+    if (data?.userId) {
+      localStorage.setItem("userId", data.userId);
+    }
+  };
   
   // Check if redirected from registration, if so, show success message and pre-fill username
   useEffect(() => {
@@ -32,6 +54,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setOk("");
+    clearAuth();
     
     // non-empty validation
     if (!username.trim()) {
@@ -46,14 +69,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await loginUser({ username: username.trim(), password });
-      const token = data?.token ?? "";
-      if (!token) {
-        throw new Error("Login failed");
-      }
-      localStorage.setItem("token", token);
-      if (data?.userId) {
-        localStorage.setItem("userId", data.userId);
-      }
+      saveAuth(data);
       navigate("/drive"); // Redirect to drive page on success
 
       // catch and display error message on failure
@@ -64,9 +80,39 @@ export default function LoginPage() {
     }
   }
 
-  function handleDevLogin() {
-    localStorage.setItem("token", "dev");
-    navigate("/drive");
+  async function handleDevLogin() {
+    setError("");
+    setOk("");
+    clearAuth();
+    setLoading(true);
+    try {
+      const data = await loginUser({
+        username: devUser.username,
+        password: devUser.password,
+      });
+      saveAuth(data);
+      navigate("/drive");
+      return;
+    } catch (err) {
+      try {
+        await registerUser(devUser);
+      } catch (registerErr) {
+        setError(registerErr?.message || err?.message || "Dev login failed");
+        return;
+      }
+      try {
+        const data = await loginUser({
+          username: devUser.username,
+          password: devUser.password,
+        });
+        saveAuth(data);
+        navigate("/drive");
+      } catch (loginErr) {
+        setError(loginErr?.message || "Dev login failed");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
   // Render login form with error/success messages
   return (
