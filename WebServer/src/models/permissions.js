@@ -38,7 +38,10 @@ function addPermission(fileId, userId, permissionType) {
     if(permissionType !== 'read' && permissionType !== 'write') {
         return null;
     }
-    if(permissions.some((perm) => perm.fileId === fileId && perm.userId === userId)) {
+    //if user already can access the file with existing permissions (parent or direct), dont create a new one
+    //but if we explicitly give a file permission, and then we want to give to its parent - create a new one
+    isAlreadyPermitted = checkUserPermission(fileId, userId, permissionType);
+    if (isAlreadyPermitted) {
         return null;
     }
     let pid;
