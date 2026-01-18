@@ -2,8 +2,7 @@ const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
-  checkUserPermission: checkUserPermission,
-  getPermissionByUserAndFile } = require("./permissions");
+  checkUserPermission: checkUserPermission } = require("./permissions");
 
 const files = [];
 
@@ -12,7 +11,7 @@ function getFileMetadata(id) {
 }
 
 // List files for a user under a specific parent folder (or root if parentId is null)
-function listFiles(userId, parentId = null, view = null) {
+function listFiles(userId, parentId = null) {
   let hasAccess;
   if (parentId) {
     hasAccess = checkUserPermission(parentId, userId, 'read');
@@ -20,17 +19,13 @@ function listFiles(userId, parentId = null, view = null) {
   if (parentId && !hasAccess) {
     throw { status: 403, message: "Access denied to the specified folder" };
   }
-  
-  if (view === "trash") {
-    return files.filter(file => file.ownerId === userId && file.isTrashed);
-  }
 
   // list all file ids the user has permissions for
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
   // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
-    file.parentId === parentId && !file.isTrashed &&
+    file.parentId === parentId &&
     (file.ownerId === userId || userPerms.includes(file.id))
   );
 }
@@ -68,9 +63,9 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     ownerId,
     type: normalizedType,
     parentId: parentId ?? null,
-    isTrashed: false,
     creationTime: new Date().toISOString(),
-    lastUpdateTime: new Date().toISOString()
+    lastUpdateTime: new Date().toISOString(),
+    starredBy: [] 
   };
 
   try {
@@ -217,34 +212,16 @@ async function searchFiles(query, userId) {
 
 
 async function deleteFile(fileId, userId) {
-  const file = files.find(f => f.id === fileId);
-  if (!file) throw { status: 404, message: "File not found" };
-  //check if user is the file's owner
-  if (file.ownerId === userId) {
-    if (!file.isTrashed) {
-      //mark trash first
-      file.isTrashed = true;
-      return { status: 200, message: "Moved to trash", data: file };
-    } else {
-      //if file already trashed - delete it permanently.
-      deleteSubtree(fileId);
-      return { status: 204, message: "Permanently deleted" };
-    }
-  } else {
-    //if the file is shared with the user - remove the permission
-    let permId = getPermissionByUserAndFile(userId, fileId);
-    if (permId) {
-      removePermission(permId);
-      return { status: 204, message: "Permission removed" };
-    }
-    //if the file is inside a shared folder that user has permission to write 
-    // actually delete it (Google implementation)
-    if (checkUserPermission(fileId, userId, "write")) {
-      deleteSubtree(fileId);
-      return { status: 204, message: "Permanently deleted" };
-    }
+  if (!files.some(f => f.id === fileId)) {
+    throw { status: 404, message: "File not found" };
   }
-  return { status: 403, message: "Permission denied: Cannot delete file or folder"}
+  //check delete permissions (checks also file existence)
+  const canDelete = checkUserPermission(fileId, userId, 'write');
+  if (!canDelete) throw { status: 403, message: "Write permission required" };
+
+  // recursively delete subtree without checking permissions again
+  await deleteSubtree(fileId);
+  return true;
 }
 
 async function deleteSubtree(id) {
@@ -319,6 +296,63 @@ async function updateFile(fileId, userId, { name, content }) {
   }
 }
 
+function starFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) {
+    throw { status: 404, message: "File not found" };
+  }
+
+  const hasAccess = checkUserPermission(fileId, userId, 'read');
+  if (!hasAccess) {
+    throw { status: 403, message: "Access denied" };
+  }
+  if (!file.starredBy.includes(userId)) {
+    file.starredBy.push(userId);
+  }
+  return true;  
+}
+
+function unstarFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) {
+    throw { status: 404, message: "File not found" };
+  }
+
+  const hasAccess = checkUserPermission(fileId, userId, 'read');
+  if (!hasAccess) {
+    throw { status: 403, message: "Access denied" };
+  }
+  const index = file.starredBy.indexOf(userId);
+  if (index !== -1) {
+    file.starredBy.splice(index, 1);
+  }
+  return true;  
+}
+
+function listAllfiles() {
+  const userPerms = listUserPermissions(userId).map(p => p.fileId);
+  return files.filter(file =>
+    file.ownerId === userId || userPerms.includes(file.id)
+  );
+}
+
+function listStarredFiles(userId) {
+  const { checkUserPermission } = require("./permissions");
+
+  return files
+    .filter((f) => (f.starredBy ?? []).includes(userId))
+    .filter((f) => checkUserPermission(f.id, userId, "read"))
+    .map((f) => ({
+      id: f.id,
+      name: f.name,
+      ownerId: f.ownerId,
+      type: f.type,
+      parentId: f.parentId,
+      creationTime: f.creationTime,
+      lastUpdateTime: f.lastUpdateTime,
+      starred: true,
+    }));
+}
 
 module.exports = {
   listFiles,
@@ -328,4 +362,7 @@ module.exports = {
   deleteFile,
   searchFiles,
   getFileMetadata,
+  starFile,
+  unstarFile,
+  listAllfiles
 };
