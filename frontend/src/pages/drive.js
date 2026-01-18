@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { listFiles } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
@@ -17,8 +18,38 @@ export default function DrivePage() {
   const [activeNav, setActiveNav] = useState("my-drive");
   const [isNewOpen, setIsNewOpen] = useState(false);
   const [isEmptyMenuOpen, setIsEmptyMenuOpen] = useState(false);
-  const files = [];
+  const [files, setFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const hasFiles = files.length > 0;
+
+  useEffect(() => {
+    let isActive = true;
+    setIsLoading(true);
+    setError("");
+    listFiles()
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        setFiles(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        if (!isActive) {
+          return;
+        }
+        setError(err?.message || "Failed to load files");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <div className="gd-app">
@@ -147,7 +178,11 @@ export default function DrivePage() {
             </div>
           </div>
 
-          {hasFiles ? (
+          {isLoading ? (
+            <div className="gd-status">Loading files...</div>
+          ) : error ? (
+            <div className="gd-error">{error}</div>
+          ) : hasFiles ? (
             <div className="gd-table">
               <div className="gd-table-head">
                 <div>Name</div>
