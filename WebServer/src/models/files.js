@@ -12,8 +12,17 @@ function getFileMetadata(id) {
 
 // List files for a user under a specific parent folder (or root if parentId is null)
 function listFiles(userId, parentId = null) {
-  // list just the file ids the user has permission to
+  let hasAccess;
+  if (parentId) {
+    hasAccess = checkUserPermission(parentId, userId, 'read');
+  }
+  if (parentId && !hasAccess) {
+    throw { status: 403, message: "Access denied to the specified folder" };
+  }
+
+  // list all file ids the user has permissions for
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
+
   // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
     file.parentId === parentId &&
