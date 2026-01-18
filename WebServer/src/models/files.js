@@ -14,6 +14,8 @@ function getFileMetadata(id) {
 // List files for a user under a specific parent folder (or root if parentId is null)
 function listFiles(userId, parentId = null, view = null) {
   let hasAccess;
+  const userPerms = listUserPermissions(userId).map(p => p.fileId);
+  const visibleFiles = files.filter(file => file.ownerId === userId || userPerms.includes(file.id));
   if (parentId) {
     hasAccess = checkUserPermission(parentId, userId, 'read');
   }
@@ -25,10 +27,10 @@ function listFiles(userId, parentId = null, view = null) {
     return files.filter(file => file.ownerId === userId && file.isTrashed);
   }
 
-  // list all file ids the user has permissions for
-  const userPerms = listUserPermissions(userId).map(p => p.fileId);
-
-  // return all files in specified parent (null = root) that user is the owner or has permissions for
+  if (view === "starred") {
+    return visibleFiles.filter(file => file.starredBy.includes(userId));
+}
+ // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
     file.parentId === parentId && !file.isTrashed &&
     (file.ownerId === userId || userPerms.includes(file.id))
@@ -70,7 +72,8 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     parentId: parentId ?? null,
     isTrashed: false,
     creationTime: new Date().toISOString(),
-    lastUpdateTime: new Date().toISOString()
+    lastUpdateTime: new Date().toISOString(),
+    starredBy: []
   };
 
   try {
@@ -319,6 +322,34 @@ async function updateFile(fileId, userId, { name, content }) {
   }
 }
 
+function starFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  const hasAccess = checkUserPermission(fileId, userId, "read");
+  if (!hasAccess) throw { status: 403, message: "Access denied" };
+
+  if (!file.starredBy.includes(userId)) {
+    file.starredBy.push(userId);
+  }
+  return true;
+}
+
+function unstarFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  const hasAccess = checkUserPermission(fileId, userId, "read");
+  if (!hasAccess) throw { status: 403, message: "Access denied" };
+
+  const idx = file.starredBy.indexOf(userId);
+  if (idx !== -1) {
+    file.starredBy.splice(idx, 1);
+  }
+  return true;
+}
+
+
 
 module.exports = {
   listFiles,
@@ -328,4 +359,6 @@ module.exports = {
   deleteFile,
   searchFiles,
   getFileMetadata,
+  starFile,
+  unstarFile
 };

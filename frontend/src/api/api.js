@@ -56,3 +56,10 @@ export async function uploadFile(fileData) {
 export async function deleteFile(fileId) {
     return apiRequest(`/api/files/${fileId}`, "DELETE", undefined, {}, true);
 }
+export function starFile(fileId) {
+    return apiRequest(`/api/files/${fileId}/star`, "POST", undefined, {}, true);
+}
+
+export function unstarFile(fileId) {
+    return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
+}
