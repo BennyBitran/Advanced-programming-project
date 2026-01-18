@@ -66,6 +66,12 @@ export default function DrivePage() {
     if (!file) {
       return;
     }
+    /*
+    ----------------------------------------------------------
+    this handles duplicate files names but we should allow it.
+    maybe later with can pop up a window notifying the user about it.
+    in either case we should be checking only in the same folder.
+    ----------------------------------------------------------
     if (files.some((existing) => existing.name === file.name)) {
       setUploadStatus("");
       setUploadError("A file with this name already exists");
@@ -74,6 +80,7 @@ export default function DrivePage() {
       setIsEmptyMenuOpen(false);
       return;
     }
+    */
     setUploadStatus("Uploading...");
     setUploadError("");
 
