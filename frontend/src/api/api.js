@@ -35,16 +35,18 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
 // sends a POST request to our node backend to register a new user
 export async function registerUser({ username, name, image, password }) {
     return apiRequest("/api/users", "POST", { username, name, image, password });
-    
 }
 
-export async function loginUser({username, password}) {
-    return apiRequest("/api/tokens", "POST", {username, password});
+export async function loginUser({ username, password }) {
+    return apiRequest("/api/tokens", "POST", { username, password });
 }
 
-export async function listFiles() {
-    return apiRequest("/api/files", "GET", undefined, {}, true);
+export async function listFiles(parentId = null) {
+    // Construct path with query param if an ID is provided to list files under a specific folder
+    const path = parentId ? `/api/files?parentId=${parentId}` : "/api/files";
+    return apiRequest(path, "GET", undefined, {}, true);
 }
+
 export async function uploadFile(fileData) {
     return apiRequest("/api/files", "POST", fileData, {}, true);
 }
