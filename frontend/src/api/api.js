@@ -63,3 +63,6 @@ export function starFile(fileId) {
 export function unstarFile(fileId) {
     return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
 }
+export function listStarredFiles() {
+    return apiRequest("/api/files?view=starred", "GET", undefined, {}, true);
+}

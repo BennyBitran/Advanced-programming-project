@@ -21,8 +21,10 @@ function listFiles(req, res) {
         parentId: file.parentId,
         isTrashed: file.isTrashed,
         creationTime: file.creationTime,
-        lastUpdateTime: file.lastUpdateTime
+        lastUpdateTime: file.lastUpdateTime,
+        isStarred: (file.starredBy || []).includes(req.user.id),
     }));
+
     return res.status(200).json(files);
 }
 
