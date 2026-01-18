@@ -38,7 +38,7 @@ async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
                 const rawResponse = buffer.slice(headerOffset, headerOffset + expectedLength).toString();
                 //disconnect from cpp server
                 client.destroy();
-                
+
                 const result = parseResponse(rawResponse);
                 if (result?.status && result.status >= 400) {
                     reject(result);
@@ -59,30 +59,22 @@ async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
 
 // Helper function to parse raw response from backend into structured object (JSON)
 function parseResponse(raw) {
-    // Strip the last \n of raw
-    const cleanRaw = raw.endsWith('\n') ? raw.slice(0, -1) : raw;
-
-    // Split by the first newline to get the status line
-    const firstNewlineIndex = cleanRaw.indexOf('\n');
-    const statusLine = firstNewlineIndex === -1 ? cleanRaw : cleanRaw.substring(0, firstNewlineIndex);
-
-    // Save first 3 chars to int (status code) and skip space for status line
+    // Get the status line (until first \n)
+    const firstNewlineIndex = raw.indexOf('\n');
+    const statusLine = firstNewlineIndex === -1 ? raw : raw.substring(0, firstNewlineIndex);
     const statusCode = parseInt(statusLine.substring(0, 3));
-    const statusText = statusLine.trim();
 
-    // Check for \n\n representing start of content body
+    // Find the start of the body (\n\n)
+    const doubleNewlineIndex = raw.indexOf('\n\n');
     let content = "";
-    const doubleNewlineIndex = cleanRaw.indexOf('\n\n');
 
-    // If exists, remove it and save the rest to content body
     if (doubleNewlineIndex !== -1) {
-        // The content starts after the \n\n
-        content = cleanRaw.substring(doubleNewlineIndex + 2);
+        // Take everything after the \n\n
+        content = raw.substring(doubleNewlineIndex + 2);
     }
-
     return {
         status: statusCode,
-        statusText: statusText,
+        statusText: statusLine.trim(),
         content: content
     };
 }

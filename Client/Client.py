@@ -41,7 +41,7 @@ while msg.lower() != "quit":
         data += chunk
         toRead -= len(chunk)
    
-    print(data.decode(), end='')
+    print(data.decode())
     msg = input()
 
 client_socket.close()
