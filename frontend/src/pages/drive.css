@@ -334,6 +334,23 @@ body.gd-theme-dark {
   gap: 2px;
 }
 
+.gd-status,
+.gd-error {
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.gd-status {
+  background: var(--gd-hover);
+  color: var(--gd-text);
+}
+
+.gd-error {
+  background: rgba(217, 48, 37, 0.12);
+  color: #d93025;
+}
+
 /* Table/List */
 .gd-table {
   border-top: 1px solid var(--gd-border);
