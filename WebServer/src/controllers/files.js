@@ -14,8 +14,10 @@ function listFiles(req, res) {
     const parentId = parentIdParam === undefined || parentIdParam === 'null'
         || parentIdParam === '' ? null : String(parentIdParam);
 
+    const view = req.query.view ? String(req.query.view) : null;
     // returns all files for the specified user only
-    const rawFiles = listFilesModel(req.user.id, parentId);
+    try {
+    const rawFiles = listFilesModel(req.user.id, parentId, view);
 
     const files = rawFiles.map(file => ({
         id: file.id,
@@ -26,6 +28,9 @@ function listFiles(req, res) {
         lastUpdateTime: file.lastUpdateTime
     }));
     return res.status(200).json(files);
+} catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || "Failed to list files" });
+}
 }
 
 async function createFile(req, res) {
