@@ -64,7 +64,8 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     type: normalizedType,
     parentId: parentId ?? null,
     creationTime: new Date().toISOString(),
-    lastUpdateTime: new Date().toISOString()
+    lastUpdateTime: new Date().toISOString(),
+    starredBy: [] 
   };
 
   try {
@@ -295,6 +296,63 @@ async function updateFile(fileId, userId, { name, content }) {
   }
 }
 
+function starFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) {
+    throw { status: 404, message: "File not found" };
+  }
+
+  const hasAccess = checkUserPermission(fileId, userId, 'read');
+  if (!hasAccess) {
+    throw { status: 403, message: "Access denied" };
+  }
+  if (!file.starredBy.includes(userId)) {
+    file.starredBy.push(userId);
+  }
+  return true;  
+}
+
+function unstarFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) {
+    throw { status: 404, message: "File not found" };
+  }
+
+  const hasAccess = checkUserPermission(fileId, userId, 'read');
+  if (!hasAccess) {
+    throw { status: 403, message: "Access denied" };
+  }
+  const index = file.starredBy.indexOf(userId);
+  if (index !== -1) {
+    file.starredBy.splice(index, 1);
+  }
+  return true;  
+}
+
+function listAllfiles() {
+  const userPerms = listUserPermissions(userId).map(p => p.fileId);
+  return files.filter(file =>
+    file.ownerId === userId || userPerms.includes(file.id)
+  );
+}
+
+function listStarredFiles(userId) {
+  const { checkUserPermission } = require("./permissions");
+
+  return files
+    .filter((f) => (f.starredBy ?? []).includes(userId))
+    .filter((f) => checkUserPermission(f.id, userId, "read"))
+    .map((f) => ({
+      id: f.id,
+      name: f.name,
+      ownerId: f.ownerId,
+      type: f.type,
+      parentId: f.parentId,
+      creationTime: f.creationTime,
+      lastUpdateTime: f.lastUpdateTime,
+      starred: true,
+    }));
+}
 
 module.exports = {
   listFiles,
@@ -304,4 +362,7 @@ module.exports = {
   deleteFile,
   searchFiles,
   getFileMetadata,
+  starFile,
+  unstarFile,
+  listAllfiles
 };

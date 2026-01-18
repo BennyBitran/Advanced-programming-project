@@ -21,6 +21,7 @@ function createUser({username, password, name, image}) {
         password,
         name,
         image,
+        starred : []
     };
     users.push(newUser);
     return newUser;
@@ -32,7 +33,33 @@ function getUserById(id) {
 
 function findUserByCredentials(username, password) {
     return users.find((user) => user.username === username && user.password === password) || null;
-}   
+} 
+
+function starFile(userId, fileId) {
+    const user = getUserById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+    if (!user.starred.includes(fileId)) {
+        user.starred.push(fileId);
+    }
+}
+
+function unstarFile(userId, fileId) {
+    const user = getUserById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+    user.starred = user.starred.filter(id => id !== fileId);
+}
+
+function getStarredFiles(userId) {
+    const user = getUserById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+    return user.starred;
+}
     
 
 module.exports = {

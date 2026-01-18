@@ -3,6 +3,8 @@ const { listFiles: listFilesModel,
     getFile: getFileModel,
     updateFile: updateFileModel,
     deleteFile: deleteFileModel,
+    startFile: starFileModel,
+    unstarFile: unstarFileModel,
     getFileMetadata: getFileMetadata } = require("../models/files");
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
@@ -109,8 +111,35 @@ async function deleteFile(req, res) {
         return res.status(err.status || 500).json({ error: err.message || "Failed to delete file" });
     }
 }
+function starFile(req, res) {
+    const fileId = req.params.id;
+    if (!fileId) {
+        return res.status(400).json({ error: "File id is required" });
+    }
+
+    try {
+        starFileModel(fileId, req.user.id);
+        return res.status(204).send();
+    } catch (err) {
+        return res.status(err.status || 500).json({ error: err.message || "Failed to star file" });
+    }
+}
+
+function unstarFile(req, res) {
+    const fileId = req.params.id;
+    if (!fileId) {
+        return res.status(400).json({ error: "File id is required" });
+    }
+
+    try {
+        unstarFileModel(fileId, req.user.id);
+        return res.status(204).send();
+    } catch (err) {
+        return res.status(err.status || 500).json({ error: err.message || "Failed to unstar file" });
+    }
+}
 
 
-module.exports = { listFiles, createFile, getFile, updateFile, deleteFile };
+module.exports = { listFiles, createFile, getFile, updateFile, deleteFile, starFile, unstarFile };
 
 
