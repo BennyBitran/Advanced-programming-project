@@ -331,11 +331,50 @@ body.gd-theme-dark {
   padding: 4px 6px 10px 6px;
 }
 
+.gd-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .gd-title {
   margin: 0;
   font-size: 20px;
   font-weight: 500;
   color: var(--gd-text);
+}
+
+.gd-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--gd-muted);
+}
+
+.gd-crumb-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gd-crumb {
+  background: transparent;
+  border: 0;
+  color: var(--gd-muted);
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.gd-crumb:hover {
+  color: var(--gd-text);
+  text-decoration: underline;
+}
+
+.gd-crumb-sep {
+  color: var(--gd-muted);
 }
 
 .gd-main-actions {
@@ -384,6 +423,10 @@ body.gd-theme-dark {
 }
 
 .gd-row:hover { background: var(--gd-hover); }
+
+.gd-row.gd-selected {
+  background: var(--gd-active);
+}
 
 .gd-name-cell {
   display: flex;
@@ -471,6 +514,94 @@ body.gd-theme-dark {
   transform: translateX(-50%);
 }
 
+/* Modal */
+.gd-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 18, 24, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.gd-modal-card {
+  width: min(360px, 92vw);
+  background: var(--gd-surface);
+  border: 1px solid var(--gd-border);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  color: var(--gd-text);
+}
+
+.gd-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gd-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.gd-modal-label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gd-muted);
+}
+
+.gd-modal-input {
+  border: 1px solid var(--gd-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--gd-hover);
+  color: var(--gd-text);
+  font-size: 14px;
+}
+
+.gd-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.gd-btn-primary {
+  border: 0;
+  background: #1a73e8;
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.gd-btn-primary:hover {
+  background: #1967d2;
+}
+
+.gd-btn-secondary {
+  border: 1px solid var(--gd-border);
+  background: transparent;
+  color: var(--gd-text);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.gd-btn-secondary:hover {
+  background: var(--gd-hover);
+}
+
+.gd-modal-error {
+  margin: 0;
+}
+
 /* Details panel */
 .gd-details {
   background: var(--gd-surface);
@@ -522,6 +653,89 @@ body.gd-theme-dark {
 .gd-details-value {
   font-size: 14px;
   color: var(--gd-text);
+}
+
+.gd-file-preview {
+  margin: 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--gd-hover);
+  color: var(--gd-text);
+  font-size: 13px;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.gd-preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gd-file-editor {
+  border: 1px solid var(--gd-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--gd-hover);
+  color: var(--gd-text);
+  font-size: 13px;
+  min-height: 160px;
+  resize: vertical;
+}
+
+.gd-viewer {
+  position: fixed;
+  inset: 0;
+  background: var(--gd-bg);
+  z-index: 70;
+  display: grid;
+  grid-template-rows: 64px 1fr;
+}
+
+.gd-viewer-header {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--gd-border);
+  background: var(--gd-surface);
+}
+
+.gd-viewer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gd-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.gd-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gd-viewer-body {
+  padding: 18px 20px;
+  overflow: auto;
+}
+
+.gd-viewer-preview {
+  max-height: none;
+  min-height: calc(100vh - 140px);
+}
+
+.gd-viewer-editor {
+  width: 100%;
+  min-height: calc(100vh - 160px);
+  resize: vertical;
+}
+
+.gd-preview-error {
+  margin: 0;
 }
 
 @media (max-width: 1100px) {
