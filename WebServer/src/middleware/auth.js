@@ -10,7 +10,7 @@ const login = async (req, res) => {
     //check user exists and password is correct and save user data
     const user = userModel.findUserByCredentials(username, password); 
     if (!user) {
-        return res.status(404).json({ error: "Invalid username and/or password" });
+        return res.status(401).json({ error: "Invalid username and/or password" });
     }
 
     //generate the JWT for 24h using user ID and username
