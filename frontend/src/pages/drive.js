@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { listFiles, uploadFile } from "../api/api";
+import { listFiles, uploadFile, deleteFile } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
