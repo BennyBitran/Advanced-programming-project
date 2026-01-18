@@ -41,9 +41,11 @@ export async function loginUser({ username, password }) {
     return apiRequest("/api/tokens", "POST", { username, password });
 }
 
-export async function listFiles(parentId = null) {
-    // Construct path with query param if an ID is provided to list files under a specific folder
-    const path = parentId ? `/api/files?parentId=${parentId}` : "/api/files";
+export async function listFiles(filters = {}) {
+    //filters can be { parentId: 'some folder id', veiw: 'trash/starred/shared/...' }
+    const params = new URLSearchParams(filters).toString();
+    const path = params ? `/api/files?${params}` : "/api/files";
+
     return apiRequest(path, "GET", undefined, {}, true);
 }
 
