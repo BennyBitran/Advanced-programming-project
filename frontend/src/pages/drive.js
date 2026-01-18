@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { listFiles, uploadFile, deleteFile } from "../api/api";
+import { listFiles, uploadFile } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
@@ -23,43 +23,38 @@ export default function DrivePage() {
   const [error, setError] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
-  const [currentFolderId, setCurrentFolderId] = useState(null);
   const fileInputRef = useRef(null);
   const hasFiles = files.length > 0;
 
   const loadFiles = () => {
     let isActive = true;
     setIsLoading(true);
-
-    //add filters to the query to fetch relevent files
-    const filters = {};
-    if (activeNav === "trash") filters.view = "trash";
-    else if (activeNav === "starred") filters.view = "starred";
-    else if (activeNav === "shared") filters.view = "shared";
-    if (currentFolderId && activeNav === "my-drive") {
-      filters.parentId = currentFolderId;
-    }
-
-    // Pass filters to listFiles so the server will fetch relevent files only
-    // regular files, trashed files, or starred files.
-    listFiles(filters)
+    setError("");
+    listFiles()
       .then((data) => {
-        if (isActive) setFiles(Array.isArray(data) ? data : []);
+        if (!isActive) {
+          return;
+        }
+        setFiles(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
-        if (isActive) setError(err?.message || "Failed to load files");
+        if (!isActive) {
+          return;
+        }
+        setError(err?.message || "Failed to load files");
       })
       .finally(() => {
-        if (isActive) setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+        }
       });
 
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   };
 
-  // Update useEffect to re-run whenever the user clicks a different sidebar item
-  useEffect(() => {
-    loadFiles();
-  }, [activeNav, currentFolderId]);
+  useEffect(() => loadFiles(), []);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -113,28 +108,6 @@ export default function DrivePage() {
       setIsEmptyMenuOpen(false);
     };
     reader.readAsText(file);
-  };
-
-  const handleDelete = async (file) => {
-    try {
-      setUploadStatus("Processing...");
-      setUploadError("");
-
-      const result = await deleteFile(file.id);
-
-      // 200 -> trashed. 204 -> permanently deleted.
-      if (result.status === 200 || result === "Moved to trash") {
-        setUploadStatus("Moved to trash");
-      } else {
-        setUploadStatus("Deleted permanently");
-      }
-
-      loadFiles();    //refresh file list (without the freshly removed file)
-    } catch (err) {
-      setUploadError(err.message || "Action failed");
-    } finally {
-      setUploadStatus("");
-    }
   };
 
   return (
@@ -292,22 +265,11 @@ export default function DrivePage() {
                         {f.type === "folder" ? "folder" : "description"}
                       </span>
                     </span>
-                    <span className="gd-name" title={f.name}>{f.name}</span>
+                    <span className="gd-name" title={f.name}>
+                      {f.name}
+                    </span>
                   </div>
                   <div className="gd-muted">{f.type}</div>
-
-                  {/* Action Button for Trash/Delete */}
-                  <div className="gd-actions-cell">
-                    <button
-                      className="gd-icon-btn"
-                      onClick={() => handleDelete(f)}
-                      title={activeNav === "trash" ? "Delete Forever" : "Move to Trash"}
-                    >
-                      <span className="material-symbols-outlined">
-                        {activeNav === "trash" ? "delete_forever" : "delete"}
-                      </span>
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
