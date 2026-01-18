@@ -21,12 +21,16 @@ function listFiles(userId, parentId = null, view = null) {
     throw { status: 403, message: "Access denied to the specified folder" };
   }
   
+  if (view === "trash") {
+    return files.filter(file => file.ownerId === userId && file.isTrashed);
+  }
+
   // list all file ids the user has permissions for
   const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
   // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
-    file.parentId === parentId &&
+    file.parentId === parentId && !file.isTrashed &&
     (file.ownerId === userId || userPerms.includes(file.id))
   );
 }
