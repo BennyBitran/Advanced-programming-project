@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
-  checkUserPermission: checkUserPermission
+  checkUserPermission: checkUserPermission,
   getPermissionByUserAndFile } = require("./permissions");
 
 const files = [];
