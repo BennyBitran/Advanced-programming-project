@@ -86,6 +86,10 @@ function getPermissionById(permissionId) {
     return permissions.find((perm) => perm.pid === permissionId) || null;
 }
 
+ function getPermissionByUserAndFile(userId, fileId) {
+    return permissions.find((perm) => perm.userId === userId && perm.fileId === fileId);
+}
+
 
 module.exports = {
     listFilePermissions,
@@ -95,4 +99,5 @@ module.exports = {
     removePermission,
     getPermissionById,
     checkUserPermission,
+    getPermissionByUserAndFile,    
 };
