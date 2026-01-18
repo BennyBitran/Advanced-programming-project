@@ -7,19 +7,17 @@ const { listFiles: listFilesModel,
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
 function listFiles(req, res) {
-    //force parentId to be null if not provided, and convert to string otherwise
-    const parentIdParam = req.query.parentId;
-    const parentId = parentIdParam === undefined || parentIdParam === 'null'
-        || parentIdParam === '' ? null : String(parentIdParam);
+    const { parentId, view } = req.query; // "trash", "starred", etc....
 
-    // returns all files for the specified user only
-    const rawFiles = listFilesModel(req.user.id, parentId);
+    // returns all files with the relevent filters
+    const rawFiles = listFilesModel(req.user.id, parentId, view);
 
     const files = rawFiles.map(file => ({
         id: file.id,
         name: file.name,
         type: file.type,
         parentId: file.parentId,
+        isTrashed: file.isTrashed,
         creationTime: file.creationTime,
         lastUpdateTime: file.lastUpdateTime
     }));
@@ -49,7 +47,7 @@ async function createFile(req, res) {
         const newFile = await createFileModel({
             name: name.trim(),
             ownerId: req.user.id,
-            type, 
+            type,
             parentId: pid,
             content,
         });
