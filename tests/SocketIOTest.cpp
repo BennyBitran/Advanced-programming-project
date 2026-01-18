@@ -19,7 +19,7 @@ TEST(SocketIOTest, ReadCommandBasic) {
     openPair(sp);
 
     SocketIO io(sp[0]);
-    sendProtocolMsg(sp[1], "add file45 hello world!\n");
+    sendProtocolMsg(sp[1], "add file45 hello world!");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "add");
@@ -34,7 +34,7 @@ TEST(SocketIOTest, ReadSkipManyLeadingSpaces) {
     openPair(sp);
 
     SocketIO io(sp[0]);
-    sendProtocolMsg(sp[1], "      blabla myFile hi Hemi\n");
+    sendProtocolMsg(sp[1], "      blabla myFile hi Hemi");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "blabla");
@@ -49,7 +49,7 @@ TEST(SocketIOTest, CaseInsensitivity) {
     openPair(sp);
 
     SocketIO io(sp[0]);
-    sendProtocolMsg(sp[1], "AdD FiLe HelLo WoRlD\n");
+    sendProtocolMsg(sp[1], "AdD FiLe HelLo WoRlD");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "add");
@@ -78,20 +78,19 @@ TEST(SocketIOTest, ReadWithoutNewlineReturnsWholeLine) {
 TEST(SocketIOTest, ChunkedInput) {
     int sp[2];
     openPair(sp);
-
     SocketIO io(sp[0]);
 
     send(sp[1], "1", 1, 0);
-    send(sp[1], "2\nad", 4, 0); 
-    send(sp[1], "d file hi\n", 10, 0);
+    send(sp[1], "1\nad", 4, 0); 
+    
+    send(sp[1], "d file hi", 9, 0); 
 
     string cmd = io.read();
     
     EXPECT_EQ(cmd, "add");
     EXPECT_EQ(io.getLine(), "file hi");
 
-    close(sp[1]);
-    close(sp[0]);
+    close(sp[1]); close(sp[0]);
 }
 
 TEST(SocketIOTest, MultipleCommandsOnePacket) {
@@ -99,10 +98,10 @@ TEST(SocketIOTest, MultipleCommandsOnePacket) {
     openPair(sp);
 
     SocketIO io(sp[0]);
-    string m1 = "add file1 hi\n";
+    string m1 = "add file1 hi";
     string p1 = to_string(m1.length()) + "\n" + m1;
 
-    string m2 = "search file1\n";
+    string m2 = "search file1";
     string p2 = to_string(m2.length()) + "\n" + m2;
 
     string combined = p1 + p2;
@@ -139,8 +138,8 @@ TEST(SocketIOTest, WriteSendsAllBytes) {
     string lenStr = received.substr(0, newlinePos);
     string payload = received.substr(newlinePos + 1);
 
-    EXPECT_EQ(stoi(lenStr), text.length() + 1); 
-    EXPECT_EQ(payload, text + "\n");
+    EXPECT_EQ(stoi(lenStr), text.length()); 
+    EXPECT_EQ(payload, text);
 
     close(sp[1]); close(sp[0]);
 }
@@ -165,7 +164,7 @@ TEST(SocketIOTest, ExtremeLeadingSpaces) {
     openPair(sp);
 
     SocketIO io(sp[0]);
-    sendProtocolMsg(sp[1], "                           add hi\n");
+    sendProtocolMsg(sp[1], "                           add hi");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "add");
@@ -179,7 +178,7 @@ TEST(SocketIOTest, CommandWithoutArguments) {
     openPair(sp);
     SocketIO io(sp[0]);
 
-    sendProtocolMsg(sp[1], "add\n");
+    sendProtocolMsg(sp[1], "add");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "add");
@@ -193,7 +192,7 @@ TEST(SocketIOTest, MissingCommand) {
     openPair(sp);
     SocketIO io(sp[0]);
 
-    sendProtocolMsg(sp[1], "   \n");
+    sendProtocolMsg(sp[1], "   ");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "");
@@ -207,7 +206,7 @@ TEST(SocketIOTest, MixedCaseCommandLowercased) {
     openPair(sp);
     SocketIO io(sp[0]);
 
-    sendProtocolMsg(sp[1], "SeArCh fileX\n");
+    sendProtocolMsg(sp[1], "SeArCh fileX");
 
     string cmd = io.read();
     EXPECT_EQ(cmd, "search");

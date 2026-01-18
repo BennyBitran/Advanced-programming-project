@@ -59,20 +59,20 @@ TEST(serverIntegrationTests, SingleClientFullFlow) {
     string response;
 
     response = sendRequest(sock, "post my_notes secret_data\n");
-    ASSERT_EQ(response, "201 Created\n");
+    ASSERT_EQ(response, "201 Created");
 
-    response = sendRequest(sock, "get my_notes\n");
-    ASSERT_EQ(response, "200 Ok\n\nsecret_data\n");
+    response = sendRequest(sock, "get my_notes");
+    ASSERT_EQ(response, "200 Ok\n\nsecret_data");
 
-    response = sendRequest(sock, "search my_n\n");
-    ASSERT_EQ(response, "200 Ok\n\nmy_notes\n");
+    response = sendRequest(sock, "search my_n");
+    ASSERT_EQ(response, "200 Ok\n\nmy_notes");
 
-    response = sendRequest(sock, "delete my_notes\n");
-    ASSERT_EQ(response, "204 No Content\n");
+    response = sendRequest(sock, "delete my_notes");
+    ASSERT_EQ(response, "204 No Content");
 
 
-    response = sendRequest(sock, "get my_notes\n");
-    ASSERT_EQ(response, "404 Not Found\n");
+    response = sendRequest(sock, "get my_notes");
+    ASSERT_EQ(response, "404 Not Found");
 
     close(sock);
 }
@@ -86,21 +86,21 @@ TEST(serverIntegrationTests, TwoClientsInterleavedManual) {
 
     string response;
     response = sendRequest(client1, "post shared_doc shared_data\n");
-    ASSERT_EQ(response, "201 Created\n");
+    ASSERT_EQ(response, "201 Created");
 
-    response = sendRequest(client2, "get shared_doc\n");
-    ASSERT_EQ(response, "200 Ok\n\nshared_data\n");
+    response = sendRequest(client2, "get shared_doc");
+    ASSERT_EQ(response, "200 Ok\n\nshared_data");
 
-    response = sendRequest(client2, "delete shared_doc\n");
-    ASSERT_EQ(response, "204 No Content\n");
+    response = sendRequest(client2, "delete shared_doc");
+    ASSERT_EQ(response, "204 No Content");
 
-    response = sendRequest(client1, "get shared_doc\n");
-    ASSERT_EQ(response, "404 Not Found\n");
+    response = sendRequest(client1, "get shared_doc");
+    ASSERT_EQ(response, "404 Not Found");
 
     sendRequest(client1, "post c1_only my_data\n");
     
-    response = sendRequest(client2, "delete random_file\n");
-    ASSERT_EQ(response, "404 Not Found\n");
+    response = sendRequest(client2, "delete random_file");
+    ASSERT_EQ(response, "404 Not Found");
 
     close(client1);
     close(client2);
