@@ -22,7 +22,8 @@ function listFiles(req, res) {
         isTrashed: file.isTrashed,
         creationTime: file.creationTime,
         isStarred: (file.starredBy || []).includes(req.user.id),
-        lastUpdateTime: file.lastUpdateTime
+        lastUpdateTime: file.lastUpdateTime,
+        lastOpenedTime: file.lastOpenedTime
     }));
     return res.status(200).json(files);
 }
