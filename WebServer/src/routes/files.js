@@ -11,6 +11,10 @@ router.get('/:id', fileController.getFile);
 router.patch('/:id', fileController.updateFile);
 router.delete('/:id', fileController.deleteFile);
 
+router.post('/:id/star', fileController.starFile);
+router.delete('/:id/star', fileController.unstarFile);
+
+
 
 module.exports = router;
 

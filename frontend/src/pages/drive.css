@@ -407,7 +407,7 @@ body.gd-theme-dark {
 
 .gd-table-head {
   display: grid;
-  grid-template-columns: 1fr 140px;
+  grid-template-columns: 1fr 140px 48px;
   padding: 10px 12px;
   font-size: 12px;
   color: var(--gd-muted);
@@ -415,7 +415,7 @@ body.gd-theme-dark {
 
 .gd-row {
   display: grid;
-  grid-template-columns: 1fr 140px;
+  grid-template-columns: 1fr 140px 48px;
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -458,6 +458,36 @@ body.gd-theme-dark {
 .gd-muted { color: var(--gd-muted); font-size: 13px; }
 
 .gd-col-right { text-align: right; }
+
+/* Star button (added for starred functionality) */
+.gd-star-btn {
+  border: 0;
+  background: transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--gd-muted);
+}
+
+.gd-star-btn:hover {
+  background: var(--gd-hover);
+  color: var(--gd-text);
+}
+
+.gd-star-btn .material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.gd-star-btn.gd-starred {
+  color: #fbbc04;
+}
+
+.gd-star-btn.gd-starred .material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
 
 /* Empty state */
 .gd-empty {
