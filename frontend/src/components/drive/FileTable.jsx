@@ -8,6 +8,7 @@ export default function FileTable({
   selectedFileId,
   onRowClick,
   onToggleStar,
+  onTrash,
 }) {
   if (isLoading) return <div className="gd-status">Loading files...</div>;
   if (error) return <div className="gd-error">{error}</div>;
@@ -39,6 +40,7 @@ export default function FileTable({
           isSelected={selectedFileId === f.id}
           onOpen={() => onRowClick(f)}
           onToggleStar={onToggleStar}
+          onTrash={onTrash}
         />
       ))}
     </div>
