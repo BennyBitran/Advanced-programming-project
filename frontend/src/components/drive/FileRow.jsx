@@ -1,12 +1,7 @@
-export default function FileRow({ file, isSelected, onOpen, onToggleStar }) {
-  const icon = file.type === "folder" ? "folder" : "description";
-  const filled = !!file.isStarred;
+import FileMenu from "./FileMenu";
 
-  const handleStarClick = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onToggleStar(file.id, !filled);
-  };
+export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTrash }) {
+  const icon = file.type === "folder" ? "folder" : "description";
 
   return (
     <div
@@ -33,14 +28,12 @@ export default function FileRow({ file, isSelected, onOpen, onToggleStar }) {
       <div className="gd-muted">{file.type}</div>
 
       <div className="gd-col-right">
-        <button
-          className={`gd-star-btn${filled ? " gd-starred" : ""}`}
-          type="button"
-          aria-label={filled ? "Unstar" : "Star"}
-          onClick={handleStarClick}
-        >
-          <span className="material-symbols-outlined">{filled ? "star" : "star"}</span>
-        </button>
+        {/* Only the menu remains here now */}
+        <FileMenu 
+          file={file} 
+          onToggleStar={onToggleStar} 
+          onTrash={onTrash} 
+        />
       </div>
     </div>
   );
