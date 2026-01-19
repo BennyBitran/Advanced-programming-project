@@ -3,6 +3,8 @@ const { listFiles: listFilesModel,
     getFile: getFileModel,
     updateFile: updateFileModel,
     deleteFile: deleteFileModel,
+    starFile: starFileModel,
+    unstarFile: unstarFileModel,
     getFileMetadata: getFileMetadata } = require("../models/files");
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
@@ -19,6 +21,7 @@ function listFiles(req, res) {
         parentId: file.parentId,
         isTrashed: file.isTrashed,
         creationTime: file.creationTime,
+        isStarred: (file.starredBy || []).includes(req.user.id),
         lastUpdateTime: file.lastUpdateTime
     }));
     return res.status(200).json(files);
