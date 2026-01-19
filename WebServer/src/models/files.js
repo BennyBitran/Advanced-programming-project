@@ -20,6 +20,13 @@ function listFiles(userId, parentId = null, view = null) {
   if (parentId && !hasAccess) {
     throw { status: 403, message: "Access denied to the specified folder" };
   }
+
+  if (view === "starred") {
+    const userPerms = listUserPermissions(userId).map(p => p.fileId);
+    const visibleFiles = files.filter(f => f.ownerId === userId || userPerms.includes(f.id));
+    return visibleFiles.filter(f => !f.isTrashed && (f.starredBy || []).includes(userId));
+}
+
   
   if (view === "trash") {
     return files.filter(file => file.ownerId === userId && file.isTrashed);
@@ -70,7 +77,8 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     parentId: parentId ?? null,
     isTrashed: false,
     creationTime: new Date().toISOString(),
-    lastUpdateTime: new Date().toISOString()
+    lastUpdateTime: new Date().toISOString(),
+    starredBy: []
   };
 
   try {
@@ -120,6 +128,7 @@ async function getFile(id, userId) {
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
       type: fileMetadata.type,
+      isStarred: (fileMetadata.starredBy || []).includes(userId),
       children
     };
   }
@@ -150,6 +159,7 @@ async function getFile(id, userId) {
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
     lastUpdateTime: fileMetadata.lastUpdateTime,
+    isStarred: (fileMetadata.starredBy || []).includes(userId),
     content: fileContent ?? ""
   };
 }
@@ -318,6 +328,32 @@ async function updateFile(fileId, userId, { name, content }) {
     };
   }
 }
+function starFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  if (!checkUserPermission(fileId, userId, "read")) {
+    throw { status: 403, message: "Access denied" };
+  }
+
+  file.starredBy ||= [];
+  if (!file.starredBy.includes(userId)) file.starredBy.push(userId);
+  return true;
+}
+
+function unstarFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  if (!checkUserPermission(fileId, userId, "read")) {
+    throw { status: 403, message: "Access denied" };
+  }
+
+  file.starredBy ||= [];
+  file.starredBy = file.starredBy.filter(id => id !== userId);
+  return true;
+}
+
 
 
 module.exports = {
@@ -328,4 +364,6 @@ module.exports = {
   deleteFile,
   searchFiles,
   getFileMetadata,
+  starFile,
+  unstarFile
 };
