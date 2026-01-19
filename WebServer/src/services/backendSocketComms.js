@@ -35,7 +35,7 @@ async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
             // Check if we have received the full message (header + body)
             if (expectedLength !== -1 && buffer.length >= (headerOffset + expectedLength)) {
                 // Extract the raw response message
-                const rawResponse = buffer.slice(headerOffset, headerOffset + expectedLength).toString();
+                const rawResponse = buffer.slice(headerOffset, headerOffset + expectedLength);
                 //disconnect from cpp server
                 client.destroy();
 
@@ -58,27 +58,30 @@ async function sendRequest(message, host = DEFAULT_HOST, port = DEFAULT_PORT) {
 
 
 // Helper function to parse raw response from backend into structured object (JSON)
-function parseResponse(raw) {
-    // Get the status line (until first \n)
-    const firstNewlineIndex = raw.indexOf('\n');
-    const statusLine = firstNewlineIndex === -1 ? raw : raw.substring(0, firstNewlineIndex);
+function parseResponse(rawBuffer) {
+    //Convert ONLY the first part to string to find the status
+    const rawString = rawBuffer.toString('utf8');
+    const firstNewlineIndex = rawString.indexOf('\n');
+    const statusLine = firstNewlineIndex === -1 ? rawString : rawString.substring(0, firstNewlineIndex);
     const statusCode = parseInt(statusLine.substring(0, 3));
 
-    // Find the start of the body (\n\n)
-    const doubleNewlineIndex = raw.indexOf('\n\n');
+    // Locate the protocol separator \n\n
+    const separator = "\n\n";
+    const separatorIndex = rawBuffer.indexOf("\n\n");
+    
     let content = "";
-
-    if (doubleNewlineIndex !== -1) {
-        // Take everything after the \n\n
-        content = raw.substring(doubleNewlineIndex + 2);
+    if (separatorIndex !== -1) {
+        // Extract content starting exactly after '200 Ok\n\n'
+        // This ensures we don't accidentally split on newlines INSIDE the file
+        content = rawBuffer.slice(separatorIndex + separator.length).toString('utf8');
     }
+
     return {
         status: statusCode,
         statusText: statusLine.trim(),
         content: content
     };
 }
-
 
 module.exports = {
     sendRequest
