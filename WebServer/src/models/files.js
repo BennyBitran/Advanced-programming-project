@@ -14,6 +14,7 @@ function getFileMetadata(id) {
 // List files for a user under a specific parent folder (or root if parentId is null)
 function listFiles(userId, parentId = null, view = null) {
   let hasAccess;
+  const userPerms = listUserPermissions(userId).map(p => p.fileId);
   if (parentId) {
     hasAccess = checkUserPermission(parentId, userId, 'read');
   }
@@ -22,7 +23,6 @@ function listFiles(userId, parentId = null, view = null) {
   }
 
   if (view === "starred") {
-    const userPerms = listUserPermissions(userId).map(p => p.fileId);
     const visibleFiles = files.filter(f => f.ownerId === userId || userPerms.includes(f.id));
     return visibleFiles.filter(f => !f.isTrashed && (f.starredBy || []).includes(userId));
 }
@@ -32,8 +32,26 @@ function listFiles(userId, parentId = null, view = null) {
     return files.filter(file => file.ownerId === userId && file.isTrashed);
   }
 
+  if (view === "recent") {
+    const visibleFiles = files.filter(f => f.ownerId === userId || userPerms.includes(f.id));
+    const recentFiles = visibleFiles
+      .filter(f => !f.isTrashed)
+      .sort((a, b) => {
+        // Sort by the most recent of lastOpenedTime or lastUpdateTime
+        const aOpened = new Date(a.lastOpenedTime).getTime() || 0;
+        const bOpened = new Date(b.lastOpenedTime).getTime() || 0;
+        const aUpdated = new Date(a.lastUpdateTime).getTime() || 0;
+        const bUpdated = new Date(b.lastUpdateTime).getTime() || 0;
+        const aRecent = Math.max(aOpened, aUpdated);
+        const bRecent = Math.max(bOpened, bUpdated);
+        return bRecent - aRecent;
+      })
+      .slice(0, 10); // return top 10 recent files
+    return recentFiles;
+
+  }
+
   // list all file ids the user has permissions for
-  const userPerms = listUserPermissions(userId).map(p => p.fileId);
 
   // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
@@ -78,6 +96,7 @@ async function createFile({ name, ownerId, type, parentId, content }) {
     isTrashed: false,
     creationTime: new Date().toISOString(),
     lastUpdateTime: new Date().toISOString(),
+    lastOpenedTime: new Date().toISOString(),
     starredBy: []
   };
 
@@ -112,6 +131,8 @@ async function getFile(id, userId) {
   if (!hasAccess) {
     throw { status: 403, message: "Access denied" };
   }
+  // Update last opened time
+  fileMetadata.lastOpenedTime = new Date().toISOString();
 
   // Fetch file names if it's a folder
   if (fileMetadata.type === "folder") {
@@ -129,6 +150,9 @@ async function getFile(id, userId) {
       ownerId: fileMetadata.ownerId,
       type: fileMetadata.type,
       isStarred: (fileMetadata.starredBy || []).includes(userId),
+      lastOpenedTime: fileMetadata.lastOpenedTime,
+      creationTime: fileMetadata.creationTime,
+      lastUpdateTime: fileMetadata.lastUpdateTime,
       children
     };
   }
@@ -159,6 +183,7 @@ async function getFile(id, userId) {
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
     lastUpdateTime: fileMetadata.lastUpdateTime,
+    lastOpenedTime: fileMetadata.lastOpenedTime,
     isStarred: (fileMetadata.starredBy || []).includes(userId),
     content: fileContent ?? ""
   };

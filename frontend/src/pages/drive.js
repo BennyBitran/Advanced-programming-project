@@ -92,6 +92,7 @@ export default function DrivePage() {
   const buildListFilters = () => {
     if (activeNav === "trash") return { view: "trash" };
     if (activeNav === "starred") return { view: "starred" };
+    if (activeNav === "recent") return { view: "recent" };
     // For now, other views fall back to My Drive
     const filters = {};
     if (currentFolderId) filters.parentId = currentFolderId;
