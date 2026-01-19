@@ -75,7 +75,7 @@ export default function DrivePage() {
 
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
-const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
+  const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
 
   const resetSelectionAndPreview = () => {
     setSelectedFile(null);
@@ -90,21 +90,21 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const buildListFilters = () => {
-  if (activeNav === "trash") return { view: "trash" };
+    if (activeNav === "trash") return { view: "trash" };
 
-  if (activeNav === "recent") {
-    // root recent view
-    if (!currentFolderId) return { view: "recent" };
-    // inside a folder -> normal folder listing
-    return { parentId: currentFolderId };
-  }
+    if (activeNav === "recent") {
+      // root recent view
+      if (!currentFolderId) return { view: "recent" };
+      // inside a folder -> normal folder listing
+      return { parentId: currentFolderId };
+    }
 
-  if (activeNav === "starred") {
-    // root starred view
-    if (!currentFolderId) return { view: "starred" };
-    // inside a folder -> normal folder listing
-    return { parentId: currentFolderId };
-  }
+    if (activeNav === "starred") {
+      // root starred view
+      if (!currentFolderId) return { view: "starred" };
+      // inside a folder -> normal folder listing
+      return { parentId: currentFolderId };
+    }
     // For now, other views fall back to My Drive
     const filters = {};
     if (currentFolderId) filters.parentId = currentFolderId;
@@ -201,7 +201,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const handleOpenFolder = (folder) => {
-    if (![ "my-drive", "recent", "starred" ].includes(activeNav)) return;
+    if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -345,8 +345,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
     setSelectedFile((prev) => (prev?.id === fileId ? { ...prev, isStarred: nextStarred } : prev));
 
     try {
-      if (nextStarred) await starFileApi(fileId);
-      else await unstarFileApi(fileId);
+      await updateFile(fileId, { isStarred: nextStarred });
     } catch (err) {
       // revert on failure
       setFiles((prev) => {
