@@ -2,13 +2,16 @@ import FileRow from "./FileRow";
 
 export default function FileTable({
   files,
+  activeNav,
   hasFiles,
   isLoading,
   error,
   selectedFileId,
   onRowClick,
   onToggleStar,
-  onTrash,
+  onTrash, 
+  onRestore, 
+  onDeletePermanently,
 }) {
   if (isLoading) return <div className="gd-status">Loading files...</div>;
   if (error) return <div className="gd-error">{error}</div>;
@@ -37,10 +40,13 @@ export default function FileTable({
         <FileRow
           key={f.id}
           file={f}
+          activeNav={activeNav}
           isSelected={selectedFileId === f.id}
           onOpen={() => onRowClick(f)}
           onToggleStar={onToggleStar}
           onTrash={onTrash}
+          onRestore={onRestore}
+          onDeletePermanently={onDeletePermanently}
         />
       ))}
     </div>

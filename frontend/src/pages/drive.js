@@ -91,6 +91,11 @@ export default function DrivePage() {
   const buildListFilters = () => {
     if (activeNav === "trash") return { view: "trash" };
 
+    if (activeNav === "shared") {
+      if (!currentFolderId) return { view: "shared" };
+      return { parentId: currentFolderId };
+    }
+
     if (activeNav === "recent") {
       // root recent view
       if (!currentFolderId) return { view: "recent" };
@@ -299,6 +304,55 @@ export default function DrivePage() {
     }
   };
 
+  const handleRestore = async (fileId) => {
+    try {
+      await updateFile(fileId, { restore: true });
+
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+
+      setSelectedFile((prev) =>
+        prev?.id === fileId ? { ...prev, isTrashed: false } : prev
+      );
+
+      setUploadStatus("File restored");
+      setTimeout(() => setUploadStatus(""), 3000);
+    } catch (err) {
+      setError(err?.message || "Failed to restore");
+    }
+  };
+
+  const handleDeletePermanently = async (fileId) => {
+    if (!window.confirm("Are you sure you want to delete this permanently?")) return;
+    try {
+      await deleteFile(fileId);
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      setUploadStatus("Permanently deleted");
+      setTimeout(() => setUploadStatus(""), 3000);
+    } catch (err) {
+      setError(err?.message || "Failed to delete");
+    }
+  };
+  const handleEmptyTrash = async () => {
+    if (files.length === 0) return;
+
+    const confirmMessage = `Are you sure you want to permanently delete all ${files.length} items? This cannot be undone.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    const idsToDelete = files.map(f => f.id);
+
+    try {
+      setUploadStatus("Emptying trash...");
+
+      await Promise.all(idsToDelete.map(id => deleteFile(id)));
+
+      setFiles([]);
+      setUploadStatus("Trash emptied");
+      setTimeout(() => setUploadStatus(""), 3000);
+    } catch (err) {
+      loadFiles();  //reload to see if anything failed
+      setError("Some items could not be deleted. Please try again.");
+    }
+  };
 
   const handleRowClick = (file) => {
     if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
@@ -415,6 +469,17 @@ export default function DrivePage() {
             />
 
             <div className="gd-main-actions">
+              {/* empty trash */}
+              {activeNav === "trash" && files.length > 0 && (
+                <button
+                  className="gd-text-btn gd-danger-text"
+                  onClick={handleEmptyTrash}
+                  title="Permanently delete all items in trash"
+                >
+                  <span className="material-symbols-outlined">delete_forever</span>
+                  Empty Trash
+                </button>
+              )}
               <button className="gd-icon-btn" type="button" aria-label="List view">
                 <span className="material-symbols-outlined">view_list</span>
               </button>
@@ -432,13 +497,16 @@ export default function DrivePage() {
 
           <FileTable
             files={files}
+            onTrash={handleTrash}
+            activeNav={activeNav}
+            onRestore={handleRestore}
+            onDeletePermanently={handleDeletePermanently}
             hasFiles={hasFiles}
             isLoading={isLoading}
             error={error}
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
             onToggleStar={handleToggleStar}
-            onTrash={handleTrash}
           />
         </main>
 

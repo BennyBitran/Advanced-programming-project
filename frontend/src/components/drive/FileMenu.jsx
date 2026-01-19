@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function FileMenu({ file, onToggleStar, onTrash, onMove }) {
+export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNav, onRestore, onDeletePermanently }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
+  const isTrashView = activeNav === 'trash' || file.isTrashed;
 
   // Close menu if user clicks anywhere else
   useEffect(() => {
@@ -37,25 +38,46 @@ export default function FileMenu({ file, onToggleStar, onTrash, onMove }) {
 
       {isOpen && (
         <div className="gd-dropdown">
-          <button onClick={(e) => handleAction(e, () => onToggleStar(file.id, !file.isStarred))}>
-            <span className="material-symbols-outlined">
-              {file.isStarred ? "star_half" : "star"}
-            </span>
-            {file.isStarred ? "Unstar" : "Star"}
-          </button>
-          
-          <button onClick={(e) => handleAction(e, () => onMove(file))}>
-            <span className="material-symbols-outlined">drive_file_move</span>
-            Move to...
-          </button>
-          
-          <button 
-            className="gd-danger" 
-            onClick={(e) => handleAction(e, () => onTrash(file.id))}
-          >
-            <span className="material-symbols-outlined">delete</span>
-            Move to Trash
-          </button>
+          {/* File is in Trash */}
+          {file.isTrashed ? (
+            <>
+              <button onClick={(e) => handleAction(e, () => onRestore(file.id))}>
+                <span className="material-symbols-outlined">restore_from_trash</span>
+                Restore
+              </button>
+
+              <button
+                className="gd-danger"
+                onClick={(e) => handleAction(e, () => onDeletePermanently(file.id))}
+              >
+                <span className="material-symbols-outlined">delete_forever</span>
+                Delete Permanently
+              </button>
+            </>
+          ) : (
+            /* non trashed file */
+            <>
+              <button onClick={(e) => handleAction(e, () => onToggleStar(file.id, !file.isStarred))}>
+                <span className="material-symbols-outlined">
+                  {file.isStarred ? "star_half" : "star"}
+                </span>
+                {file.isStarred ? "Unstar" : "Star"}
+              </button>
+
+              <button onClick={(e) => handleAction(e, () => onMove(file))}>
+                <span className="material-symbols-outlined">drive_file_move</span>
+                Move to...
+              </button>
+
+              <button
+                className="gd-danger"
+                onClick={(e) => handleAction(e, () => onTrash(file.id))}
+              >
+                <span className="material-symbols-outlined">delete</span>
+                Move to Trash
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
