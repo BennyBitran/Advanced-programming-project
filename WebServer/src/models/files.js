@@ -27,9 +27,13 @@ function listFiles(userId, parentId = null, view = null) {
     return files.filter(file => file.ownerId === userId && file.isTrashed);
   }
 
-  if (view === "starred") {
-    return visibleFiles.filter(file => file.starredBy.includes(userId));
+ if (view === "starred") {
+  // show starred files user can see, but not trashed (trash view is separate)
+  return visibleFiles.filter(file =>
+    !file.isTrashed && (file.starredBy || []).includes(userId)
+  );
 }
+
  // return all files in specified parent (null = root) that user is the owner or has permissions for
   return files.filter(file =>
     file.parentId === parentId && !file.isTrashed &&
@@ -123,7 +127,8 @@ async function getFile(id, userId) {
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
       type: fileMetadata.type,
-      children
+      children,
+      isStarred: (fileMetadata.starredBy || []).includes(userId)
     };
   }
 
@@ -153,7 +158,9 @@ async function getFile(id, userId) {
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
     lastUpdateTime: fileMetadata.lastUpdateTime,
+    isStarred: (fileMetadata.starredBy || []).includes(userId),
     content: fileContent ?? ""
+
   };
 }
 
