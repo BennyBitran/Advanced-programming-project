@@ -53,6 +53,14 @@ export async function uploadFile(fileData) {
     return apiRequest("/api/files", "POST", fileData, {}, true);
 }
 
+export async function getFile(fileId) {
+    return apiRequest(`/api/files/${fileId}`, "GET", undefined, {}, true);
+}
+
+export async function updateFile(fileId, updates) {
+    return apiRequest(`/api/files/${fileId}`, "PATCH", updates, {}, true);
+}
+
 export async function deleteFile(fileId) {
     return apiRequest(`/api/files/${fileId}`, "DELETE", undefined, {}, true);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { listFiles, uploadFile } from "../api/api";
+import { getFile, listFiles, updateFile, uploadFile } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
 
@@ -21,16 +21,31 @@ export default function DrivePage() {
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
+  const [filePreviewError, setFilePreviewError] = useState("");
+  const [filePreviewLoading, setFilePreviewLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftContent, setDraftContent] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadError, setUploadError] = useState("");
+  const [folderName, setFolderName] = useState("");
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [folderError, setFolderError] = useState("");
   const fileInputRef = useRef(null);
+  const previewRequestId = useRef(0);
   const hasFiles = files.length > 0;
 
-  const loadFiles = () => {
+  const loadFiles = (parentId) => {
     let isActive = true;
     setIsLoading(true);
     setError("");
-    listFiles()
+    listFiles(parentId)
       .then((data) => {
         if (!isActive) {
           return;
@@ -54,10 +69,163 @@ export default function DrivePage() {
     };
   };
 
-  useEffect(() => loadFiles(), []);
+  useEffect(() => {
+    const cleanup = loadFiles(currentFolderId);
+    setSelectedFile(null);
+    setFilePreview("");
+    setFilePreviewError("");
+    setFilePreviewLoading(false);
+    setIsEditing(false);
+    setDraftContent("");
+    setSaveError("");
+    setIsSaving(false);
+    setIsViewerOpen(false);
+    return cleanup;
+  }, [currentFolderId]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleCreateFolderClick = () => {
+    setFolderName("");
+    setFolderError("");
+    setIsFolderModalOpen(true);
+  };
+
+  const handleCreateFolder = async () => {
+    const name = folderName.trim();
+    if (!name) {
+      setFolderError("Folder name is required");
+      return;
+    }
+    setFolderError("");
+    try {
+      const payload = { name, type: "folder" };
+      if (currentFolderId) {
+        payload.parentId = currentFolderId;
+      }
+      await uploadFile(payload);
+      setIsFolderModalOpen(false);
+      setFolderName("");
+      loadFiles(currentFolderId);
+    } catch (err) {
+      setFolderError(err?.message || "Failed to create folder");
+    }
+  };
+
+  const handleCloseFolderModal = () => {
+    setIsFolderModalOpen(false);
+    setFolderError("");
+  };
+
+  const handleFolderInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleCreateFolder();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCloseFolderModal();
+    }
+  };
+
+  const handleOpenFolder = (folder) => {
+    setCurrentFolderId(folder.id);
+    setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
+  };
+
+  const handleSelectFile = (file) => {
+    setSelectedFile(file);
+    setFilePreview("");
+    setFilePreviewError("");
+    setIsEditing(false);
+    setDraftContent("");
+    setSaveError("");
+    setIsViewerOpen(false);
+    const requestId = previewRequestId.current + 1;
+    previewRequestId.current = requestId;
+    setFilePreviewLoading(true);
+    getFile(file.id)
+      .then((data) => {
+        if (previewRequestId.current !== requestId) {
+          return;
+        }
+        const content = data?.content ?? "";
+        setFilePreview(content);
+        setDraftContent(content);
+      })
+      .catch((err) => {
+        if (previewRequestId.current !== requestId) {
+          return;
+        }
+        setFilePreviewError(err?.message || "Failed to load file");
+      })
+      .finally(() => {
+        if (previewRequestId.current === requestId) {
+          setFilePreviewLoading(false);
+        }
+      });
+  };
+
+  const handleStartEditing = () => {
+    setIsViewerOpen(true);
+    setIsEditing(true);
+    setSaveError("");
+  };
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+    setDraftContent(filePreview);
+    setSaveError("");
+  };
+
+  const handleOpenViewer = () => {
+    setIsViewerOpen(true);
+    setIsEditing(false);
+    setSaveError("");
+  };
+
+  const handleCloseViewer = () => {
+    setIsViewerOpen(false);
+    setIsEditing(false);
+    setSaveError("");
+  };
+
+  const handleSaveContent = async () => {
+    if (!selectedFile) {
+      return;
+    }
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await updateFile(selectedFile.id, { content: draftContent });
+      setFilePreview(draftContent);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(err?.message || "Failed to save");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRowClick = (file) => {
+    if (file.type === "folder") {
+      handleOpenFolder(file);
+    } else {
+      handleSelectFile(file);
+    }
+  };
+
+  const handleBreadcrumbRoot = () => {
+    setCurrentFolderId(null);
+    setBreadcrumbs([]);
+  };
+
+  const handleBreadcrumbClick = (index) => {
+    const nextCrumbs = breadcrumbs.slice(0, index + 1);
+    setBreadcrumbs(nextCrumbs);
+    setCurrentFolderId(nextCrumbs[index]?.id ?? null);
   };
 
   const handleFileSelected = (event) => {
@@ -88,9 +256,13 @@ export default function DrivePage() {
     reader.onload = async () => {
       try {
         const content = typeof reader.result === "string" ? reader.result : "";
-        await uploadFile({ name: file.name, type: "file", content });
+        const payload = { name: file.name, type: "file", content };
+        if (currentFolderId) {
+          payload.parentId = currentFolderId;
+        }
+        await uploadFile(payload);
         setUploadStatus("Upload completed");
-        loadFiles();
+        loadFiles(currentFolderId);
       } catch (err) {
         setUploadStatus("");
         setUploadError(err?.message || "Upload failed");
@@ -176,7 +348,15 @@ export default function DrivePage() {
             </button>
             {isNewOpen && (
               <div className="gd-new-menu" id="gd-new-menu" role="menu">
-                <button className="gd-new-item" type="button" role="menuitem">
+                <button
+                  className="gd-new-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    handleCreateFolderClick();
+                    setIsNewOpen(false);
+                  }}
+                >
                   <span className="material-symbols-outlined">create_new_folder</span>
                   <span>Folder</span>
                 </button>
@@ -229,7 +409,30 @@ export default function DrivePage() {
         {/* Main */}
         <main className="gd-main">
           <div className="gd-main-header">
-            <h1 className="gd-title">My Drive</h1>
+            <div className="gd-title-wrap">
+              <h1 className="gd-title">My Drive</h1>
+              <div className="gd-breadcrumbs" aria-label="Folder path">
+                <button
+                  className="gd-crumb"
+                  type="button"
+                  onClick={handleBreadcrumbRoot}
+                >
+                  My Drive
+                </button>
+                {breadcrumbs.map((crumb, index) => (
+                  <span key={crumb.id} className="gd-crumb-group">
+                    <span className="gd-crumb-sep">/</span>
+                    <button
+                      className="gd-crumb"
+                      type="button"
+                      onClick={() => handleBreadcrumbClick(index)}
+                    >
+                      {crumb.name}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
             <div className="gd-main-actions">
               <button className="gd-icon-btn" aria-label="List view">
                 <span className="material-symbols-outlined">view_list</span>
@@ -258,7 +461,19 @@ export default function DrivePage() {
               </div>
 
               {files.map((f) => (
-                <div className="gd-row" key={f.id}>
+                <div
+                  className={`gd-row${selectedFile?.id === f.id ? " gd-selected" : ""}`}
+                  key={f.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleRowClick(f)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleRowClick(f);
+                    }
+                  }}
+                >
                   <div className="gd-name-cell">
                     <span className="gd-file-icon">
                       <span className="material-symbols-outlined">
@@ -296,7 +511,15 @@ export default function DrivePage() {
               </button>
               {isEmptyMenuOpen && (
                 <div className="gd-new-menu gd-empty-menu" id="gd-empty-menu" role="menu">
-                  <button className="gd-new-item" type="button" role="menuitem">
+                  <button
+                    className="gd-new-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      handleCreateFolderClick();
+                      setIsEmptyMenuOpen(false);
+                    }}
+                  >
                     <span className="material-symbols-outlined">create_new_folder</span>
                     <span>Folder</span>
                   </button>
@@ -323,26 +546,122 @@ export default function DrivePage() {
               </button>
             </div>
             <div className="gd-details-body">
-              <div className="gd-details-empty">
-                <span className="material-symbols-outlined">info</span>
-                <p>Select a file to preview and see details.</p>
-              </div>
-              <div className="gd-details-section">
-                <div className="gd-details-label">Owner</div>
-                <div className="gd-details-value">Not selected</div>
-              </div>
-              <div className="gd-details-section">
-                <div className="gd-details-label">Location</div>
-                <div className="gd-details-value">Not selected</div>
-              </div>
-              <div className="gd-details-section">
-                <div className="gd-details-label">Last modified</div>
-                <div className="gd-details-value">Not selected</div>
-              </div>
+              {!selectedFile ? (
+                <div className="gd-details-empty">
+                  <span className="material-symbols-outlined">info</span>
+                  <p>Select a file to preview and see details.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="gd-details-section">
+                    <div className="gd-details-label">Name</div>
+                    <div className="gd-details-value">{selectedFile.name}</div>
+                  </div>
+                  <div className="gd-details-section">
+                    <div className="gd-details-label">Type</div>
+                    <div className="gd-details-value">{selectedFile.type}</div>
+                  </div>
+                  {selectedFile.type === "file" && (
+                    <div className="gd-details-section">
+                      <div className="gd-details-label">Content</div>
+                      <div className="gd-preview-actions">
+                        <button className="gd-btn-secondary" type="button" onClick={handleOpenViewer}>
+                          Open
+                        </button>
+                        <button className="gd-btn-secondary" type="button" onClick={handleStartEditing}>
+                          Edit
+                        </button>
+                      </div>
+                      {filePreviewLoading && <div className="gd-muted">Loading content...</div>}
+                      {filePreviewError && <div className="gd-error gd-preview-error">{filePreviewError}</div>}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </aside>
       </div>
+      {isFolderModalOpen && (
+        <div className="gd-modal" role="dialog" aria-modal="true">
+          <div className="gd-modal-card">
+            <div className="gd-modal-header">
+              <h2>Create folder</h2>
+              <button className="gd-icon-btn" type="button" onClick={handleCloseFolderModal} aria-label="Close">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <label className="gd-modal-label">
+              Folder name
+              <input
+                className="gd-modal-input"
+                value={folderName}
+                onChange={(event) => setFolderName(event.target.value)}
+                onKeyDown={handleFolderInputKeyDown}
+                autoFocus
+              />
+            </label>
+            {folderError && <div className="gd-error gd-modal-error">{folderError}</div>}
+            <div className="gd-modal-actions">
+              <button className="gd-btn-secondary" type="button" onClick={handleCloseFolderModal}>
+                Cancel
+              </button>
+              <button className="gd-btn-primary" type="button" onClick={handleCreateFolder}>
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isViewerOpen && selectedFile?.type === "file" && (
+        <div className="gd-viewer" role="dialog" aria-modal="true">
+          <div className="gd-viewer-header">
+            <button className="gd-icon-btn" type="button" onClick={handleCloseViewer} aria-label="Back">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div className="gd-viewer-title">{selectedFile.name}</div>
+            <div className="gd-viewer-actions">
+              {!isEditing ? (
+                <button className="gd-btn-secondary" type="button" onClick={handleStartEditing}>
+                  Edit
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="gd-btn-primary"
+                    type="button"
+                    onClick={handleSaveContent}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </button>
+                  <button className="gd-btn-secondary" type="button" onClick={handleCancelEditing}>
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="gd-viewer-body">
+            {saveError && <div className="gd-error gd-preview-error">{saveError}</div>}
+            {filePreviewLoading ? (
+              <div className="gd-muted">Loading content...</div>
+            ) : filePreviewError ? (
+              <div className="gd-error gd-preview-error">{filePreviewError}</div>
+            ) : isEditing ? (
+              <textarea
+                className="gd-file-editor gd-viewer-editor"
+                value={draftContent}
+                onChange={(event) => setDraftContent(event.target.value)}
+              />
+            ) : (
+              <pre className="gd-file-preview gd-viewer-preview">
+                {filePreview || "This file is empty."}
+              </pre>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
