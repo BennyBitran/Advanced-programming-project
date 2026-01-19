@@ -363,7 +363,7 @@ export default function DrivePage() {
 
   return (
     <div className="gd-app">
-      <Topbar isDark={isDark} onToggleTheme={toggleTheme} />
+      <Topbar isDark={isDark} onToggleTheme={toggleTheme} name={localStorage.getItem("name")} />
 
       <div className="gd-body">
         <Sidebar
