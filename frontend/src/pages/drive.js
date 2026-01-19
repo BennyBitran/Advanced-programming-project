@@ -201,7 +201,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const handleOpenFolder = (folder) => {
-    if (![ "my-drive", "recent" ].includes(activeNav)) return;
+    if (![ "my-drive", "recent", "starred" ].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -278,7 +278,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const handleRowClick = (file) => {
-    if ((activeNav === "my-drive" || activeNav === "recent") && file.type === "folder") {
+    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
       handleOpenFolder(file);
       return;
     }
