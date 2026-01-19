@@ -1,11 +1,12 @@
 const { listFiles: listFilesModel,
     createFile: createFileModel,
     getFile: getFileModel,
-    updateFile: updateFileModel,
+    renameFile: renameFile,
     deleteFile: deleteFileModel,
-    starFile: starFileModel,
-    unstarFile: unstarFileModel,
-    getFileMetadata: getFileMetadata } = require("../models/files");
+    getFileMetadata: getFileMetadata,
+    writeFileContent: writeFileContent,
+    starFile,
+    unstarFile } = require("../models/files");
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
 function listFiles(req, res) {
@@ -91,14 +92,34 @@ async function updateFile(req, res) {
     }
     
     if (req.body.restore === true) { file.isTrashed = false; }
-
-    const { name, content } = req.body || {};
-
     try {
-        await updateFileModel(fileId, req.user.id, { name, content });
-        return res.status(204).send();
+        const { name, content, isStarred } = req.body;
+        const fileId = req.params.id;
+        const userId = req.user.id;
+
+        // fetch to ensure file exists and user has base permissions
+        let updatedFile = await getFileMetadata(fileId);
+
+        if (name !== undefined) {
+            updatedFile = await renameFile(fileId, userId, name);
+        }
+
+        if (content !== undefined) {
+            updatedFile = await writeFileContent(fileId, userId, content);
+        }
+
+        if (isStarred !== undefined) {
+            updatedFile = isStarred ? await starFile(fileId, userId) : await unstarFile(fileId, userId);
+        }
+
+        res.status(200).json(updatedFile);
+
     } catch (err) {
-        return res.status(err.status || 500).json({ error: err.message || "Failed to update file" });
+        console.error(`Error updating file ${req.params.id}:`, err);
+
+        res.status(err.status || 500).json({
+            error: err.message || "Failed to update file"
+        });
     }
 }
 
@@ -114,17 +135,6 @@ async function deleteFile(req, res) {
     }
 }
 
-function starFile(req, res) {
-  try { starFileModel(req.params.id, req.user.id); return res.status(204).send(); }
-  catch (err) { return res.status(err.status || 500).json({ error: err.message || "Failed to star file" }); }
-}
 
-function unstarFile(req, res) {
-  try { unstarFileModel(req.params.id, req.user.id); return res.status(204).send(); }
-  catch (err) { return res.status(err.status || 500).json({ error: err.message || "Failed to unstar file" }); }
-}
-
-
-
-module.exports = { listFiles, createFile, getFile, updateFile, deleteFile, starFile, unstarFile };
+module.exports = { listFiles, createFile, getFile, updateFile, deleteFile };
 

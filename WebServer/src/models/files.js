@@ -326,57 +326,54 @@ async function restoreFile(fileId, userId) {
 }
 
 
-/**
- * Updates file metadata and/or physical content.
- * If content is provided, it replaces the physical file in C++.
- */
-async function updateFile(fileId, userId, { name, content }) {
-  try {
-    const file = files.find(f => f.id === fileId);
-    if (!file) throw { status: 404, message: "File not found" };
+//method to change file name
+async function renameFile(fileId, userId, name) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
 
-    // check write permissions
-    const hasAccess = checkUserPermission(fileId, userId, 'write');
-    if (!hasAccess) throw { status: 403, message: "Write permission required" };
+  // check write permissions
+  const hasAccess = checkUserPermission(fileId, userId, 'write');
+  if (!hasAccess) throw { status: 403, message: "Write permission required" };
 
-    // rename (logical name) - metadata only
-    if (name !== undefined) {
-      const newName = String(name).trim();
-      if (!newName) throw { status: 400, message: "Non empty name is required" };
-      file.name = newName;
-    }
+  const newName = String(name).trim();
+  if (!newName) throw { status: 400, message: "Non empty name is required" };
 
-    // content update (files only) - delete+post on backend
-    if (content !== undefined) {
-      if (file.type !== "file") throw { status: 400, message: "Cannot patch content of a folder" };
+  file.name = newName;
+  file.lastUpdateTime = new Date().toISOString();
 
-      const newContent = String(content);
-
-      // delete physical if exists; 404 is ok (empty file case)
-      try {
-        const del = await sendRequest(`DELETE ${fileId}`);
-        if (del?.status && del.status >= 400 && del.status !== 404) throw del;
-      } catch (err) {
-        if (err?.status !== 404) throw err;
-      }
-
-      // create physical only if non-empty
-      if (newContent.trim() !== "") {
-        const post = await sendRequest(`POST ${fileId} ${newContent}`);
-        if (post?.status && post.status >= 400) throw post;
-      }
-    }
-
-    file.lastUpdateTime = new Date().toISOString();
-
-    return { ...file };
-  } catch (err) {
-    throw {
-      status: err?.status ?? 500,
-      message: err?.message ?? "Failed to patch file"
-    };
-  }
+  return { ...file };
 }
+
+//change file contnet
+async function writeFileContent(fileId, userId, content) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+  if (file.type !== "file") throw { status: 400, message: "Cannot patch content of a folder" };
+
+  const hasAccess = checkUserPermission(fileId, userId, 'write');
+  if (!hasAccess) throw { status: 403, message: "Write permission required" };
+
+  const newContent = String(content);
+
+  // delete physical if exists
+  try {
+    const del = await sendRequest(`DELETE ${fileId}`);
+    if (del?.status && del.status >= 400 && del.status !== 404) throw del;
+  } catch (err) {
+    if (err?.status !== 404) throw err;
+  }
+
+  // create physical only if non-empty
+  if (newContent.trim() !== "") {
+    const post = await sendRequest(`POST ${fileId} ${newContent}`);
+    if (post?.status && post.status >= 400) throw post;
+  }
+
+  file.lastUpdateTime = new Date().toISOString();
+  return { ...file };
+}
+
+
 function starFile(fileId, userId) {
   const file = files.find(f => f.id === fileId);
   if (!file) throw { status: 404, message: "File not found" };
@@ -387,7 +384,7 @@ function starFile(fileId, userId) {
 
   file.starredBy ||= [];
   if (!file.starredBy.includes(userId)) file.starredBy.push(userId);
-  return true;
+  return file;
 }
 
 function unstarFile(fileId, userId) {
@@ -400,7 +397,7 @@ function unstarFile(fileId, userId) {
 
   file.starredBy ||= [];
   file.starredBy = file.starredBy.filter(id => id !== userId);
-  return true;
+  return file;
 }
 
 
@@ -409,7 +406,8 @@ module.exports = {
   listFiles,
   createFile,
   getFile,
-  updateFile,
+  renameFile,
+  writeFileContent,
   deleteFile,
   restoreFile,
   searchFiles,
