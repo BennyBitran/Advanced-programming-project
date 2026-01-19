@@ -1,6 +1,6 @@
 import FileMenu from "./FileMenu";
 
-export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTrash }) {
+export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTrash, onRestore, onDeletePermanently }) {
   const icon = file.type === "folder" ? "folder" : "description";
 
   return (
@@ -33,6 +33,8 @@ export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTras
           file={file} 
           onToggleStar={onToggleStar} 
           onTrash={onTrash} 
+          onRestore={onRestore}
+          onDeletePermanently={onDeletePermanently}
         />
       </div>
     </div>

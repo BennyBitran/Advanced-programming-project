@@ -879,3 +879,23 @@ body.gd-theme-dark {
 .gd-dropdown button:hover .material-symbols-outlined {
   color: var(--gd-active-text);
 }
+
+/* Update this class in your drive.css */
+.gd-danger-text {
+  background-color: transparent; /* Remove the grey */
+  color: #d93025;               /* Red text color */
+  border: 1px solid #dadce0;    /* Subtle border */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.gd-danger-text:hover {
+  background-color: rgba(217, 48, 37, 0.08); /* Light red tint on hover */
+  border-color: #d93025;
+}
