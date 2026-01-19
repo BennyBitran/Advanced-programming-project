@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import {
   getFile,
   listFiles,
-  starFile as starFileApi,
-  unstarFile as unstarFileApi,
   updateFile,
   uploadFile,
+  deleteFile,
 } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
@@ -75,7 +74,7 @@ export default function DrivePage() {
 
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
-const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
+  const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
 
   const resetSelectionAndPreview = () => {
     setSelectedFile(null);
@@ -90,21 +89,21 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const buildListFilters = () => {
-  if (activeNav === "trash") return { view: "trash" };
+    if (activeNav === "trash") return { view: "trash" };
 
-  if (activeNav === "recent") {
-    // root recent view
-    if (!currentFolderId) return { view: "recent" };
-    // inside a folder -> normal folder listing
-    return { parentId: currentFolderId };
-  }
+    if (activeNav === "recent") {
+      // root recent view
+      if (!currentFolderId) return { view: "recent" };
+      // inside a folder -> normal folder listing
+      return { parentId: currentFolderId };
+    }
 
-  if (activeNav === "starred") {
-    // root starred view
-    if (!currentFolderId) return { view: "starred" };
-    // inside a folder -> normal folder listing
-    return { parentId: currentFolderId };
-  }
+    if (activeNav === "starred") {
+      // root starred view
+      if (!currentFolderId) return { view: "starred" };
+      // inside a folder -> normal folder listing
+      return { parentId: currentFolderId };
+    }
     // For now, other views fall back to My Drive
     const filters = {};
     if (currentFolderId) filters.parentId = currentFolderId;
@@ -201,7 +200,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
   };
 
   const handleOpenFolder = (folder) => {
-    if (![ "my-drive", "recent", "starred" ].includes(activeNav)) return;
+    if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -277,6 +276,30 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
     }
   };
 
+  const handleTrash = async (fileId) => {
+    // save original state in case of fail
+    const originalFiles = [...files];
+    // remove from UI
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+
+    // If the file being trashed is currently selected, clear the selection
+    if (selectedFile?.id === fileId) {
+      setSelectedFile(null);
+    }
+
+    try {
+      await deleteFile(fileId);
+      setUploadStatus("File moved to trash");
+      // clear status after 3 seconds
+      setTimeout(() => setUploadStatus(""), 3000);
+    } catch (err) {
+      // 4. Revert on failure
+      setFiles(originalFiles);
+      setError(err?.message || "Failed to move file to trash");
+    }
+  };
+
+
   const handleRowClick = (file) => {
     if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
       handleOpenFolder(file);
@@ -345,9 +368,9 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
     setSelectedFile((prev) => (prev?.id === fileId ? { ...prev, isStarred: nextStarred } : prev));
 
     try {
-      if (nextStarred) await starFileApi(fileId);
-      else await unstarFileApi(fileId);
-    } catch (err) {
+      await updateFile(fileId, { isStarred: nextStarred });
+    }
+    catch (err) {
       // revert on failure
       setFiles((prev) => {
         // If we removed it from starred view, we can't reconstruct without reload -> just reload.
@@ -415,6 +438,7 @@ const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
             onToggleStar={handleToggleStar}
+            onTrash={handleTrash}
           />
         </main>
 
