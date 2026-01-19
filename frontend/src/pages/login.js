@@ -29,10 +29,9 @@ export default function LoginPage() {
 
   const saveAuth = (data) => {
     const token = data?.token ?? "";
-    if (!token) {
-      throw new Error("Login failed");
+    if (token) {
+      localStorage.setItem("token", token);
     }
-    localStorage.setItem("token", token);
     if (data?.userId) {
       localStorage.setItem("userId", data.userId);
     }
