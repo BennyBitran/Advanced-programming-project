@@ -423,8 +423,7 @@ export default function DrivePage() {
 
     try {
       await updateFile(fileId, { isStarred: nextStarred });
-    }
-    catch (err) {
+    } catch (err) {
       // revert on failure
       setFiles((prev) => {
         // If we removed it from starred view, we can't reconstruct without reload -> just reload.
