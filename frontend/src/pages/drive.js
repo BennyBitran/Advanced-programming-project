@@ -75,7 +75,7 @@ export default function DrivePage() {
 
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
-  const showBreadcrumbs = activeNav === "my-drive";
+const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
 
   const resetSelectionAndPreview = () => {
     setSelectedFile(null);
@@ -90,8 +90,21 @@ export default function DrivePage() {
   };
 
   const buildListFilters = () => {
-    if (activeNav === "trash") return { view: "trash" };
-    if (activeNav === "starred") return { view: "starred" };
+  if (activeNav === "trash") return { view: "trash" };
+
+  if (activeNav === "recent") {
+    // root recent view
+    if (!currentFolderId) return { view: "recent" };
+    // inside a folder -> normal folder listing
+    return { parentId: currentFolderId };
+  }
+
+  if (activeNav === "starred") {
+    // root starred view
+    if (!currentFolderId) return { view: "starred" };
+    // inside a folder -> normal folder listing
+    return { parentId: currentFolderId };
+  }
     // For now, other views fall back to My Drive
     const filters = {};
     if (currentFolderId) filters.parentId = currentFolderId;
@@ -136,7 +149,6 @@ export default function DrivePage() {
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
 
-    // Starred/Trash are global views (no folder navigation)
     if (nextKey !== "my-drive") {
       setCurrentFolderId(null);
       setBreadcrumbs([]);
@@ -189,7 +201,7 @@ export default function DrivePage() {
   };
 
   const handleOpenFolder = (folder) => {
-    if (activeNav !== "my-drive") return;
+    if (![ "my-drive", "recent", "starred" ].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -266,7 +278,7 @@ export default function DrivePage() {
   };
 
   const handleRowClick = (file) => {
-    if (activeNav === "my-drive" && file.type === "folder") {
+    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
       handleOpenFolder(file);
       return;
     }
