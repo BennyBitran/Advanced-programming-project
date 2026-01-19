@@ -35,6 +35,12 @@ export default function LoginPage() {
     if (data?.userId) {
       localStorage.setItem("userId", data.userId);
     }
+    if (data?.name) {
+      localStorage.setItem("name", data.name);
+    }
+    if (data?.image) {
+      localStorage.setItem("avatarUrl", data.image);
+    }
   };
   
   // Check if redirected from registration, if so, show success message and pre-fill username
