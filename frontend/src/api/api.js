@@ -42,7 +42,7 @@ export async function loginUser({ username, password }) {
 }
 
 export async function listFiles(filters = {}) {
-    //filters can be { parentId: 'some folder id', veiw: 'trash/starred/shared/...' }
+    //filters can be { parentId: 'some folder id', view: 'trash/starred/shared/...' }
     const params = new URLSearchParams(filters).toString();
     const path = params ? `/api/files?${params}` : "/api/files";
 
@@ -63,4 +63,12 @@ export async function updateFile(fileId, updates) {
 
 export async function deleteFile(fileId) {
     return apiRequest(`/api/files/${fileId}`, "DELETE", undefined, {}, true);
+}
+
+export async function starFile(fileId) {
+    return apiRequest(`/api/files/${fileId}/star`, "POST", undefined, {}, true);
+}
+
+export async function unstarFile(fileId) {
+    return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
 }
