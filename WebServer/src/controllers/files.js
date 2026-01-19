@@ -89,6 +89,8 @@ async function updateFile(req, res) {
     if (!file) {
         return res.status(404).json({ error: "File not found" });
     }
+    
+    if (req.body.restore === true) { file.isTrashed = false; }
 
     const { name, content } = req.body || {};
 
