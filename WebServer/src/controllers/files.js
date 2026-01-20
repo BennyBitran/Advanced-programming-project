@@ -80,6 +80,18 @@ async function getFile(req, res) {
 
 
 async function updateFile(req, res) {
+    // get file id from params and new name from body
+    const fileId = req.params.id;
+    if (!fileId) {
+        return res.status(400).json({ error: "File id is required" });
+    }
+    //find file
+    const file = getFileMetadata(fileId);
+    if (!file) {
+        return res.status(404).json({ error: "File not found" });
+    }
+    
+    if (req.body.restore === true) { file.isTrashed = false; }
     try {
         const { name, content, isStarred } = req.body;
         const fileId = req.params.id;

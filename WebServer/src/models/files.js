@@ -48,18 +48,26 @@ function listFiles(userId, parentId = null, view = null) {
       })
       .slice(0, 10); // return top 10 recent files
     return recentFiles;
-
   }
 
-  // list all file ids the user has permissions for
+  // list all files user has permission to, that they are not his directly and not trashed.
+  if (view === "shared") {
+    return files.filter(file => userPerms.includes(file.id) && !isPathTrashed(file) && file.ownerId !== userId);
+  }
 
-  // return all files in specified parent (null = root) that user is the owner or has permissions for
-  return files.filter(file =>
-    file.parentId === parentId && !file.isTrashed &&
-    (file.ownerId === userId || userPerms.includes(file.id))
-  );
+  // return all files in specified parent (null = root) that user is the owner
+  return files.filter(file => file.parentId === parentId && !file.isTrashed && file.ownerId === userId);
 }
-
+//helper function to check if a file is trashed
+function isPathTrashed(file) {
+  if (file.isTrashed) return true;
+  if (!file.parentId) return false;
+  const parent = files.find(f => f.id === file.parentId);
+  if (parent) {
+    return isPathTrashed(parent);
+  }
+  return false;
+}
 
 // Creates metadata in Node.js and physical content in C++
 async function createFile({ name, ownerId, type, parentId, content }) {
@@ -261,8 +269,8 @@ async function deleteFile(fileId, userId) {
       file.isTrashed = true;
       return { status: 200, message: "Moved to trash", data: file };
     } else {
-      //if file already trashed - delete it permanently.
-      deleteSubtree(fileId);
+      //if file already trashed - delete it and its subtree permanently.
+      await deleteSubtree(file);
       return { status: 204, message: "Permanently deleted" };
     }
   } else {
@@ -275,30 +283,46 @@ async function deleteFile(fileId, userId) {
     //if the file is inside a shared folder that user has permission to write 
     // actually delete it (Google implementation)
     if (checkUserPermission(fileId, userId, "write")) {
-      deleteSubtree(fileId);
+      await deleteSubtree(file);
       return { status: 204, message: "Permanently deleted" };
     }
   }
   return { status: 403, message: "Permission denied: Cannot delete file or folder" }
 }
 
-async function deleteSubtree(id) {
-  //find children
-  const children = files.filter(f => f.parentId === id);
+async function deleteSubtree(file) {
+  let children;
+  if (file.type === "folder") { children = files.filter(f => f.parentId === id); }
 
-  for (const child of children) {
-    await deleteSubtree(child.id);
+  if (children) {
+    //recursivly delete all childrens of the file
+    for (const child of children) {
+      await deleteSubtree(child.id);
+    }
   }
 
-  const node = files.find(f => f.id === id);
-  if (node?.type === "file") {
-    const result = await sendRequest(`DELETE ${id}`);
+  if (file.type === "file") {
+    const result = await sendRequest(`DELETE ${file.id}`);
     if (result?.status >= 400 && result.status !== 404) throw result;
   }
 
   // remove metadata for this node
-  const idx = files.findIndex(f => f.id === id);
-  if (idx !== -1) files.splice(idx, 1);
+  const index = files.findIndex(f => f.id === file.id);
+  if (index !== -1) files.splice(index, 1);
+}
+
+async function restoreFile(fileId, userId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  // Permission check: only the owner can restore
+  if (file.ownerId !== userId) {
+    throw { status: 403, message: "Permission denied" };
+  }
+
+  file.isTrashed = false;
+
+  return { status: 200, message: "Restored successfully", data: file };
 }
 
 
@@ -385,6 +409,7 @@ module.exports = {
   renameFile,
   writeFileContent,
   deleteFile,
+  restoreFile,
   searchFiles,
   getFileMetadata,
   starFile,
