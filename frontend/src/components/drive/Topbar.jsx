@@ -1,3 +1,6 @@
+import UserMenu from "./userMenu";
+
+
 export default function Topbar({ isDark, onToggleTheme }) {
   return (
     <header className="gd-topbar">
@@ -35,9 +38,8 @@ export default function Topbar({ isDark, onToggleTheme }) {
         <button className="gd-icon-btn" type="button" aria-label="Settings">
           <span className="material-symbols-outlined">settings</span>
         </button>
-        <button className="gd-avatar" type="button" aria-label="Account">
-          G
-        </button>
+       <UserMenu />
+
       </div>
     </header>
   );
