@@ -83,6 +83,7 @@ export default function DrivePage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
 
 
@@ -539,6 +540,17 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             />
 
             <div className="gd-main-actions">
+              
+              <button
+                className="gd-icon-btn"
+                type="button"
+                aria-label="Show details"
+                title="Show details"
+                onClick={() => setIsDetailsOpen(true)}
+                >
+  <span className="material-symbols-outlined">info</span>
+</button>
+
               {/* empty trash */}
               {tableNavMode === "trash" && files.length > 0 && (
                 <button
@@ -580,13 +592,16 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             onToggleStar={handleToggleStar}
           />
         </main>
+            {isDetailsOpen && (
+              <DetailsPanel
+              selectedFile={selectedFile}
+              filePreviewLoading={filePreviewLoading}
+              filePreviewError={filePreviewError}
+              breadcrumbs={breadcrumbs}
+              onClose={() => setIsDetailsOpen(false)}
+            />
+)}
 
-        <DetailsPanel
-          selectedFile={selectedFile}
-          filePreviewLoading={filePreviewLoading}
-          filePreviewError={filePreviewError}
-          breadcrumbs={breadcrumbs}
-        />
       </div>
 
       <CreateFolderModal
