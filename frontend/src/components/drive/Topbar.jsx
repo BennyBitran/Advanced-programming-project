@@ -1,7 +1,7 @@
 import UserMenu from "./userMenu";
 
 
-export default function Topbar({ isDark, onToggleTheme }) {
+export default function Topbar({ isDark, onToggleTheme, searchQuery, onSearchChange, onClearSearch }) {
   return (
     <header className="gd-topbar">
       <div className="gd-topbar-left">
@@ -17,7 +17,24 @@ export default function Topbar({ isDark, onToggleTheme }) {
 
       <div className="gd-search">
         <span className="material-symbols-outlined gd-search-icon">search</span>
-        <input className="gd-search-input" placeholder="Search in Drive" />
+        <input
+          className="gd-search-input"
+          placeholder="Search in Drive"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+        {searchQuery?.trim() ? (
+  <button
+    className="gd-icon-btn"
+    type="button"
+    aria-label="Clear search"
+    onClick={onClearSearch}
+  >
+    <span className="material-symbols-outlined">close</span>
+  </button>
+) : null}
+
+
         <button className="gd-icon-btn" type="button" aria-label="Search options">
           <span className="material-symbols-outlined">tune</span>
         </button>
