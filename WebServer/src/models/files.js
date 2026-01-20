@@ -58,6 +58,7 @@ function listFiles(userId, parentId = null, view = null) {
   // return all files in specified parent (null = root) that user is the owner
   return files.filter(file => file.parentId === parentId && !file.isTrashed && file.ownerId === userId);
 }
+
 //helper function to check if a file is trashed
 function isPathTrashed(file) {
   if (file.isTrashed) return true;

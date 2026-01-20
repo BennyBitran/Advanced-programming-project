@@ -33,10 +33,15 @@ function getUserById(id) {
 function findUserByCredentials(username, password) {
     return users.find((user) => user.username === username && user.password === password) || null;
 }   
-    
+
+function getUserId(username) {
+  const user = users.find(u => u.username === username);
+  return user?.id;
+}
 
 module.exports = {
     createUser,
     getUserById,
     findUserByCredentials,
+    getUserId,
 };
