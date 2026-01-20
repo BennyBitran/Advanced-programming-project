@@ -21,7 +21,7 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
     let data = null;
     try {
         data = await response.json();
-    } catch {}
+    } catch { }
 
     if (!response.ok) {
         let msg = `HTTP ${response.status}`;
@@ -77,4 +77,12 @@ export async function starFile(fileId) {
 
 export async function unstarFile(fileId) {
     return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
+}
+
+export async function getUserId(username) {
+  return apiRequest(`/api/users?username=${encodeURIComponent(username)}`, "GET", undefined, {}, true);
+}
+
+export async function addPermission(fileId, body) {
+    return apiRequest(`/api/files/${fileId}/permissions`, "POST", body, {}, true);
 }

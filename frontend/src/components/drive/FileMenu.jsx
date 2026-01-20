@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNav, onRestore, onDeletePermanently }) {
+export default function FileMenu({ file, onToggleStar, onTrash, onMove,
+  onRename, onShare, onRestore, onDeletePermanently }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   // Close menu if user clicks anywhere else
@@ -14,10 +15,10 @@ export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNa
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleAction = (e, actionFn) => {
+  const handleAction = (e, callback) => {
     e.preventDefault();
     e.stopPropagation();
-    actionFn();
+    callback();
     setIsOpen(false);
   };
 
@@ -65,6 +66,16 @@ export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNa
               <button onClick={(e) => handleAction(e, () => onMove(file))}>
                 <span className="material-symbols-outlined">drive_file_move</span>
                 Move to...
+              </button>
+
+              <button onClick={(e) => handleAction(e, () => onShare(file))}>
+                <span className="material-symbols-outlined">person_add</span>
+                Share
+              </button>
+
+              <button onClick={(e) => handleAction(e, () => onRename(file))}>
+                <span className="material-symbols-outlined">edit</span>
+                Rename
               </button>
 
               <button

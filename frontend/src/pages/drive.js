@@ -5,6 +5,8 @@ import {
   updateFile,
   uploadFile,
   deleteFile,
+  addPermission,
+  getUserId,
 } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
@@ -17,6 +19,7 @@ import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
+import ActionModal from "../components/drive/ActionModal";
 import { canEditFile } from "../viewers/fileKind";
 
 const navItems = [
@@ -75,6 +78,13 @@ export default function DrivePage() {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [newFileError, setNewFileError] = useState("");
 
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    type: '',
+    title: '',
+    value: '',
+    permission: 'read'
+  });
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
 
@@ -318,7 +328,7 @@ export default function DrivePage() {
       });
   };
 
-const handleStartEditing = () => {
+  const handleStartEditing = () => {
     if (!selectedFile || selectedFile.type !== "file" || !canEditFile(selectedFile.name)) {
       return;
     }
@@ -521,6 +531,56 @@ const handleStartEditing = () => {
     }
   };
 
+
+  const handleOpenRename = (file) => {
+    setSelectedFile(file);
+    setModalConfig({
+      type: 'rename',
+      title: `Rename ${file.type}`,
+      value: file.name
+    });
+    setIsActionModalOpen(true);
+  };
+
+  const handleOpenShare = (file) => {
+    setSelectedFile(file);
+    setModalConfig({
+      type: 'share',
+      title: `Share "${file.name}"`,
+      value: '',  //username or maybe email later? idk
+      label: 'Add people (email)',
+      permission: 'read'
+    });
+    setIsActionModalOpen(true);
+  };
+
+  //this will call the API functions to send the relevant request to the server
+  const handleActionSave = async () => {
+    if (!selectedFile) return;
+
+    try {
+      if (modalConfig.type === 'rename') {
+        await updateFile(selectedFile.id, { name: modalConfig.value });
+        setUploadStatus("Renamed successfully");
+      }
+      else if (modalConfig.type === 'share') {
+        const result = await getUserId(modalConfig.value);
+
+        await addPermission(selectedFile.id, {
+          userId: result.userId,
+          permissionType: modalConfig.permission
+        });
+
+        setUploadStatus(`Shared as ${modalConfig.permission} with ${result.username}`);
+      }
+
+      setIsActionModalOpen(false);
+      loadFiles();
+    } catch (err) {
+      setError(err?.message || "Action failed");
+    }
+  };
+
   return (
     <div className="gd-app">
       <Topbar isDark={isDark} onToggleTheme={toggleTheme} name={localStorage.getItem("name")} />
@@ -590,6 +650,8 @@ const handleStartEditing = () => {
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
             onToggleStar={handleToggleStar}
+            onRename={handleOpenRename}
+            onShare={handleOpenShare}
           />
         </main>
 
@@ -637,6 +699,18 @@ const handleStartEditing = () => {
         onStartEditing={handleStartEditing}
         onCancelEditing={handleCancelEditing}
         onSave={handleSaveContent}
+      />
+
+      <ActionModal
+        open={isActionModalOpen}
+        title={modalConfig.title}
+        label={modalConfig.label}
+        value={modalConfig.value}
+        role={modalConfig.permission} 
+        onChange={(val) => setModalConfig({ ...modalConfig, value: val })}
+        onRoleChange={(newRole) =>setModalConfig({ ...modalConfig, permission: newRole })}
+        onClose={() => setIsActionModalOpen(false)}
+        onSave={handleActionSave}
       />
     </div>
   );
