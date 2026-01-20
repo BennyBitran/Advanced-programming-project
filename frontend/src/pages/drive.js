@@ -159,6 +159,7 @@ export default function DrivePage() {
   }, [currentFolderId, activeNav]);
 
   const handleNavChange = (nextKey) => {
+    stopSearch();
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
@@ -215,6 +216,7 @@ export default function DrivePage() {
   };
 
   const handleOpenFolder = (folder) => {
+    stopSearch();
     if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -373,15 +375,25 @@ export default function DrivePage() {
   };
 
   const handleBreadcrumbRoot = () => {
+    stopSearch();
     setCurrentFolderId(null);
     setBreadcrumbs([]);
   };
 
   const handleBreadcrumbClick = (index) => {
+    stopSearch();
     const nextCrumbs = breadcrumbs.slice(0, index + 1);
     setBreadcrumbs(nextCrumbs);
     setCurrentFolderId(nextCrumbs[index]?.id ?? null);
   };
+
+  const stopSearch = () => {
+  setSearchQuery("");
+  setSearchResults([]);
+  setIsSearching(false);
+  setSearchError("");
+};
+
 
   const handleFileSelected = (event) => {
     const input = event.target;
