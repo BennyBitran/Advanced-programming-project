@@ -14,7 +14,10 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
         config.headers["Content-Type"] = "application/json";
         config.body = JSON.stringify(body);
     }
-    const response = await fetch(path, config);
+    const base = typeof process !== "undefined" ? process.env.REACT_APP_API_BASE || "" : "";
+    const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    const url = normalizedBase ? `${normalizedBase}${path}` : path;
+    const response = await fetch(url, config);
     let data = null;
     try {
         data = await response.json();
