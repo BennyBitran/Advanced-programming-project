@@ -11,9 +11,16 @@ export default function UserDropdown({
     <div className="gd-user-dropdown" role="menu">
       <div className="gd-user-head">
         <div className="gd-user-head-left">
-          <div className="gd-user-mini-avatar">
+          <button
+            type="button"
+            className="gd-user-mini-avatar"
+            onClick={onViewPhoto}
+            aria-label="View profile photo"
+            title="View photo"
+          >
             {avatarUrl ? <img src={avatarUrl} alt="User" /> : <span>G</span>}
-          </div>
+          </button>
+
           <div className="gd-user-meta">
             <div className="gd-user-name">{displayName}</div>
             <div className="gd-user-email">{email}</div>
