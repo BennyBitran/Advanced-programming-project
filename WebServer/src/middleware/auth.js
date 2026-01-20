@@ -15,7 +15,11 @@ const login = async (req, res) => {
 
     //generate the JWT for 24h using user ID and username
     const token = jwt.sign({ userId: user.id, username: user.username }, key, { expiresIn: '24h' });
-    res.status(201).json({ token, userId: user.id });
+    res.status(201).json({ token,
+         userId: user.id,
+         name: user.name,
+         image: user.image
+     });
 };
 
 //this is the main middleware function to verify tokens before allowing access to protected routes
