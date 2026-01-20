@@ -22,6 +22,9 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
 
     if (!response.ok) {
         let msg = `HTTP ${response.status}`;
+        if (response.status === 413) {
+            msg = "HTTP 413 (Payload Too Large).";
+        }
         if (data && data.error) {
             msg = data.error;
         }

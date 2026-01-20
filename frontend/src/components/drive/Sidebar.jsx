@@ -8,6 +8,7 @@ export default function Sidebar({
   setIsEmptyMenuOpen,
   onUploadClick,
   onCreateFolderClick,
+  onCreateFileClick,
   fileInputRef,
   onFileSelected,
 }) {
@@ -43,7 +44,15 @@ export default function Sidebar({
               <span>Folder</span>
             </button>
 
-            <button className="gd-new-item" type="button" role="menuitem">
+            <button
+              className="gd-new-item"
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                onCreateFileClick();
+                setIsNewOpen(false);
+              }}
+            >
               <span className="material-symbols-outlined">description</span>
               <span>File</span>
             </button>
