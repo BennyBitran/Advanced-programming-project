@@ -7,7 +7,7 @@ const searchRoutes = require("./routes/search");
 const auth = require("./middleware/auth");
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // if there was a syntax error in the JSON, handle it:
 app.use((err, req, res, next) => {
