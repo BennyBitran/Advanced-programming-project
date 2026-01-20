@@ -5,6 +5,7 @@ import {
   updateFile,
   uploadFile,
   deleteFile,
+  searchFiles
 } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
@@ -78,9 +79,18 @@ export default function DrivePage() {
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
 
+  
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
   const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  
+
+
 
   const resetSelectionAndPreview = () => {
     setSelectedFile(null);
@@ -155,6 +165,7 @@ export default function DrivePage() {
   }, [currentFolderId, activeNav]);
 
   const handleNavChange = (nextKey) => {
+    stopSearch();
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
@@ -281,6 +292,7 @@ export default function DrivePage() {
   };
 
   const handleOpenFolder = (folder) => {
+    stopSearch();
     if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -442,15 +454,25 @@ const handleStartEditing = () => {
   };
 
   const handleBreadcrumbRoot = () => {
+    stopSearch();
     setCurrentFolderId(null);
     setBreadcrumbs([]);
   };
 
   const handleBreadcrumbClick = (index) => {
+    stopSearch();
     const nextCrumbs = breadcrumbs.slice(0, index + 1);
     setBreadcrumbs(nextCrumbs);
     setCurrentFolderId(nextCrumbs[index]?.id ?? null);
   };
+
+  const stopSearch = () => {
+  setSearchQuery("");
+  setSearchResults([]);
+  setIsSearching(false);
+  setSearchError("");
+};
+
 
   const handleFileSelected = (event) => {
     const input = event.target;
@@ -521,14 +543,69 @@ const handleStartEditing = () => {
     }
   };
 
+  useEffect(() => {
+  const q = searchQuery.trim();
+  
+
+
+  if (!q) {
+    setSearchResults([]);
+    setIsSearching(false);
+    setSearchError("");
+    return;
+  }
+
+  let cancelled = false;
+  setIsSearching(true);
+  setSearchError("");
+
+  const t = setTimeout(() => {
+    searchFiles(q)
+      .then((data) => {
+        if (cancelled) return;
+        setSearchResults(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setSearchResults([]);
+        setSearchError(err?.message || "Search failed");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsSearching(false);
+      });
+  }, 300);
+
+  return () => {
+    cancelled = true;
+    clearTimeout(t);
+  };
+}, [searchQuery]);
+
+const isSearchMode = searchQuery.trim().length > 0;
+const displayFiles = isSearchMode ? searchResults : files;
+const tableNavMode = isSearchMode ? "my-drive" : activeNav;
+const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` : pageTitle;
+
+
+
+
+
+
   return (
     <div className="gd-app">
-      <Topbar isDark={isDark} onToggleTheme={toggleTheme} name={localStorage.getItem("name")} />
+      <Topbar isDark={isDark} 
+      onToggleTheme={toggleTheme} 
+      searchQuery={searchQuery} 
+      onSearchChange={setSearchQuery} 
+      onClearSearch={() => setSearchQuery("")} 
+      name={localStorage.getItem("name")} 
+      />
 
       <div className="gd-body">
         <Sidebar
           navItems={navItems}
-          activeNav={activeNav}
+          activeNav={tableNavMode}
           onNavChange={handleNavChange}
           isNewOpen={isNewOpen}
           setIsNewOpen={setIsNewOpen}
@@ -544,7 +621,7 @@ const handleStartEditing = () => {
         <main className="gd-main">
           <div className="gd-main-header">
             <Breadcrumbs
-              title={pageTitle}
+              title={headerTitle}
               showBreadcrumbs={showBreadcrumbs}
               breadcrumbs={breadcrumbs}
               onRoot={handleBreadcrumbRoot}
@@ -553,7 +630,7 @@ const handleStartEditing = () => {
 
             <div className="gd-main-actions">
               {/* empty trash */}
-              {activeNav === "trash" && files.length > 0 && (
+              {tableNavMode === "trash" && files.length > 0 && (
                 <button
                   className="gd-text-btn gd-danger-text"
                   onClick={handleEmptyTrash}
@@ -579,12 +656,12 @@ const handleStartEditing = () => {
           {uploadError && <div className="gd-error">{uploadError}</div>}
 
           <FileTable
-            files={files}
+            files={displayFiles}
             onTrash={handleTrash}
-            activeNav={activeNav}
+            activeNav={tableNavMode}
             onRestore={handleRestore}
             onDeletePermanently={handleDeletePermanently}
-            hasFiles={hasFiles}
+            hasFiles={displayFiles.length > 0}
             isLoading={isLoading}
             error={error}
             selectedFileId={selectedFile?.id ?? null}

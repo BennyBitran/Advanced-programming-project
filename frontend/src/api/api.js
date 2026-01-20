@@ -78,3 +78,11 @@ export async function starFile(fileId) {
 export async function unstarFile(fileId) {
     return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
 }
+
+export async function searchFiles(query) {
+    const q = encodeURIComponent(String(query ?? "").trim());
+    if (!q) {
+        return [];
+    }
+    return apiRequest(`/api/search/${q}`, "GET", undefined, {}, true);
+}
