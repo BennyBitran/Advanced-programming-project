@@ -210,7 +210,7 @@ async function searchFiles(query, userId) {
 
     // List files user has access to - either owner or with read permission, and not trashed because we don't search in trash
     const allowedFiles = files.filter(f => {
-      return (checkUserPermission(f.id, userId, 'read') || f.ownerId === userId ) && !isPathTrashed(f);
+      return checkUserPermission(f.id, userId, 'read') && !isPathTrashed(f);
     });
 
     // Request backend search and split results to array of physical IDs
