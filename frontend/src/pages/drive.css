@@ -753,6 +753,15 @@ body.gd-theme-dark {
   overflow: auto;
 }
 
+.gd-image-viewer {
+  max-width: 100%;
+  max-height: calc(100vh - 120px);
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+  background: transparent;
+}
+
 .gd-viewer-preview {
   max-height: none;
   min-height: calc(100vh - 140px);

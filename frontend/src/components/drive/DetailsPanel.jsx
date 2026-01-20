@@ -1,3 +1,5 @@
+import { canEditFile, getFileKind } from "../../viewers/fileKind";
+
 export default function DetailsPanel({
   selectedFile,
   filePreviewLoading,
@@ -5,6 +7,9 @@ export default function DetailsPanel({
   onOpenViewer,
   onStartEditing,
 }) {
+  const kind = selectedFile?.name ? getFileKind(selectedFile.name) : "text";
+  const canEdit = selectedFile?.name ? canEditFile(selectedFile.name) : false;
+
   return (
     <aside className="gd-details">
       <div className="gd-details-card">
@@ -38,11 +43,13 @@ export default function DetailsPanel({
                   <div className="gd-details-label">Content</div>
                   <div className="gd-preview-actions">
                     <button className="gd-btn-secondary" type="button" onClick={onOpenViewer}>
-                      Open
+                      {kind === "image" ? "Open image" : "Open"}
                     </button>
-                    <button className="gd-btn-secondary" type="button" onClick={onStartEditing}>
-                      Edit
-                    </button>
+                    {canEdit && (
+                      <button className="gd-btn-secondary" type="button" onClick={onStartEditing}>
+                        Edit
+                      </button>
+                    )}
                   </div>
 
                   {filePreviewLoading && <div className="gd-muted">Loading content...</div>}
