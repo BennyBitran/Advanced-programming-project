@@ -1,7 +1,7 @@
 import UserMenu from "./userMenu";
 
 
-export default function Topbar({ isDark, onToggleTheme, searchQuery, onSearchChange, onClearSearch }) {
+export default function Topbar({ isDark, onToggleTheme, searchQuery, onSearchChange, onClearSearch, name }) {
   return (
     <header className="gd-topbar">
       <div className="gd-topbar-left">
@@ -55,7 +55,7 @@ export default function Topbar({ isDark, onToggleTheme, searchQuery, onSearchCha
         <button className="gd-icon-btn" type="button" aria-label="Settings">
           <span className="material-symbols-outlined">settings</span>
         </button>
-       <UserMenu />
+       <UserMenu name={name} />
 
       </div>
     </header>

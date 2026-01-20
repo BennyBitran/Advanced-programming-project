@@ -92,7 +92,7 @@ function getAvatarKey() {
       {open && (
   <UserDropdown
     avatarUrl={avatarUrl}
-    displayName={localStorage.getItem("username") || "Account"}
+    displayName={localStorage.getItem("name") || "Account"}
     email={localStorage.getItem("email") || ""}
     onViewPhoto={onViewPhoto}
     onUploadClick={onUploadClick}
