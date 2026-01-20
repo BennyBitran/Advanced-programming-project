@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
+const usersModel = require("./users");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
   checkUserPermission: checkUserPermission,
@@ -70,7 +71,7 @@ function isPathTrashed(file) {
 }
 
 // Creates metadata in Node.js and physical content in C++
-async function createFile({ name, ownerId, type, parentId, content }) {
+async function createFile({ name, ownerId,ownerName, type, parentId, content }) {
   // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
@@ -94,11 +95,13 @@ async function createFile({ name, ownerId, type, parentId, content }) {
   } while (files.some((file) => file.id === id));
 
   const normalizedType = type === "folder" ? "folder" : "file";
+  const resolvedOwnerName = ownerName ?? usersModel.getUserById(ownerId)?.username ?? null;
 
   const newFile = {
     id,
     name,
     ownerId,
+    ownerName: resolvedOwnerName,
     type: normalizedType,
     parentId: parentId ?? null,
     isTrashed: false,
@@ -148,6 +151,7 @@ async function getFile(id, userId) {
       id: child.id,
       name: child.name,
       ownerId: child.ownerId,
+      ownerName: child.ownerName || null,
       type: child.type,
       parentId: child.parentId
     }));
@@ -156,6 +160,7 @@ async function getFile(id, userId) {
       id: fileMetadata.id,
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
+      ownerName: fileMetadata.ownerName || null,
       type: fileMetadata.type,
       isStarred: (fileMetadata.starredBy || []).includes(userId),
       lastOpenedTime: fileMetadata.lastOpenedTime,
@@ -187,6 +192,7 @@ async function getFile(id, userId) {
     id: fileMetadata.id,
     name: fileMetadata.name,
     ownerId: fileMetadata.ownerId,
+    ownerName: fileMetadata.ownerName || null,
     type: fileMetadata.type,
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
