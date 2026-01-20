@@ -404,6 +404,7 @@ export default function DrivePage() {
         if (activeNav === "my-drive" && currentFolderId) payload.parentId = currentFolderId;
         await uploadFile(payload);
         setUploadStatus("Upload completed");
+        setTimeout(() => setUploadStatus(""), 3000);
         loadFiles();
       } catch (err) {
         setUploadStatus("");
@@ -584,8 +585,7 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
           selectedFile={selectedFile}
           filePreviewLoading={filePreviewLoading}
           filePreviewError={filePreviewError}
-          onOpenViewer={handleOpenViewer}
-          onStartEditing={handleStartEditing}
+          breadcrumbs={breadcrumbs}
         />
       </div>
 
