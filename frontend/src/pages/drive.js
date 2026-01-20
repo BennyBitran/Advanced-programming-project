@@ -162,11 +162,9 @@ export default function DrivePage() {
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
-
-    if (nextKey !== "my-drive") {
-      setCurrentFolderId(null);
-      setBreadcrumbs([]);
-    }
+    setCurrentFolderId(null);
+    setBreadcrumbs([]);
+    
   };
 
   const handleUploadClick = () => {
