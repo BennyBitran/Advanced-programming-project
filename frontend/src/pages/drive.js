@@ -16,6 +16,7 @@ import FileTable from "../components/drive/FileTable";
 import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import ViewerModal from "../components/drive/ViewerModal";
+import { canEditFile } from "../viewers/fileKind";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -242,7 +243,10 @@ export default function DrivePage() {
       });
   };
 
-  const handleStartEditing = () => {
+const handleStartEditing = () => {
+    if (!selectedFile || selectedFile.type !== "file" || !canEditFile(selectedFile.name)) {
+      return;
+    }
     setIsViewerOpen(true);
     setIsEditing(true);
     setSaveError("");
@@ -406,7 +410,11 @@ export default function DrivePage() {
       setIsNewOpen(false);
       setIsEmptyMenuOpen(false);
     };
-    reader.readAsText(file);
+    if (file.type?.startsWith("image/")) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const handleToggleStar = async (fileId, nextStarred) => {
