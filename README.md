@@ -49,12 +49,18 @@ This is the easiest way to run the project.
 Builds and starts:
 - C++ backend on `localhost:8080`
 - Node web server on `localhost:3000`
+- React frontend on `localhost:3001`
 
 ```bash
-docker-compose up --build server webserver
+docker-compose up --build server webserver frontend
 ```
 
-**2. Run the Clients**
+**2. Open the app**
+Visit `http://localhost:3001` in your browser.
+
+Note: The frontend dev server proxies API calls to the `webserver` container.
+
+**3. Run the Clients**
 You can run the Python or C++ client in a separate terminal.
 
 ```bash
@@ -65,7 +71,7 @@ docker-compose run --rm client_py
 docker-compose run --rm client_cpp
 ```
 
-**3. Run Integration Tests**
+**4. Run Integration Tests**
 Builds and runs the Google Test suite against the containerized server.
 this command will also run the client in the background. so no need to run the server before this.
 
@@ -73,7 +79,7 @@ this command will also run the client in the background. so no need to run the s
 docker-compose up --build tests
 ```
 
-**4. Stop Everything**
+**5. Stop Everything**
 
 ```bash
 docker-compose down
@@ -97,14 +103,21 @@ cmake .. && make
 (or choose your prefered port and number of working threads)
 
 
-**3. Run the Node Web Server (in a separate terminal)**
+**2. Run the Node Web Server (in a separate terminal)**
 ```bash
 cd WebServer
 npm install
 node src/server.js
 ```
 
-**3. Run the Tests**
+**3. Run the React Frontend (in a separate terminal)**
+```bash
+cd frontend
+npm install
+REACT_APP_API_BASE=http://localhost:3000 PORT=3001 npm start
+```
+
+**4. Run the Tests**
 
 ```bash
 export FILES_DIR="$(pwd)/files" 
