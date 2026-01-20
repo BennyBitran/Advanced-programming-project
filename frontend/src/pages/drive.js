@@ -16,6 +16,7 @@ import FileTable from "../components/drive/FileTable";
 import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import ViewerModal from "../components/drive/ViewerModal";
+import MoveModal from "../components/drive/MoveModal";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -68,6 +69,9 @@ export default function DrivePage() {
   const [folderName, setFolderName] = useState("");
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderError, setFolderError] = useState("");
+
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [movingFile, setMovingFile] = useState(null);
 
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
@@ -281,6 +285,7 @@ export default function DrivePage() {
     }
   };
 
+
   const handleTrash = async (fileId) => {
     // save original state in case of fail
     const originalFiles = [...files];
@@ -438,6 +443,27 @@ export default function DrivePage() {
     }
   };
 
+  const handleOpenMoveModal = (file) => {
+    setMovingFile(file);
+    setIsMoveModalOpen(true);
+  };
+
+  const handleMoveFile = async (destinationParentId) => {
+    if (!movingFile) return;
+
+    try {
+      setUploadStatus("Moving...");
+      await updateFile(movingFile.id, { parentId: destinationParentId });
+      //reload page
+      loadFiles();
+      setIsMoveModalOpen(false);
+      setUploadStatus("Moved successfully");
+      setTimeout(() => setUploadStatus(""), 3000);
+    } catch (err) {
+      setError(err?.message || "Failed to move file");
+    }
+  };
+
   return (
     <div className="gd-app">
       <Topbar isDark={isDark} onToggleTheme={toggleTheme} name={localStorage.getItem("name")} />
@@ -506,6 +532,7 @@ export default function DrivePage() {
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
             onToggleStar={handleToggleStar}
+            onOpenMoveModal={handleOpenMoveModal}
           />
         </main>
 
@@ -544,6 +571,13 @@ export default function DrivePage() {
         onCancelEditing={handleCancelEditing}
         onSave={handleSaveContent}
       />
+      <MoveModal
+        open={isMoveModalOpen}
+        fileName={movingFile?.name}
+        onClose={() => setIsMoveModalOpen(false)}
+        onMove={handleMoveFile}
+      />
     </div>
+
   );
 }
