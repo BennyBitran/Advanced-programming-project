@@ -871,8 +871,12 @@ body.gd-theme-dark {
   display: grid;
   place-items: center;
   border: 1px solid var(--gd-border);
+  cursor: pointer;
+  padding: 0;
 }
-
+.gd-user-mini-avatar:hover {
+  box-shadow: 0 1px 2px rgba(60,64,67,0.15);
+}
 .gd-user-mini-avatar img {
   width: 100%;
   height: 100%;
