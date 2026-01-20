@@ -363,11 +363,18 @@ export default function DrivePage() {
   };
 
   const handleRowClick = (file) => {
-    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
+    handleSelectFile(file);
+  };
+
+  const handleRowDoubleClick = (file) => {
+    if (file.type === "folder" && ["my-drive", "recent", "starred"].includes(activeNav)) {
       handleOpenFolder(file);
       return;
     }
-    handleSelectFile(file);
+    if (file.type === "file") {
+      handleSelectFile(file);
+      handleOpenViewer(true);
+    }
   };
 
   const handleBreadcrumbRoot = () => {
@@ -568,6 +575,7 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             error={error}
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
+            onRowDoubleClick={handleRowDoubleClick}
             onToggleStar={handleToggleStar}
           />
         </main>
