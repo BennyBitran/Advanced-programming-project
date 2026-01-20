@@ -302,8 +302,12 @@ async function deleteSubtree(file) {
   }
 
   if (file.type === "file") {
-    const result = await sendRequest(`DELETE ${file.id}`);
-    if (result?.status >= 400 && result.status !== 404) throw result;
+    try { await sendRequest(`DELETE ${file.id}`); }
+    catch (err) {
+      if (err?.status !== 404) {
+        throw err;
+      }
+    }
   }
 
   // remove metadata for this node
