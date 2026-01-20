@@ -3,8 +3,6 @@ import { useState, useEffect, useRef } from "react";
 export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNav, onRestore, onDeletePermanently }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
-  const isTrashView = activeNav === 'trash' || file.isTrashed;
-
   // Close menu if user clicks anywhere else
   useEffect(() => {
     const handleClickOutside = (event) => {
