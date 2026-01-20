@@ -1,3 +1,5 @@
+import { canEditFile, getFileKind, getImageSrc } from "../../viewers/fileKind";
+
 export default function ViewerModal({
   open,
   fileName,
@@ -16,6 +18,10 @@ export default function ViewerModal({
 }) {
   if (!open) return null;
 
+  const kind = getFileKind(fileName, filePreview);
+  const canEdit = canEditFile(fileName);
+  const imageSrc = kind === "image" ? getImageSrc(fileName, filePreview) : null;
+
   return (
     <div className="gd-viewer" role="dialog" aria-modal="true">
       <div className="gd-viewer-header">
@@ -26,11 +32,11 @@ export default function ViewerModal({
         <div className="gd-viewer-title">{fileName}</div>
 
         <div className="gd-viewer-actions">
-          {!isEditing ? (
+          {canEdit && !isEditing ? (
             <button className="gd-btn-secondary" type="button" onClick={onStartEditing}>
               Edit
             </button>
-          ) : (
+          ) : canEdit && isEditing ? (
             <>
               <button className="gd-btn-primary" type="button" onClick={onSave} disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save"}
@@ -39,7 +45,7 @@ export default function ViewerModal({
                 Cancel
               </button>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -50,7 +56,15 @@ export default function ViewerModal({
           <div className="gd-muted">Loading content...</div>
         ) : filePreviewError ? (
           <div className="gd-error gd-preview-error">{filePreviewError}</div>
-        ) : isEditing ? (
+        ) : kind === "image" ? (
+          imageSrc ? (
+            <img className="gd-image-viewer" src={imageSrc} alt={fileName} />
+          ) : (
+            <div className="gd-error gd-preview-error">
+              This image can’t be previewed (unsupported encoding).
+            </div>
+          )
+        ) : canEdit && isEditing ? (
           <textarea
             className="gd-file-editor gd-viewer-editor"
             value={draftContent}

@@ -16,7 +16,9 @@ import Breadcrumbs from "../components/drive/Breadcrumbs";
 import FileTable from "../components/drive/FileTable";
 import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
+import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
+import { canEditFile } from "../viewers/fileKind";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -69,6 +71,10 @@ export default function DrivePage() {
   const [folderName, setFolderName] = useState("");
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderError, setFolderError] = useState("");
+
+  const [newFileName, setNewFileName] = useState("");
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [newFileError, setNewFileError] = useState("");
 
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
@@ -160,6 +166,7 @@ export default function DrivePage() {
   }, [currentFolderId, activeNav]);
 
   const handleNavChange = (nextKey) => {
+    stopSearch();
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
@@ -176,6 +183,16 @@ export default function DrivePage() {
     setFolderName("");
     setFolderError("");
     setIsFolderModalOpen(true);
+  };
+
+  const handleCreateFileClick = () => {
+    if (!["my-drive", "recent", "starred", "shared"].includes(activeNav)) {
+      setError("Create file is not available in this view");
+      return;
+    }
+    setNewFileName("");
+    setNewFileError("");
+    setIsFileModalOpen(true);
   };
 
   const handleCreateFolder = async () => {
@@ -202,6 +219,11 @@ export default function DrivePage() {
     setFolderError("");
   };
 
+  const handleCloseFileModal = () => {
+    setIsFileModalOpen(false);
+    setNewFileError("");
+  };
+
   const handleFolderInputKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -213,7 +235,63 @@ export default function DrivePage() {
     }
   };
 
+  const findNewestFileByName = (list, name, parentId) => {
+    const candidates = list.filter(
+      (f) => f.type === "file" && f.name === name && (f.parentId ?? null) === (parentId ?? null),
+    );
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, current) => {
+      const bestTime = new Date(best.lastUpdateTime || best.creationTime || 0).getTime();
+      const currentTime = new Date(current.lastUpdateTime || current.creationTime || 0).getTime();
+      return currentTime >= bestTime ? current : best;
+    }, candidates[0]);
+  };
+
+  const handleCreateEmptyFile = async () => {
+    const name = newFileName.trim();
+    if (!name) {
+      setNewFileError("File name is required");
+      return;
+    }
+    setNewFileError("");
+    try {
+      const payload = { name, type: "file", content: "" };
+      if (activeNav === "my-drive" && currentFolderId) payload.parentId = currentFolderId;
+      await uploadFile(payload);
+
+      // Reload list and select the newest matching file (server doesn't return ID in response body)
+      const filters = buildListFilters();
+      const updated = await listFiles(filters);
+      const normalized = Array.isArray(updated) ? updated : [];
+      setFiles(normalized);
+
+      const created = findNewestFileByName(normalized, name, activeNav === "my-drive" ? currentFolderId : null);
+      if (created) {
+        handleSelectFile(created);
+        setIsViewerOpen(true);
+        setIsEditing(true);
+      }
+
+      setIsFileModalOpen(false);
+      setNewFileName("");
+    } catch (err) {
+      setNewFileError(err?.message || "Failed to create file");
+    }
+  };
+
+  const handleFileInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleCreateEmptyFile();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCloseFileModal();
+    }
+  };
+
   const handleOpenFolder = (folder) => {
+    stopSearch();
     if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -251,7 +329,10 @@ export default function DrivePage() {
       });
   };
 
-  const handleStartEditing = () => {
+const handleStartEditing = () => {
+    if (!selectedFile || selectedFile.type !== "file" || !canEditFile(selectedFile.name)) {
+      return;
+    }
     setIsViewerOpen(true);
     setIsEditing(true);
     setSaveError("");
@@ -379,15 +460,25 @@ export default function DrivePage() {
   };
 
   const handleBreadcrumbRoot = () => {
+    stopSearch();
     setCurrentFolderId(null);
     setBreadcrumbs([]);
   };
 
   const handleBreadcrumbClick = (index) => {
+    stopSearch();
     const nextCrumbs = breadcrumbs.slice(0, index + 1);
     setBreadcrumbs(nextCrumbs);
     setCurrentFolderId(nextCrumbs[index]?.id ?? null);
   };
+
+  const stopSearch = () => {
+  setSearchQuery("");
+  setSearchResults([]);
+  setIsSearching(false);
+  setSearchError("");
+};
+
 
   const handleFileSelected = (event) => {
     const input = event.target;
@@ -423,7 +514,11 @@ export default function DrivePage() {
       setIsNewOpen(false);
       setIsEmptyMenuOpen(false);
     };
-    reader.readAsText(file);
+    if (file.type?.startsWith("image/")) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const handleToggleStar = async (fileId, nextStarred) => {
@@ -525,6 +620,7 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
           setIsEmptyMenuOpen={setIsEmptyMenuOpen}
           onUploadClick={handleUploadClick}
           onCreateFolderClick={handleCreateFolderClick}
+          onCreateFileClick={handleCreateFileClick}
           fileInputRef={fileInputRef}
           onFileSelected={handleFileSelected}
         />
@@ -583,7 +679,7 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             activeNav={tableNavMode}
             onRestore={handleRestore}
             onDeletePermanently={handleDeletePermanently}
-            hasFiles={hasFiles}
+            hasFiles={displayFiles.length > 0}
             isLoading={isLoading}
             error={error}
             selectedFileId={selectedFile?.id ?? null}
@@ -612,6 +708,16 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
         onClose={handleCloseFolderModal}
         onCreate={handleCreateFolder}
         onKeyDown={handleFolderInputKeyDown}
+      />
+
+      <CreateFileModal
+        open={isFileModalOpen}
+        fileName={newFileName}
+        setFileName={setNewFileName}
+        fileError={newFileError}
+        onClose={handleCloseFileModal}
+        onCreate={handleCreateEmptyFile}
+        onKeyDown={handleFileInputKeyDown}
       />
 
       <ViewerModal
