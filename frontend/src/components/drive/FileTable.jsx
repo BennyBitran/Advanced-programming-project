@@ -8,6 +8,7 @@ export default function FileTable({
   error,
   selectedFileId,
   onRowClick,
+  onRowDoubleClick,
   onToggleStar,
   onTrash, 
   onRestore, 
@@ -42,7 +43,8 @@ export default function FileTable({
           file={f}
           activeNav={activeNav}
           isSelected={selectedFileId === f.id}
-          onOpen={() => onRowClick(f)}
+          onClick={() => onRowClick(f)}
+          onDoubleClick={() => onRowDoubleClick?.(f)}
           onToggleStar={onToggleStar}
           onTrash={onTrash}
           onRestore={onRestore}
