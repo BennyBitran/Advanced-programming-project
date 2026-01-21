@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNav, onRestore, onDeletePermanently }) {
+export default function FileMenu({ file,
+  onToggleStar,
+  onTrash,
+  activeNav,
+  onRestore,
+  onDeletePermanently,
+  onOpenMoveModal
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   // Close menu if user clicks anywhere else
@@ -62,7 +69,11 @@ export default function FileMenu({ file, onToggleStar, onTrash, onMove, activeNa
                 {file.isStarred ? "Unstar" : "Star"}
               </button>
 
-              <button onClick={(e) => handleAction(e, () => onMove(file))}>
+              <button onClick={() => {
+                onOpenMoveModal(file);  //call open moving modal
+                setIsOpen(false); //close file menu
+              }}>
+                
                 <span className="material-symbols-outlined">drive_file_move</span>
                 Move to...
               </button>
