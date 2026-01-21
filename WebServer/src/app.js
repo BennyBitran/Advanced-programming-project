@@ -7,7 +7,7 @@ const searchRoutes = require("./routes/search");
 const auth = require("./middleware/auth");
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // if there was a syntax error in the JSON, handle it:
 app.use((err, req, res, next) => {
@@ -22,7 +22,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/tokens", tokensRoutes);
 // routes for logged in users only
 app.use("/api/files", auth.verifyToken, filesRoutes);
-app.use("/api/search", auth.verifyToken, searchRoutes);
+app.use("/api/search", searchRoutes);
 
 // 404 JSON for /api/*
 app.use((req, res) => {

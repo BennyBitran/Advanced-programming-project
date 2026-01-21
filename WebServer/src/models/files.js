@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
+const usersModel = require("./users");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
   checkUserPermission: checkUserPermission,
@@ -70,7 +71,7 @@ function isPathTrashed(file) {
 }
 
 // Creates metadata in Node.js and physical content in C++
-async function createFile({ name, ownerId, type, parentId, content }) {
+async function createFile({ name, ownerId,ownerName, type, parentId, content }) {
   // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
@@ -94,11 +95,13 @@ async function createFile({ name, ownerId, type, parentId, content }) {
   } while (files.some((file) => file.id === id));
 
   const normalizedType = type === "folder" ? "folder" : "file";
+  const resolvedOwnerName = ownerName ?? usersModel.getUserById(ownerId)?.username ?? null;
 
   const newFile = {
     id,
     name,
     ownerId,
+    ownerName: resolvedOwnerName,
     type: normalizedType,
     parentId: parentId ?? null,
     isTrashed: false,
@@ -148,6 +151,7 @@ async function getFile(id, userId) {
       id: child.id,
       name: child.name,
       ownerId: child.ownerId,
+      ownerName: child.ownerName || null,
       type: child.type,
       parentId: child.parentId
     }));
@@ -156,6 +160,7 @@ async function getFile(id, userId) {
       id: fileMetadata.id,
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
+      ownerName: fileMetadata.ownerName || null,
       type: fileMetadata.type,
       isStarred: (fileMetadata.starredBy || []).includes(userId),
       lastOpenedTime: fileMetadata.lastOpenedTime,
@@ -187,6 +192,7 @@ async function getFile(id, userId) {
     id: fileMetadata.id,
     name: fileMetadata.name,
     ownerId: fileMetadata.ownerId,
+    ownerName: fileMetadata.ownerName || null,
     type: fileMetadata.type,
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
@@ -208,9 +214,9 @@ async function searchFiles(query, userId) {
     }
     const lowerQuery = (query || "").toLowerCase();
 
-    // List files user has access to
+    // List files user has access to - either owner or with read permission, and not trashed because we don't search in trash
     const allowedFiles = files.filter(f => {
-      return checkUserPermission(f.id, userId, 'read');
+      return checkUserPermission(f.id, userId, 'read') && !isPathTrashed(f);
     });
 
     // Request backend search and split results to array of physical IDs
@@ -302,8 +308,12 @@ async function deleteSubtree(file) {
   }
 
   if (file.type === "file") {
-    const result = await sendRequest(`DELETE ${file.id}`);
-    if (result?.status >= 400 && result.status !== 404) throw result;
+    try { await sendRequest(`DELETE ${file.id}`); }
+    catch (err) {
+      if (err?.status !== 404) {
+        throw err;
+      }
+    }
   }
 
   // remove metadata for this node
@@ -454,6 +464,5 @@ module.exports = {
   searchFiles,
   getFileMetadata,
   starFile,
-  unstarFile,
-  changeParentId
+  unstarFile
 };
