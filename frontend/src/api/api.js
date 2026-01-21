@@ -5,7 +5,7 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
         headers: { ...headers },
     };
     if (withAuth && typeof window !== "undefined") {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

@@ -38,9 +38,17 @@ function addPermission(fileId, userId, permissionType) {
     if(permissionType !== 'read' && permissionType !== 'write') {
         return null;
     }
+    //if user can already read/write the file directly, upgrade if needed
+    const existing = permissions.find((perm) => perm.fileId === fileId && perm.userId === userId);
+    if(existing) {
+        if (permissionType === 'write' && existing.permissionType === 'read') {
+            existing.permissionType = 'write';
+        }
+        return existing;
+    }
     //if user already can access the file with existing permissions (parent or direct), dont create a new one
     //but if we explicitly give a file permission, and then we want to give to its parent - create a new one
-    isAlreadyPermitted = checkUserPermission(fileId, userId, permissionType);
+    const isAlreadyPermitted = checkUserPermission(fileId, userId, permissionType);
     if (isAlreadyPermitted) {
         return null;
     }

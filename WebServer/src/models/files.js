@@ -49,15 +49,43 @@ function listFiles(userId, parentId = null, view = null) {
       .slice(0, 10); // return top 10 recent files
     return recentFiles;
   }
-
-  // list all files user has permission to, that they are not his directly and not trashed.
-  if (view === "shared") {
-    return files.filter(file => userPerms.includes(file.id) && !isPathTrashed(file) && file.ownerId !== userId);
+  // view all shared files at top level, but be able to navigate inside shared folders
+ if (view === "shared") {
+  // inside a shared folder: list its children normally (by parentId)
+  if (parentId) {
+    return files.filter(f =>
+      f.parentId === parentId &&
+      !isPathTrashed(f) &&
+      checkUserPermission(f.id, userId, "read")
+    );
   }
 
-  // return all files in specified parent (null = root) that user is the owner
-  return files.filter(file => file.parentId === parentId && !file.isTrashed && file.ownerId === userId);
+  // shared root: show only top-level shared entries (optional google-like)
+  return files.filter(f => {
+    if (f.ownerId === userId) return false;
+    if (isPathTrashed(f)) return false;
+    if (!checkUserPermission(f.id, userId, "read")) return false;
+    if (f.parentId && checkUserPermission(f.parentId, userId, "read")) return false;
+    return true;
+  });
 }
+
+
+
+
+// Root level: list owned files only
+if (parentId === null) {
+  return files.filter(f => f.parentId === null && !f.isTrashed && f.ownerId === userId);
+}
+
+// Inside any folder (owned or shared): list children you can read (or write)
+return files.filter(f =>
+  f.parentId === parentId &&
+  !isPathTrashed(f) &&
+  checkUserPermission(f.id, userId, "read")
+);
+}
+
 
 //helper function to check if a file is trashed
 function isPathTrashed(file) {

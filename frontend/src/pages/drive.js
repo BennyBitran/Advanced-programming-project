@@ -291,7 +291,7 @@ export default function DrivePage() {
   };
 
   const handleOpenFolder = (folder) => {
-    if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
+    if (!["my-drive", "recent", "starred", "shared"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -444,7 +444,7 @@ export default function DrivePage() {
   };
 
   const handleRowClick = (file) => {
-    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
+    if (["my-drive", "recent", "starred", "shared"].includes(activeNav) && file.type === "folder") {
       handleOpenFolder(file);
       return;
     }
