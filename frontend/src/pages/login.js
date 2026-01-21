@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { loginUser, registerUser } from "../api/api";
+import { clearAuth, setAuth } from "../auth/authStorage";
 import "./register.css";
 
 
@@ -22,27 +23,13 @@ export default function LoginPage() {
     password: "devpass123",
   };
 
-  const clearAuth = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("userId");
-    sessionStorage.removeItem("name");
-    sessionStorage.removeItem("avatarUrl");
-    
-  };
-
   const saveAuth = (data, fallbackUsername) => {
     const token = data?.token ?? "";
-    if (token) {
-      sessionStorage.setItem("token", token);
-    }
-    if (data?.userId) {
-      sessionStorage.setItem("userId", data.userId);
-    }
-    if (data?.name) {
-      sessionStorage.setItem("name", data.name);
-    }
-    if (data?.image) {
-      sessionStorage.setItem("avatarUrl", data.image);
+    const userId = data?.userId;
+    const displayName = data?.name || fallbackUsername;
+    setAuth({ token, userId, displayName });
+    if (data?.image && userId) {
+      localStorage.setItem(`avatarUrl:${userId}`, data.image);
     }
   };
   

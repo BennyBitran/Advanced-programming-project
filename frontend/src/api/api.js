@@ -1,11 +1,13 @@
 // one func to handle all CRUD operations
+import { clearAuth, getAuthToken } from "../auth/authStorage";
+
 export async function apiRequest(path, method = "GET", body, headers = {}, withAuth = false) {
     const config = {
         method,
         headers: { ...headers },
     };
     if (withAuth && typeof window !== "undefined") {
-        const token = sessionStorage.getItem("token");
+        const token = getAuthToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,8 +34,7 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
             msg = data.error;
         }
         if (response.status === 401 && typeof window !== "undefined") {
-            localStorage.removeItem("token");
-            localStorage.removeItem("userId");
+            clearAuth();
             if (window.location.pathname !== "/login") {
                 window.location.assign("/login");
             }

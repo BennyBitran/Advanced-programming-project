@@ -23,6 +23,7 @@ import ViewerModal from "../components/drive/ViewerModal";
 import ActionModal from "../components/drive/ActionModal";
 import MoveModal from "../components/drive/MoveModal";
 import { canEditFile } from "../viewers/fileKind";
+import { getAuthDisplayName } from "../auth/authStorage";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -688,7 +689,7 @@ export default function DrivePage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={() => setSearchQuery("")}
-        name={localStorage.getItem("name")}
+        name={getAuthDisplayName()}
       />
 
       <div className="gd-body">

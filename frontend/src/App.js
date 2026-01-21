@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/login";
 import RegisterPage from "./pages/register";
 import DrivePage from "./pages/drive";
 import { ThemeProvider } from "./theme/ThemeContext";
+import { clearAuth, getAuthToken } from "./auth/authStorage";
 
 function isTokenExpired(token) {
   if (!token) return true;
@@ -17,13 +19,37 @@ function isTokenExpired(token) {
   }
 }
 
-function RequireAuth({ children }) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  if (!token || isTokenExpired(token)) {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
+function AuthStorageSync() {
+  useEffect(() => {
+    function onStorage(e) {
+      if (!e) return;
+      if (e.key !== "token" && e.key !== "userId" && e.key !== "username") return;
+
+      const token = getAuthToken();
+      if (!token) {
+        if (window.location.pathname !== "/login") {
+          window.location.assign("/login");
+        }
+        return;
+      }
+
+      // If token/user changes in another tab, reload to reflect the new user UI/data.
+      if (window.location.pathname.startsWith("/drive")) {
+        window.location.reload();
+      }
     }
+
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  return null;
+}
+
+function RequireAuth({ children }) {
+  const token = getAuthToken();
+  if (!token || isTokenExpired(token)) {
+    clearAuth();
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -35,6 +61,7 @@ export default function App() {
     <ThemeProvider>
       {/* Set up the router for navigation between pages */}
       <BrowserRouter>
+        <AuthStorageSync />
         {/* Define application routes */}
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />

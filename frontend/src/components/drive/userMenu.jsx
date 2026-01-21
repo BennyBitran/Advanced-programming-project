@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import UserAvatarButton from "./userAvatar";
 import UserDropdown from "./userDropDown";
 import UserPhotoModal from "./userProfileModal";
+import { clearAuth, getAuthDisplayName, getAuthUserId } from "../../auth/authStorage";
 
 
 export default function UserMenu() {
@@ -53,9 +54,7 @@ export default function UserMenu() {
   }
 
   function onLogout() {
-    // Adjust keys if you store different auth fields
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    clearAuth();
     setOpen(false);
     navigate("/login");
   }
@@ -71,7 +70,7 @@ function onRemovePhoto() {
   setOpen(false);
 }
 function getAvatarKey() {
-  const uid = localStorage.getItem("userId");
+  const uid = getAuthUserId();
   return uid ? `avatarUrl:${uid}` : "avatarUrl:guest";
 };
 
@@ -92,7 +91,7 @@ function getAvatarKey() {
       {open && (
   <UserDropdown
     avatarUrl={avatarUrl}
-    displayName={localStorage.getItem("name") || "Account"}
+    displayName={getAuthDisplayName() || "Account"}
     email={localStorage.getItem("email") || ""}
     onViewPhoto={onViewPhoto}
     onUploadClick={onUploadClick}
