@@ -1,8 +1,7 @@
 import FileMenu from "./FileMenu";
 
-export default function FileRow({ file, isSelected,
-   onOpen, onToggleStar, onTrash, onRestore, 
-   onDeletePermanently, onRename, onShare }) {
+export default function FileRow({ file, isSelected, onClick, onDoubleClick,
+  onToggleStar, onTrash, onRestore, onDeletePermanently, onOpenMoveModal, onRename, onShare }) {
   const icon = file.type === "folder" ? "folder" : "description";
 
   return (
@@ -10,11 +9,12 @@ export default function FileRow({ file, isSelected,
       className={`gd-row${isSelected ? " gd-selected" : ""}`}
       role="button"
       tabIndex={0}
-      onClick={onOpen}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen();
+          onClick();
         }
       }}
     >
@@ -31,14 +31,15 @@ export default function FileRow({ file, isSelected,
 
       <div className="gd-col-right">
         {/* Only the menu remains here now */}
-        <FileMenu 
-          file={file} 
-          onToggleStar={onToggleStar} 
-          onTrash={onTrash} 
+        <FileMenu
+          file={file}
+          onToggleStar={onToggleStar}
+          onTrash={onTrash}
           onRestore={onRestore}
           onDeletePermanently={onDeletePermanently}
           onRename={onRename}
           onShare={onShare}
+          onOpenMoveModal={onOpenMoveModal}
         />
       </div>
     </div>

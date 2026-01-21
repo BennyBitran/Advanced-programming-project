@@ -85,4 +85,10 @@ export async function getUserId(username) {
 
 export async function addPermission(fileId, body) {
     return apiRequest(`/api/files/${fileId}/permissions`, "POST", body, {}, true);
+export async function searchFiles(query) {
+    const q = encodeURIComponent(String(query ?? "").trim());
+    if (!q) {
+        return [];
+    }
+    return apiRequest(`/api/search/${q}`, "GET", undefined, {}, true);
 }

@@ -8,12 +8,14 @@ export default function FileTable({
   error,
   selectedFileId,
   onRowClick,
+  onRowDoubleClick,
   onToggleStar,
   onTrash, 
   onRestore, 
   onDeletePermanently,
   onRename, 
   onShare
+  onOpenMoveModal,
 }) {
   if (isLoading) return <div className="gd-status">Loading files...</div>;
   if (error) return <div className="gd-error">{error}</div>;
@@ -44,13 +46,15 @@ export default function FileTable({
           file={f}
           activeNav={activeNav}
           isSelected={selectedFileId === f.id}
-          onOpen={() => onRowClick(f)}
+          onClick={() => onRowClick(f)}
+          onDoubleClick={() => onRowDoubleClick?.(f)}
           onToggleStar={onToggleStar}
           onTrash={onTrash}
           onRestore={onRestore}
           onDeletePermanently={onDeletePermanently}
           onRename={onRename}
           onShare={onShare}
+          onOpenMoveModal={onOpenMoveModal}
         />
       ))}
     </div>

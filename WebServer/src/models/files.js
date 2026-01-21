@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { sendRequest } = require("../services/backendSocketComms");
+const usersModel = require("./users");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
   checkUserPermission: checkUserPermission,
@@ -99,7 +100,7 @@ function isPathTrashed(file) {
 }
 
 // Creates metadata in Node.js and physical content in C++
-async function createFile({ name, ownerId, type, parentId, content }) {
+async function createFile({ name, ownerId, ownerName, type, parentId, content }) {
   // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
@@ -123,11 +124,13 @@ async function createFile({ name, ownerId, type, parentId, content }) {
   } while (files.some((file) => file.id === id));
 
   const normalizedType = type === "folder" ? "folder" : "file";
+  const resolvedOwnerName = ownerName ?? usersModel.getUserById(ownerId)?.username ?? null;
 
   const newFile = {
     id,
     name,
     ownerId,
+    ownerName: resolvedOwnerName,
     type: normalizedType,
     parentId: parentId ?? null,
     isTrashed: false,
@@ -177,6 +180,7 @@ async function getFile(id, userId) {
       id: child.id,
       name: child.name,
       ownerId: child.ownerId,
+      ownerName: child.ownerName || null,
       type: child.type,
       parentId: child.parentId
     }));
@@ -185,6 +189,7 @@ async function getFile(id, userId) {
       id: fileMetadata.id,
       name: fileMetadata.name,
       ownerId: fileMetadata.ownerId,
+      ownerName: fileMetadata.ownerName || null,
       type: fileMetadata.type,
       isStarred: (fileMetadata.starredBy || []).includes(userId),
       lastOpenedTime: fileMetadata.lastOpenedTime,
@@ -216,6 +221,7 @@ async function getFile(id, userId) {
     id: fileMetadata.id,
     name: fileMetadata.name,
     ownerId: fileMetadata.ownerId,
+    ownerName: fileMetadata.ownerName || null,
     type: fileMetadata.type,
     parentId: fileMetadata.parentId,
     creationTime: fileMetadata.creationTime,
@@ -237,9 +243,9 @@ async function searchFiles(query, userId) {
     }
     const lowerQuery = (query || "").toLowerCase();
 
-    // List files user has access to
+    // List files user has access to - either owner or with read permission, and not trashed because we don't search in trash
     const allowedFiles = files.filter(f => {
-      return checkUserPermission(f.id, userId, 'read');
+      return checkUserPermission(f.id, userId, 'read') && !isPathTrashed(f);
     });
 
     // Request backend search and split results to array of physical IDs
@@ -321,7 +327,7 @@ async function deleteFile(fileId, userId) {
 
 async function deleteSubtree(file) {
   let children;
-  if (file.type === "folder") { children = files.filter(f => f.parentId === id); }
+  if (file.type === "folder") { children = files.filter(f => f.parentId === file.id); }
 
   if (children) {
     //recursivly delete all childrens of the file
@@ -331,8 +337,12 @@ async function deleteSubtree(file) {
   }
 
   if (file.type === "file") {
-    const result = await sendRequest(`DELETE ${file.id}`);
-    if (result?.status >= 400 && result.status !== 404) throw result;
+    try { await sendRequest(`DELETE ${file.id}`); }
+    catch (err) {
+      if (err?.status !== 404) {
+        throw err;
+      }
+    }
   }
 
   // remove metadata for this node
@@ -429,6 +439,47 @@ function unstarFile(fileId, userId) {
   return file;
 }
 
+function changeParentId(fileId, userId, updatedParentId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  if (!checkUserPermission(fileId, userId, "write")) {
+    throw { status: 403, message: "Access denied - only owner can move the file" };
+  }
+  if (updatedParentId !== null) {
+    const parent = files.find(f => f.id === updatedParentId);
+    if (!parent) throw { status: 404, message: "ParentId not found" };
+
+    if (parent.type !== "folder") { throw { status: 400, message: "Parent must be a folder" }; }
+
+    if (!checkUserPermission(updatedParentId, userId, "write")) {
+      throw { status: 403, message: "Permission denied - cannot write in given folder" };
+    }
+
+    if (fileId === updatedParentId) {
+      throw { status: 400, message: "Cannot move a folder into itself" };
+    }
+
+    if (file.type === "folder" && isAncestor(file, parent)) {
+      throw { status: 400, message: "Cannot move a folder into its own descendant" };
+    }
+  }
+
+  file.parentId = updatedParentId;
+  return file;
+}
+
+//helper method to check if a file is an ancestor of another
+function isAncestor(ancestorFile, nodeFile) {
+  let current = nodeFile;
+
+  while (current && current.parentId != null) {
+    if (current.parentId === ancestorFile.id) return true;
+    current = files.find(f => f.id === current.parentId);
+  }
+  return false;
+}
+
 
 
 module.exports = {
@@ -442,5 +493,6 @@ module.exports = {
   searchFiles,
   getFileMetadata,
   starFile,
-  unstarFile
+  unstarFile,
+  changeParentId
 };
