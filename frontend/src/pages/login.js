@@ -23,25 +23,26 @@ export default function LoginPage() {
   };
 
   const clearAuth = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("userId");
+    sessionStorage.removeItem("name");
+    sessionStorage.removeItem("avatarUrl");
+    
   };
 
   const saveAuth = (data, fallbackUsername) => {
     const token = data?.token ?? "";
     if (token) {
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
     }
-    const userId = data?.userId;
-    if (userId) {
-      localStorage.setItem("userId", userId);
+    if (data?.userId) {
+      sessionStorage.setItem("userId", data.userId);
     }
-    const displayName = data?.name || fallbackUsername;
-    if (displayName) {
-      localStorage.setItem("username", displayName);
+    if (data?.name) {
+      sessionStorage.setItem("name", data.name);
     }
-    if (data?.image && userId) {
-      localStorage.setItem(`avatarUrl:${userId}`, data.image);
+    if (data?.image) {
+      sessionStorage.setItem("avatarUrl", data.image);
     }
   };
   
