@@ -19,6 +19,7 @@ function listFiles(req, res) {
     const files = rawFiles.map(file => ({
         id: file.id,
         name: file.name,
+        ownerName: file.ownerName || null,
         type: file.type,
         parentId: file.parentId,
         isTrashed: file.isTrashed,
@@ -53,6 +54,7 @@ async function createFile(req, res) {
         const newFile = await createFileModel({
             name: name.trim(),
             ownerId: req.user.id,
+            ownerName: req.user.username,
             type,
             parentId: pid,
             content,
