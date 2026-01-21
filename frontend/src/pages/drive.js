@@ -562,6 +562,7 @@ export default function DrivePage() {
       if (modalConfig.type === 'rename') {
         await updateFile(selectedFile.id, { name: modalConfig.value });
         setUploadStatus("Renamed successfully");
+        setTimeout(() => setUploadStatus(""), 3000);
       }
       else if (modalConfig.type === 'share') {
         const result = await getUserId(modalConfig.value);
@@ -572,6 +573,7 @@ export default function DrivePage() {
         });
 
         setUploadStatus(`Shared as ${modalConfig.permission} with ${result.username}`);
+        setTimeout(() => setUploadStatus(""), 3000);
       }
 
       setIsActionModalOpen(false);
