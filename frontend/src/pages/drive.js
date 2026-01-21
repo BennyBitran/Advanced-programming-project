@@ -5,6 +5,8 @@ import {
   updateFile,
   uploadFile,
   deleteFile,
+  addPermission,
+  getUserId,
   searchFiles
 } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
@@ -18,6 +20,7 @@ import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
+import ActionModal from "../components/drive/ActionModal";
 import MoveModal from "../components/drive/MoveModal";
 import { canEditFile } from "../viewers/fileKind";
 
@@ -80,6 +83,13 @@ export default function DrivePage() {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [newFileError, setNewFileError] = useState("");
 
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    type: '',
+    title: '',
+    value: '',
+    permission: 'read'
+  });
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
 
@@ -295,7 +305,7 @@ export default function DrivePage() {
 
   const handleOpenFolder = (folder) => {
     stopSearch();
-    if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
+    if (!["my-drive", "recent", "starred", "shared"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
   };
@@ -452,7 +462,7 @@ export default function DrivePage() {
   };
 
   const handleRowDoubleClick = (file) => {
-    if (file.type === "folder" && ["my-drive", "recent", "starred"].includes(activeNav)) {
+    if (file.type === "folder" && ["my-drive", "recent", "starred", "shared"].includes(activeNav)) {
       handleOpenFolder(file);
       return;
     }
@@ -553,6 +563,58 @@ export default function DrivePage() {
     }
   };
 
+
+  const handleOpenRename = (file) => {
+    setSelectedFile(file);
+    setModalConfig({
+      type: 'rename',
+      title: `Rename ${file.type}`,
+      value: file.name
+    });
+    setIsActionModalOpen(true);
+  };
+
+  const handleOpenShare = (file) => {
+    setSelectedFile(file);
+    setModalConfig({
+      type: 'share',
+      title: `Share "${file.name}"`,
+      value: '',  //username or maybe email later? idk
+      label: 'Add people (email)',
+      permission: 'read'
+    });
+    setIsActionModalOpen(true);
+  };
+
+  //this will call the API functions to send the relevant request to the server
+  const handleActionSave = async () => {
+    if (!selectedFile) return;
+
+    try {
+      if (modalConfig.type === 'rename') {
+        await updateFile(selectedFile.id, { name: modalConfig.value });
+        setUploadStatus("Renamed successfully");
+        setTimeout(() => setUploadStatus(""), 3000);
+      }
+      else if (modalConfig.type === 'share') {
+        const result = await getUserId(modalConfig.value);
+
+        await addPermission(selectedFile.id, {
+          userId: result.userId,
+          permissionType: modalConfig.permission
+        });
+
+        setUploadStatus(`Shared as ${modalConfig.permission} with ${result.username}`);
+        setTimeout(() => setUploadStatus(""), 3000);
+      }
+
+      setIsActionModalOpen(false);
+      loadFiles();
+    } catch (err) {
+      setError(err?.message || "Action failed");
+    }
+  };
+
   const handleOpenMoveModal = (file) => {
     setMovingFile(file);
     setIsMoveModalOpen(true);
@@ -577,8 +639,6 @@ export default function DrivePage() {
 
   useEffect(() => {
     const q = searchQuery.trim();
-
-
 
     if (!q) {
       setSearchResults([]);
@@ -618,9 +678,6 @@ export default function DrivePage() {
   const displayFiles = isSearchMode ? searchResults : files;
   const tableNavMode = isSearchMode ? "my-drive" : activeNav;
   const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` : pageTitle;
-
-
-
 
 
 
@@ -713,6 +770,8 @@ export default function DrivePage() {
             onRowClick={handleRowClick}
             onRowDoubleClick={handleRowDoubleClick}
             onToggleStar={handleToggleStar}
+            onRename={handleOpenRename}
+            onShare={handleOpenShare}
             onOpenMoveModal={handleOpenMoveModal}
           />
         </main>
@@ -764,6 +823,18 @@ export default function DrivePage() {
         onCancelEditing={handleCancelEditing}
         onSave={handleSaveContent}
       />
+
+      <ActionModal
+        open={isActionModalOpen}
+        title={modalConfig.title}
+        label={modalConfig.label}
+        value={modalConfig.value}
+        role={modalConfig.permission}
+        onChange={(val) => setModalConfig({ ...modalConfig, value: val })}
+        onRoleChange={(newRole) => setModalConfig({ ...modalConfig, permission: newRole })}
+        onClose={() => setIsActionModalOpen(false)}
+        onSave={handleActionSave}
+        />
       <MoveModal
         open={isMoveModalOpen}
         fileName={movingFile?.name}
