@@ -753,6 +753,15 @@ body.gd-theme-dark {
   overflow: auto;
 }
 
+.gd-image-viewer {
+  max-width: 100%;
+  max-height: calc(100vh - 120px);
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+  background: transparent;
+}
+
 .gd-viewer-preview {
   max-height: none;
   min-height: calc(100vh - 140px);
@@ -1087,10 +1096,11 @@ body.gd-theme-dark {
   color: var(--gd-active-text);
 }
 
+/* Update this class in your drive.css */
 .gd-danger-text {
-  background-color: transparent; 
-  color: #d93025; 
-  border: 1px solid #dadce0;   
+  background-color: transparent; /* Remove the grey */
+  color: #d93025;               /* Red text color */
+  border: 1px solid #dadce0;    /* Subtle border */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1102,40 +1112,6 @@ body.gd-theme-dark {
 }
 
 .gd-danger-text:hover {
-  background-color: rgba(217, 48, 37, 0.08); 
+  background-color: rgba(217, 48, 37, 0.08); /* Light red tint on hover */
   border-color: #d93025;
-}
-.gd-move-modal {
-  width: min(480px, 95vw); 
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.gd-modal-body {
-  overflow-y: auto;
-  padding: 10px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.gd-move-path {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.gd-move-list {
-  border-top: 1px solid var(--gd-border);
-  border-bottom: 1px solid var(--gd-border);
-  min-height: 200px;
-}
-
-.gd-move-list .gd-nav-item {
-  border-radius: 0;
-  width: 100%;
 }

@@ -6,8 +6,7 @@ const { listFiles: listFilesModel,
     getFileMetadata: getFileMetadata,
     writeFileContent: writeFileContent,
     starFile,
-    unstarFile,
-    changeParentId } = require("../models/files");
+    unstarFile } = require("../models/files");
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
 function listFiles(req, res) {
@@ -19,6 +18,7 @@ function listFiles(req, res) {
     const files = rawFiles.map(file => ({
         id: file.id,
         name: file.name,
+        ownerName: file.ownerName || null,
         type: file.type,
         parentId: file.parentId,
         isTrashed: file.isTrashed,
@@ -53,6 +53,7 @@ async function createFile(req, res) {
         const newFile = await createFileModel({
             name: name.trim(),
             ownerId: req.user.id,
+            ownerName: req.user.username,
             type,
             parentId: pid,
             content,
@@ -91,10 +92,10 @@ async function updateFile(req, res) {
     if (!file) {
         return res.status(404).json({ error: "File not found" });
     }
-
+    
     if (req.body.restore === true) { file.isTrashed = false; }
     try {
-        const { name, content, isStarred, parentId } = req.body;
+        const { name, content, isStarred } = req.body;
         const fileId = req.params.id;
         const userId = req.user.id;
 
@@ -111,10 +112,6 @@ async function updateFile(req, res) {
 
         if (isStarred !== undefined) {
             updatedFile = isStarred ? await starFile(fileId, userId) : await unstarFile(fileId, userId);
-        }
-
-        if (parentId !== undefined) {
-            updatedFile = await changeParentId(fileId, userId, parentId);
         }
 
         res.status(200).json(updatedFile);

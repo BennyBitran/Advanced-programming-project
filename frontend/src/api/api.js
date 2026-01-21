@@ -14,7 +14,10 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
         config.headers["Content-Type"] = "application/json";
         config.body = JSON.stringify(body);
     }
-    const response = await fetch(path, config);
+    const base = typeof process !== "undefined" ? process.env.REACT_APP_API_BASE || "" : "";
+    const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    const url = normalizedBase ? `${normalizedBase}${path}` : path;
+    const response = await fetch(url, config);
     let data = null;
     try {
         data = await response.json();
@@ -22,6 +25,9 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
 
     if (!response.ok) {
         let msg = `HTTP ${response.status}`;
+        if (response.status === 413) {
+            msg = "HTTP 413 (Payload Too Large).";
+        }
         if (data && data.error) {
             msg = data.error;
         }
@@ -71,4 +77,12 @@ export async function starFile(fileId) {
 
 export async function unstarFile(fileId) {
     return apiRequest(`/api/files/${fileId}/star`, "DELETE", undefined, {}, true);
+}
+
+export async function searchFiles(query) {
+    const q = encodeURIComponent(String(query ?? "").trim());
+    if (!q) {
+        return [];
+    }
+    return apiRequest(`/api/search/${q}`, "GET", undefined, {}, true);
 }

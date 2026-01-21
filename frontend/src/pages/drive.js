@@ -5,6 +5,7 @@ import {
   updateFile,
   uploadFile,
   deleteFile,
+  searchFiles
 } from "../api/api";
 import { useTheme } from "../theme/ThemeContext";
 import "./drive.css";
@@ -15,8 +16,9 @@ import Breadcrumbs from "../components/drive/Breadcrumbs";
 import FileTable from "../components/drive/FileTable";
 import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
+import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
-import MoveModal from "../components/drive/MoveModal";
+import { canEditFile, getFileKind } from "../viewers/fileKind";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -70,15 +72,26 @@ export default function DrivePage() {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderError, setFolderError] = useState("");
 
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [movingFile, setMovingFile] = useState(null);
+  const [newFileName, setNewFileName] = useState("");
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [newFileError, setNewFileError] = useState("");
 
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
 
+
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
   const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
+
+
 
   const resetSelectionAndPreview = () => {
     setSelectedFile(null);
@@ -153,14 +166,13 @@ export default function DrivePage() {
   }, [currentFolderId, activeNav]);
 
   const handleNavChange = (nextKey) => {
+    stopSearch();
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
+    setCurrentFolderId(null);
+    setBreadcrumbs([]);
 
-    if (nextKey !== "my-drive") {
-      setCurrentFolderId(null);
-      setBreadcrumbs([]);
-    }
   };
 
   const handleUploadClick = () => {
@@ -171,6 +183,16 @@ export default function DrivePage() {
     setFolderName("");
     setFolderError("");
     setIsFolderModalOpen(true);
+  };
+
+  const handleCreateFileClick = () => {
+    if (!["my-drive", "recent", "starred", "shared"].includes(activeNav)) {
+      setError("Create file is not available in this view");
+      return;
+    }
+    setNewFileName("");
+    setNewFileError("");
+    setIsFileModalOpen(true);
   };
 
   const handleCreateFolder = async () => {
@@ -197,6 +219,11 @@ export default function DrivePage() {
     setFolderError("");
   };
 
+  const handleCloseFileModal = () => {
+    setIsFileModalOpen(false);
+    setNewFileError("");
+  };
+
   const handleFolderInputKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -208,7 +235,63 @@ export default function DrivePage() {
     }
   };
 
+  const findNewestFileByName = (list, name, parentId) => {
+    const candidates = list.filter(
+      (f) => f.type === "file" && f.name === name && (f.parentId ?? null) === (parentId ?? null),
+    );
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, current) => {
+      const bestTime = new Date(best.lastUpdateTime || best.creationTime || 0).getTime();
+      const currentTime = new Date(current.lastUpdateTime || current.creationTime || 0).getTime();
+      return currentTime >= bestTime ? current : best;
+    }, candidates[0]);
+  };
+
+  const handleCreateEmptyFile = async () => {
+    const name = newFileName.trim();
+    if (!name) {
+      setNewFileError("File name is required");
+      return;
+    }
+    setNewFileError("");
+    try {
+      const payload = { name, type: "file", content: "" };
+      if (activeNav === "my-drive" && currentFolderId) payload.parentId = currentFolderId;
+      await uploadFile(payload);
+
+      // Reload list and select the newest matching file (server doesn't return ID in response body)
+      const filters = buildListFilters();
+      const updated = await listFiles(filters);
+      const normalized = Array.isArray(updated) ? updated : [];
+      setFiles(normalized);
+
+      const created = findNewestFileByName(normalized, name, activeNav === "my-drive" ? currentFolderId : null);
+      if (created) {
+        handleSelectFile(created);
+        setIsViewerOpen(true);
+        setIsEditing(true);
+      }
+
+      setIsFileModalOpen(false);
+      setNewFileName("");
+    } catch (err) {
+      setNewFileError(err?.message || "Failed to create file");
+    }
+  };
+
+  const handleFileInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleCreateEmptyFile();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCloseFileModal();
+    }
+  };
+
   const handleOpenFolder = (folder) => {
+    stopSearch();
     if (!["my-drive", "recent", "starred"].includes(activeNav)) return;
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -247,6 +330,9 @@ export default function DrivePage() {
   };
 
   const handleStartEditing = () => {
+    if (!selectedFile || selectedFile.type !== "file" || !canEditFile(selectedFile.name)) {
+      return;
+    }
     setIsViewerOpen(true);
     setIsEditing(true);
     setSaveError("");
@@ -284,7 +370,6 @@ export default function DrivePage() {
       setIsSaving(false);
     }
   };
-
 
   const handleTrash = async (fileId) => {
     // save original state in case of fail
@@ -360,23 +445,40 @@ export default function DrivePage() {
   };
 
   const handleRowClick = (file) => {
-    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
-      handleOpenFolder(file);
-      return;
-    }
     handleSelectFile(file);
   };
 
+  const handleRowDoubleClick = (file) => {
+    if (file.type === "folder" && ["my-drive", "recent", "starred"].includes(activeNav)) {
+      handleOpenFolder(file);
+      return;
+    }
+    if (file.type === "file") {
+      handleSelectFile(file);
+      handleOpenViewer(true);
+    }
+  };
+
   const handleBreadcrumbRoot = () => {
+    stopSearch();
     setCurrentFolderId(null);
     setBreadcrumbs([]);
   };
 
   const handleBreadcrumbClick = (index) => {
+    stopSearch();
     const nextCrumbs = breadcrumbs.slice(0, index + 1);
     setBreadcrumbs(nextCrumbs);
     setCurrentFolderId(nextCrumbs[index]?.id ?? null);
   };
+
+  const stopSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearching(false);
+    setSearchError("");
+  };
+
 
   const handleFileSelected = (event) => {
     const input = event.target;
@@ -394,6 +496,7 @@ export default function DrivePage() {
         if (activeNav === "my-drive" && currentFolderId) payload.parentId = currentFolderId;
         await uploadFile(payload);
         setUploadStatus("Upload completed");
+        setTimeout(() => setUploadStatus(""), 3000);
         loadFiles();
       } catch (err) {
         setUploadStatus("");
@@ -411,7 +514,11 @@ export default function DrivePage() {
       setIsNewOpen(false);
       setIsEmptyMenuOpen(false);
     };
-    reader.readAsText(file);
+    if (file.type?.startsWith("image/")) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const handleToggleStar = async (fileId, nextStarred) => {
@@ -443,35 +550,69 @@ export default function DrivePage() {
     }
   };
 
-  const handleOpenMoveModal = (file) => {
-    setMovingFile(file);
-    setIsMoveModalOpen(true);
-  };
+  useEffect(() => {
+    const q = searchQuery.trim();
 
-  const handleMoveFile = async (destinationParentId) => {
-    if (!movingFile) return;
 
-    try {
-      setUploadStatus("Moving...");
-      await updateFile(movingFile.id, { parentId: destinationParentId });
-      //reload page
-      loadFiles();
-      setIsMoveModalOpen(false);
-      setUploadStatus("Moved successfully");
-      setTimeout(() => setUploadStatus(""), 3000);
-    } catch (err) {
-      setError(err?.message || "Failed to move file");
+
+    if (!q) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchError("");
+      return;
     }
-  };
+
+    let cancelled = false;
+    setIsSearching(true);
+    setSearchError("");
+
+    const t = setTimeout(() => {
+      searchFiles(q)
+        .then((data) => {
+          if (cancelled) return;
+          setSearchResults(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setSearchResults([]);
+          setSearchError(err?.message || "Search failed");
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setIsSearching(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [searchQuery]);
+
+  const isSearchMode = searchQuery.trim().length > 0;
+  const displayFiles = isSearchMode ? searchResults : files;
+  const tableNavMode = isSearchMode ? "my-drive" : activeNav;
+  const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` : pageTitle;
+
+
+
+
+
 
   return (
     <div className="gd-app">
-      <Topbar isDark={isDark} onToggleTheme={toggleTheme} name={localStorage.getItem("name")} />
+      <Topbar isDark={isDark}
+        onToggleTheme={toggleTheme}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClearSearch={() => setSearchQuery("")}
+        name={localStorage.getItem("name")}
+      />
 
       <div className="gd-body">
         <Sidebar
           navItems={navItems}
-          activeNav={activeNav}
+          activeNav={tableNavMode}
           onNavChange={handleNavChange}
           isNewOpen={isNewOpen}
           setIsNewOpen={setIsNewOpen}
@@ -479,6 +620,7 @@ export default function DrivePage() {
           setIsEmptyMenuOpen={setIsEmptyMenuOpen}
           onUploadClick={handleUploadClick}
           onCreateFolderClick={handleCreateFolderClick}
+          onCreateFileClick={handleCreateFileClick}
           fileInputRef={fileInputRef}
           onFileSelected={handleFileSelected}
         />
@@ -486,7 +628,7 @@ export default function DrivePage() {
         <main className="gd-main">
           <div className="gd-main-header">
             <Breadcrumbs
-              title={pageTitle}
+              title={headerTitle}
               showBreadcrumbs={showBreadcrumbs}
               breadcrumbs={breadcrumbs}
               onRoot={handleBreadcrumbRoot}
@@ -494,8 +636,19 @@ export default function DrivePage() {
             />
 
             <div className="gd-main-actions">
+
+              <button
+                className="gd-icon-btn"
+                type="button"
+                aria-label="Show details"
+                title="Show details"
+                onClick={() => setIsDetailsOpen(true)}
+              >
+                <span className="material-symbols-outlined">info</span>
+              </button>
+
               {/* empty trash */}
-              {activeNav === "trash" && files.length > 0 && (
+              {tableNavMode === "trash" && files.length > 0 && (
                 <button
                   className="gd-text-btn gd-danger-text"
                   onClick={handleEmptyTrash}
@@ -521,28 +674,32 @@ export default function DrivePage() {
           {uploadError && <div className="gd-error">{uploadError}</div>}
 
           <FileTable
-            files={files}
+            files={displayFiles}
             onTrash={handleTrash}
-            activeNav={activeNav}
+            activeNav={tableNavMode}
             onRestore={handleRestore}
             onDeletePermanently={handleDeletePermanently}
-            hasFiles={hasFiles}
+            hasFiles={displayFiles.length > 0}
             isLoading={isLoading}
             error={error}
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
+            onRowDoubleClick={handleRowDoubleClick}
             onToggleStar={handleToggleStar}
-            onOpenMoveModal={handleOpenMoveModal}
           />
         </main>
+        {isDetailsOpen && (
+          <DetailsPanel
+            selectedFile={selectedFile}
+            filePreviewLoading={filePreviewLoading}
+            filePreviewError={filePreviewError}
+            breadcrumbs={breadcrumbs}
+            onClose={() => setIsDetailsOpen(false)}
+            getFileKind={getFileKind}
+            canEditFile={canEditFile}
+          />
+        )}
 
-        <DetailsPanel
-          selectedFile={selectedFile}
-          filePreviewLoading={filePreviewLoading}
-          filePreviewError={filePreviewError}
-          onOpenViewer={handleOpenViewer}
-          onStartEditing={handleStartEditing}
-        />
       </div>
 
       <CreateFolderModal
@@ -553,6 +710,16 @@ export default function DrivePage() {
         onClose={handleCloseFolderModal}
         onCreate={handleCreateFolder}
         onKeyDown={handleFolderInputKeyDown}
+      />
+
+      <CreateFileModal
+        open={isFileModalOpen}
+        fileName={newFileName}
+        setFileName={setNewFileName}
+        fileError={newFileError}
+        onClose={handleCloseFileModal}
+        onCreate={handleCreateEmptyFile}
+        onKeyDown={handleFileInputKeyDown}
       />
 
       <ViewerModal
@@ -571,13 +738,6 @@ export default function DrivePage() {
         onCancelEditing={handleCancelEditing}
         onSave={handleSaveContent}
       />
-      <MoveModal
-        open={isMoveModalOpen}
-        fileName={movingFile?.name}
-        onClose={() => setIsMoveModalOpen(false)}
-        onMove={handleMoveFile}
-      />
     </div>
-
   );
 }
