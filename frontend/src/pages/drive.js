@@ -89,6 +89,7 @@ export default function DrivePage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
 
 
@@ -169,11 +170,9 @@ export default function DrivePage() {
     setActiveNav(nextKey);
     setIsNewOpen(false);
     setIsEmptyMenuOpen(false);
-
-    if (nextKey !== "my-drive") {
-      setCurrentFolderId(null);
-      setBreadcrumbs([]);
-    }
+    setCurrentFolderId(null);
+    setBreadcrumbs([]);
+    
   };
 
   const handleUploadClick = () => {
@@ -446,11 +445,18 @@ const handleStartEditing = () => {
   };
 
   const handleRowClick = (file) => {
-    if (["my-drive", "recent", "starred"].includes(activeNav) && file.type === "folder") {
+    handleSelectFile(file);
+  };
+
+  const handleRowDoubleClick = (file) => {
+    if (file.type === "folder" && ["my-drive", "recent", "starred"].includes(activeNav)) {
       handleOpenFolder(file);
       return;
     }
-    handleSelectFile(file);
+    if (file.type === "file") {
+      handleSelectFile(file);
+      handleOpenViewer(true);
+    }
   };
 
   const handleBreadcrumbRoot = () => {
@@ -490,6 +496,7 @@ const handleStartEditing = () => {
         if (activeNav === "my-drive" && currentFolderId) payload.parentId = currentFolderId;
         await uploadFile(payload);
         setUploadStatus("Upload completed");
+        setTimeout(() => setUploadStatus(""), 3000);
         loadFiles();
       } catch (err) {
         setUploadStatus("");
@@ -629,6 +636,17 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             />
 
             <div className="gd-main-actions">
+              
+              <button
+                className="gd-icon-btn"
+                type="button"
+                aria-label="Show details"
+                title="Show details"
+                onClick={() => setIsDetailsOpen(true)}
+                >
+  <span className="material-symbols-outlined">info</span>
+</button>
+
               {/* empty trash */}
               {tableNavMode === "trash" && files.length > 0 && (
                 <button
@@ -666,17 +684,20 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             error={error}
             selectedFileId={selectedFile?.id ?? null}
             onRowClick={handleRowClick}
+            onRowDoubleClick={handleRowDoubleClick}
             onToggleStar={handleToggleStar}
           />
         </main>
+            {isDetailsOpen && (
+              <DetailsPanel
+              selectedFile={selectedFile}
+              filePreviewLoading={filePreviewLoading}
+              filePreviewError={filePreviewError}
+              breadcrumbs={breadcrumbs}
+              onClose={() => setIsDetailsOpen(false)}
+            />
+)}
 
-        <DetailsPanel
-          selectedFile={selectedFile}
-          filePreviewLoading={filePreviewLoading}
-          filePreviewError={filePreviewError}
-          onOpenViewer={handleOpenViewer}
-          onStartEditing={handleStartEditing}
-        />
       </div>
 
       <CreateFolderModal

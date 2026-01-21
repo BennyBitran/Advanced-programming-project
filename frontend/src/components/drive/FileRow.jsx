@@ -1,6 +1,6 @@
 import FileMenu from "./FileMenu";
 
-export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTrash, onRestore, onDeletePermanently }) {
+export default function FileRow({ file, isSelected, onClick, onDoubleClick, onToggleStar, onTrash, onRestore, onDeletePermanently }) {
   const icon = file.type === "folder" ? "folder" : "description";
 
   return (
@@ -8,11 +8,12 @@ export default function FileRow({ file, isSelected, onOpen, onToggleStar, onTras
       className={`gd-row${isSelected ? " gd-selected" : ""}`}
       role="button"
       tabIndex={0}
-      onClick={onOpen}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen();
+          onClick();
         }
       }}
     >
