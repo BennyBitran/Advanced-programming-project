@@ -18,7 +18,7 @@ import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
-import { canEditFile } from "../viewers/fileKind";
+import { canEditFile, getFileKind } from "../viewers/fileKind";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -79,7 +79,7 @@ export default function DrivePage() {
   const fileInputRef = useRef(null);
   const previewRequestId = useRef(0);
 
-  
+
   const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
   const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
@@ -88,7 +88,7 @@ export default function DrivePage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
-  
+
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
 
@@ -172,7 +172,7 @@ export default function DrivePage() {
     setIsEmptyMenuOpen(false);
     setCurrentFolderId(null);
     setBreadcrumbs([]);
-    
+
   };
 
   const handleUploadClick = () => {
@@ -329,7 +329,7 @@ export default function DrivePage() {
       });
   };
 
-const handleStartEditing = () => {
+  const handleStartEditing = () => {
     if (!selectedFile || selectedFile.type !== "file" || !canEditFile(selectedFile.name)) {
       return;
     }
@@ -473,11 +473,11 @@ const handleStartEditing = () => {
   };
 
   const stopSearch = () => {
-  setSearchQuery("");
-  setSearchResults([]);
-  setIsSearching(false);
-  setSearchError("");
-};
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearching(false);
+    setSearchError("");
+  };
 
 
   const handleFileSelected = (event) => {
@@ -551,48 +551,48 @@ const handleStartEditing = () => {
   };
 
   useEffect(() => {
-  const q = searchQuery.trim();
-  
+    const q = searchQuery.trim();
 
 
-  if (!q) {
-    setSearchResults([]);
-    setIsSearching(false);
+
+    if (!q) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchError("");
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearching(true);
     setSearchError("");
-    return;
-  }
 
-  let cancelled = false;
-  setIsSearching(true);
-  setSearchError("");
+    const t = setTimeout(() => {
+      searchFiles(q)
+        .then((data) => {
+          if (cancelled) return;
+          setSearchResults(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setSearchResults([]);
+          setSearchError(err?.message || "Search failed");
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setIsSearching(false);
+        });
+    }, 300);
 
-  const t = setTimeout(() => {
-    searchFiles(q)
-      .then((data) => {
-        if (cancelled) return;
-        setSearchResults(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setSearchResults([]);
-        setSearchError(err?.message || "Search failed");
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setIsSearching(false);
-      });
-  }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [searchQuery]);
 
-  return () => {
-    cancelled = true;
-    clearTimeout(t);
-  };
-}, [searchQuery]);
-
-const isSearchMode = searchQuery.trim().length > 0;
-const displayFiles = isSearchMode ? searchResults : files;
-const tableNavMode = isSearchMode ? "my-drive" : activeNav;
-const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` : pageTitle;
+  const isSearchMode = searchQuery.trim().length > 0;
+  const displayFiles = isSearchMode ? searchResults : files;
+  const tableNavMode = isSearchMode ? "my-drive" : activeNav;
+  const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` : pageTitle;
 
 
 
@@ -601,12 +601,12 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
 
   return (
     <div className="gd-app">
-      <Topbar isDark={isDark} 
-      onToggleTheme={toggleTheme} 
-      searchQuery={searchQuery} 
-      onSearchChange={setSearchQuery} 
-      onClearSearch={() => setSearchQuery("")} 
-      name={localStorage.getItem("name")} 
+      <Topbar isDark={isDark}
+        onToggleTheme={toggleTheme}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClearSearch={() => setSearchQuery("")}
+        name={localStorage.getItem("name")}
       />
 
       <div className="gd-body">
@@ -636,16 +636,16 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             />
 
             <div className="gd-main-actions">
-              
+
               <button
                 className="gd-icon-btn"
                 type="button"
                 aria-label="Show details"
                 title="Show details"
                 onClick={() => setIsDetailsOpen(true)}
-                >
-  <span className="material-symbols-outlined">info</span>
-</button>
+              >
+                <span className="material-symbols-outlined">info</span>
+              </button>
 
               {/* empty trash */}
               {tableNavMode === "trash" && files.length > 0 && (
@@ -688,15 +688,17 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             onToggleStar={handleToggleStar}
           />
         </main>
-            {isDetailsOpen && (
-              <DetailsPanel
-              selectedFile={selectedFile}
-              filePreviewLoading={filePreviewLoading}
-              filePreviewError={filePreviewError}
-              breadcrumbs={breadcrumbs}
-              onClose={() => setIsDetailsOpen(false)}
-            />
-)}
+        {isDetailsOpen && (
+          <DetailsPanel
+            selectedFile={selectedFile}
+            filePreviewLoading={filePreviewLoading}
+            filePreviewError={filePreviewError}
+            breadcrumbs={breadcrumbs}
+            onClose={() => setIsDetailsOpen(false)}
+            getFileKind={getFileKind}
+            canEditFile={canEditFile}
+          />
+        )}
 
       </div>
 
