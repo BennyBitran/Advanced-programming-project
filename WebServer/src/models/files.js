@@ -298,7 +298,7 @@ async function deleteFile(fileId, userId) {
 
 async function deleteSubtree(file) {
   let children;
-  if (file.type === "folder") { children = files.filter(f => f.parentId === id); }
+  if (file.type === "folder") { children = files.filter(f => f.parentId === file.id); }
 
   if (children) {
     //recursivly delete all childrens of the file
