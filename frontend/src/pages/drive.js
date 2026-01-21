@@ -19,7 +19,7 @@ import CreateFolderModal from "../components/drive/CreateFolderModal";
 import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
 import MoveModal from "../components/drive/MoveModal";
-import { canEditFile, getFileKind } from "../viewers/fileKind";
+import { canEditFile } from "../viewers/fileKind";
 
 const navItems = [
   { key: "my-drive", label: "My Drive", icon: "home_storage" },
@@ -84,7 +84,6 @@ export default function DrivePage() {
   const previewRequestId = useRef(0);
 
 
-  const hasFiles = files.length > 0;
   const pageTitle = titleByNav[activeNav] ?? "My Drive";
   const showBreadcrumbs = activeNav === "my-drive" || currentFolderId !== null;
 
@@ -698,6 +697,8 @@ export default function DrivePage() {
 
           {uploadStatus && <div className="gd-status">{uploadStatus}</div>}
           {uploadError && <div className="gd-error">{uploadError}</div>}
+          {isSearching && <div className="gd-status">Searching...</div>}
+          {searchError && <div className="gd-error">{searchError}</div>}
 
           <FileTable
             files={displayFiles}
@@ -722,8 +723,6 @@ export default function DrivePage() {
             filePreviewError={filePreviewError}
             breadcrumbs={breadcrumbs}
             onClose={() => setIsDetailsOpen(false)}
-            getFileKind={getFileKind}
-            canEditFile={canEditFile}
           />
         )}
 

@@ -58,7 +58,7 @@ docker-compose up --build server webserver frontend
 **2. Open the app**
 Visit `http://localhost:3001` in your browser.
 
-Note: The frontend dev server proxies API calls to the `webserver` container.
+Note: In Docker, the frontend uses `REACT_APP_API_BASE=http://localhost:3000` to reach the Node server.
 
 **3. Run the Clients**
 You can run the Python or C++ client in a separate terminal.
@@ -116,6 +116,7 @@ cd frontend
 npm install
 REACT_APP_API_BASE=http://localhost:3000 PORT=3001 npm start
 ```
+Note: For local dev without Docker, you can also temporarily set the CRA proxy to `http://localhost:3000` if you prefer proxying instead of `REACT_APP_API_BASE`.
 
 **4. Run the Tests**
 

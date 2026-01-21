@@ -26,10 +26,17 @@ export async function apiRequest(path, method = "GET", body, headers = {}, withA
     if (!response.ok) {
         let msg = `HTTP ${response.status}`;
         if (response.status === 413) {
-            msg = "HTTP 413 (Payload Too Large).";
+            msg = "HTTP 413 (Payload Too Large). Backend must increase request body limit for file uploads.";
         }
         if (data && data.error) {
             msg = data.error;
+        }
+        if (response.status === 401 && typeof window !== "undefined") {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            if (window.location.pathname !== "/login") {
+                window.location.assign("/login");
+            }
         }
         throw new Error(msg);
     }

@@ -5,13 +5,8 @@ export default function DetailsPanel({
   filePreviewLoading,
   filePreviewError,
   breadcrumbs,
-  onClose,
-  getFileKind,
-  canEditFile
+  onClose
 }) {
-  const kind = selectedFile?.name ? getFileKind(selectedFile.name) : "text";
-  const canEdit = selectedFile?.name ? canEditFile(selectedFile.name) : false;
-
   return (
     <aside className="gd-details">
       <div className="gd-details-card">
