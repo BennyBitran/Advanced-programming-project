@@ -830,11 +830,12 @@ export default function DrivePage() {
         title={modalConfig.title}
         label={modalConfig.label}
         value={modalConfig.value}
-        role={modalConfig.permission} 
+        role={modalConfig.permission}
         onChange={(val) => setModalConfig({ ...modalConfig, value: val })}
-        onRoleChange={(newRole) =>setModalConfig({ ...modalConfig, permission: newRole })}
+        onRoleChange={(newRole) => setModalConfig({ ...modalConfig, permission: newRole })}
         onClose={() => setIsActionModalOpen(false)}
         onSave={handleActionSave}
+        />
       <MoveModal
         open={isMoveModalOpen}
         fileName={movingFile?.name}
