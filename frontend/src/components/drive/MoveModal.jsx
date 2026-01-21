@@ -23,7 +23,7 @@ export default function MoveModal({ open, onMove, onClose, fileName }) {
         if (open) {
             loadFolders(currentFolderId);
         }
-    }, [currentFolderId]);
+    }, [currentFolderId, open]);
 
     const loadFolders = async (parentId) => {
         setLoading(true);

@@ -27,19 +27,21 @@ export default function LoginPage() {
     localStorage.removeItem("userId");
   };
 
-  const saveAuth = (data) => {
+  const saveAuth = (data, fallbackUsername) => {
     const token = data?.token ?? "";
     if (token) {
       localStorage.setItem("token", token);
     }
-    if (data?.userId) {
-      localStorage.setItem("userId", data.userId);
+    const userId = data?.userId;
+    if (userId) {
+      localStorage.setItem("userId", userId);
     }
-    if (data?.name) {
-      localStorage.setItem("name", data.name);
+    const displayName = data?.name || fallbackUsername;
+    if (displayName) {
+      localStorage.setItem("username", displayName);
     }
-    if (data?.image) {
-      localStorage.setItem("avatarUrl", data.image);
+    if (data?.image && userId) {
+      localStorage.setItem(`avatarUrl:${userId}`, data.image);
     }
   };
   
@@ -73,8 +75,9 @@ export default function LoginPage() {
     // Call login API
     setLoading(true);
     try {
-      const data = await loginUser({ username: username.trim(), password });
-      saveAuth(data);
+      const cleanUsername = username.trim();
+      const data = await loginUser({ username: cleanUsername, password });
+      saveAuth(data, cleanUsername);
       navigate("/drive"); // Redirect to drive page on success
 
       // catch and display error message on failure
@@ -95,7 +98,7 @@ export default function LoginPage() {
         username: devUser.username,
         password: devUser.password,
       });
-      saveAuth(data);
+      saveAuth(data, devUser.username);
       navigate("/drive");
       return;
     } catch (err) {
@@ -110,7 +113,7 @@ export default function LoginPage() {
           username: devUser.username,
           password: devUser.password,
         });
-        saveAuth(data);
+        saveAuth(data, devUser.username);
         navigate("/drive");
       } catch (loginErr) {
         setError(loginErr?.message || "Dev login failed");
