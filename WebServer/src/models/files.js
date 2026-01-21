@@ -431,7 +431,7 @@ function changeParentId(fileId, userId, updatedParentId) {
       throw { status: 400, message: "Cannot move a folder into itself" };
     }
 
-    if (file.type === "folder" && isAncestor(file, destinationParent)) {
+    if (file.type === "folder" && isAncestor(file, parent)) {
       throw { status: 400, message: "Cannot move a folder into its own descendant" };
     }
   }
