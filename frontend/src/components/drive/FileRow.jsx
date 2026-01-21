@@ -30,12 +30,13 @@ export default function FileRow({ file, isSelected, onClick, onDoubleClick, onTo
 
       <div className="gd-col-right">
         {/* Only the menu remains here now */}
-        <FileMenu 
-          file={file} 
-          onToggleStar={onToggleStar} 
-          onTrash={onTrash} 
+        <FileMenu
+          file={file}
+          onToggleStar={onToggleStar}
+          onTrash={onTrash}
           onRestore={onRestore}
           onDeletePermanently={onDeletePermanently}
+          onOpenMoveModal={onOpenMoveModal}
         />
       </div>
     </div>
