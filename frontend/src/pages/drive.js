@@ -18,7 +18,6 @@ import DetailsPanel from "../components/drive/DetailsPanel";
 import CreateFolderModal from "../components/drive/CreateFolderModal";
 import CreateFileModal from "../components/drive/CreateFileModal";
 import ViewerModal from "../components/drive/ViewerModal";
-import MoveModal from "../components/drive/MoveModal";
 import { canEditFile } from "../viewers/fileKind";
 
 const navItems = [
@@ -73,9 +72,6 @@ export default function DrivePage() {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [folderError, setFolderError] = useState("");
 
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [movingFile, setMovingFile] = useState(null);
-  
   const [newFileName, setNewFileName] = useState("");
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [newFileError, setNewFileError] = useState("");
@@ -375,7 +371,6 @@ const handleStartEditing = () => {
     }
   };
 
-
   const handleTrash = async (fileId) => {
     // save original state in case of fail
     const originalFiles = [...files];
@@ -555,26 +550,6 @@ const handleStartEditing = () => {
     }
   };
 
-  const handleOpenMoveModal = (file) => {
-    setMovingFile(file);
-    setIsMoveModalOpen(true);
-  };
-
-  const handleMoveFile = async (destinationParentId) => {
-    if (!movingFile) return;
-
-    try {
-      setUploadStatus("Moving...");
-      await updateFile(movingFile.id, { parentId: destinationParentId });
-      //reload page
-      loadFiles();
-      setIsMoveModalOpen(false);
-      setUploadStatus("Moved successfully");
-      setTimeout(() => setUploadStatus(""), 3000);
-    } catch (err) {
-      setError(err?.message || "Failed to move file");
-    }
-  };
   useEffect(() => {
   const q = searchQuery.trim();
   
@@ -711,7 +686,6 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
             onRowClick={handleRowClick}
             onRowDoubleClick={handleRowDoubleClick}
             onToggleStar={handleToggleStar}
-            onOpenMoveModal={handleOpenMoveModal}
           />
         </main>
             {isDetailsOpen && (
@@ -762,13 +736,6 @@ const headerTitle = isSearchMode ? `Search results for "${searchQuery.trim()}"` 
         onCancelEditing={handleCancelEditing}
         onSave={handleSaveContent}
       />
-      <MoveModal
-        open={isMoveModalOpen}
-        fileName={movingFile?.name}
-        onClose={() => setIsMoveModalOpen(false)}
-        onMove={handleMoveFile}
-      />
     </div>
-
   );
 }
