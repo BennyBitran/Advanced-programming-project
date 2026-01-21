@@ -4,7 +4,8 @@ const usersModel = require("./users");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
   checkUserPermission: checkUserPermission,
-  getPermissionByUserAndFile } = require("./permissions");
+  getPermissionByUserAndFile,
+  removePermission } = require("./permissions");
 
 const files = [];
 
@@ -51,40 +52,40 @@ function listFiles(userId, parentId = null, view = null) {
     return recentFiles;
   }
   // view all shared files at top level, but be able to navigate inside shared folders
- if (view === "shared") {
-  // inside a shared folder: list its children normally (by parentId)
-  if (parentId) {
-    return files.filter(f =>
-      f.parentId === parentId &&
-      !isPathTrashed(f) &&
-      checkUserPermission(f.id, userId, "read")
-    );
+  if (view === "shared") {
+    // inside a shared folder: list its children normally (by parentId)
+    if (parentId) {
+      return files.filter(f =>
+        f.parentId === parentId &&
+        !isPathTrashed(f) &&
+        checkUserPermission(f.id, userId, "read")
+      );
+    }
+
+    // shared root: show only top-level shared entries (optional google-like)
+    return files.filter(f => {
+      if (f.ownerId === userId) return false;
+      if (isPathTrashed(f)) return false;
+      if (!checkUserPermission(f.id, userId, "read")) return false;
+      if (f.parentId && checkUserPermission(f.parentId, userId, "read")) return false;
+      return true;
+    });
   }
 
-  // shared root: show only top-level shared entries (optional google-like)
-  return files.filter(f => {
-    if (f.ownerId === userId) return false;
-    if (isPathTrashed(f)) return false;
-    if (!checkUserPermission(f.id, userId, "read")) return false;
-    if (f.parentId && checkUserPermission(f.parentId, userId, "read")) return false;
-    return true;
-  });
-}
 
 
 
+  // Root level: list owned files only
+  if (parentId === null) {
+    return files.filter(f => f.parentId === null && !f.isTrashed && f.ownerId === userId);
+  }
 
-// Root level: list owned files only
-if (parentId === null) {
-  return files.filter(f => f.parentId === null && !f.isTrashed && f.ownerId === userId);
-}
-
-// Inside any folder (owned or shared): list children you can read (or write)
-return files.filter(f =>
-  f.parentId === parentId &&
-  !isPathTrashed(f) &&
-  checkUserPermission(f.id, userId, "read")
-);
+  // Inside any folder (owned or shared): list children you can read (or write)
+  return files.filter(f =>
+    f.parentId === parentId &&
+    !isPathTrashed(f) &&
+    checkUserPermission(f.id, userId, "read")
+  );
 }
 
 
@@ -310,9 +311,9 @@ async function deleteFile(fileId, userId) {
     }
   } else {
     //if the file is shared with the user - remove the permission
-    let permId = getPermissionByUserAndFile(userId, fileId);
-    if (permId) {
-      removePermission(permId);
+    let perm = getPermissionByUserAndFile(userId, fileId);
+    if (perm) {
+      removePermission(perm.pid);
       return { status: 204, message: "Permission removed" };
     }
     //if the file is inside a shared folder that user has permission to write 

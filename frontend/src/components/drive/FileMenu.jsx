@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function FileMenu({ file, onToggleStar, onTrash, onMove,
+export default function FileMenu({ file, onToggleStar, onTrash, onOpenMoveModal,
   onRename, onShare, onRestore, onDeletePermanently }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
