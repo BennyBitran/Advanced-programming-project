@@ -13,15 +13,15 @@ function createUser(req, res) {
         return res.status(400).json({ error: "Name is required" });
     }
     try {
-    const newUser = userModel.createUser({
-        username: username.trim(),
-        password: password.trim(),
-        name: name ? name.trim() : '',
-        image: image ? image.trim() : '',
-    })
-    
-    res.set('Location', `/api/users/${newUser.id}`);
-    return res.status(201).send();
+        const newUser = userModel.createUser({
+            username: username.trim(),
+            password: password.trim(),
+            name: name ? name.trim() : '',
+            image: image ? image.trim() : '',
+        })
+
+        res.set('Location', `/api/users/${newUser.id}`);
+        return res.status(201).send();
     } catch (err) {
         if (err.message === "Username already exists.") {
             return res.status(409).json({ error: err.message });
@@ -48,4 +48,14 @@ function getUserById(req, res) {
     });
 }
 
-module.exports = { createUser, getUserById };
+function getUserId(req, res) {
+  const { username } = req.query;
+  const id = userModel.getUserId(username);
+
+  if (!id) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  return res.status(200).json({ username, userId: id });
+}
+module.exports = { createUser, getUserById, getUserId };

@@ -4,7 +4,8 @@ const usersModel = require("./users");
 const { listFilePermissions: listFilePermissions,
   listUserPermissions: listUserPermissions,
   checkUserPermission: checkUserPermission,
-  getPermissionByUserAndFile } = require("./permissions");
+  getPermissionByUserAndFile,
+  removePermission } = require("./permissions");
 
 const files = [];
 
@@ -50,15 +51,44 @@ function listFiles(userId, parentId = null, view = null) {
       .slice(0, 10); // return top 10 recent files
     return recentFiles;
   }
-
-  // list all files user has permission to, that they are not his directly and not trashed.
+  // view all shared files at top level, but be able to navigate inside shared folders
   if (view === "shared") {
-    return files.filter(file => userPerms.includes(file.id) && !isPathTrashed(file) && file.ownerId !== userId);
+    // inside a shared folder: list its children normally (by parentId)
+    if (parentId) {
+      return files.filter(f =>
+        f.parentId === parentId &&
+        !isPathTrashed(f) &&
+        checkUserPermission(f.id, userId, "read")
+      );
+    }
+
+    // shared root: show only top-level shared entries (optional google-like)
+    return files.filter(f => {
+      if (f.ownerId === userId) return false;
+      if (isPathTrashed(f)) return false;
+      if (!checkUserPermission(f.id, userId, "read")) return false;
+      if (f.parentId && checkUserPermission(f.parentId, userId, "read")) return false;
+      return true;
+    });
   }
 
-  // return all files in specified parent (null = root) that user is the owner
-  return files.filter(file => file.parentId === parentId && !file.isTrashed && file.ownerId === userId);
+
+
+
+  // Root level: list owned files only
+  if (parentId === null) {
+    return files.filter(f => f.parentId === null && !f.isTrashed && f.ownerId === userId);
+  }
+
+  // Inside any folder (owned or shared): list children you can read (or write)
+  return files.filter(f =>
+    f.parentId === parentId &&
+    !isPathTrashed(f) &&
+    checkUserPermission(f.id, userId, "read")
+  );
 }
+
+
 //helper function to check if a file is trashed
 function isPathTrashed(file) {
   if (file.isTrashed) return true;
@@ -281,9 +311,9 @@ async function deleteFile(fileId, userId) {
     }
   } else {
     //if the file is shared with the user - remove the permission
-    let permId = getPermissionByUserAndFile(userId, fileId);
-    if (permId) {
-      removePermission(permId);
+    let perm = getPermissionByUserAndFile(userId, fileId);
+    if (perm) {
+      removePermission(perm.pid);
       return { status: 204, message: "Permission removed" };
     }
     //if the file is inside a shared folder that user has permission to write 
