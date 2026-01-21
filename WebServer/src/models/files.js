@@ -71,7 +71,7 @@ function isPathTrashed(file) {
 }
 
 // Creates metadata in Node.js and physical content in C++
-async function createFile({ name, ownerId,ownerName, type, parentId, content }) {
+async function createFile({ name, ownerId, ownerName, type, parentId, content }) {
   // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
@@ -410,6 +410,47 @@ function unstarFile(fileId, userId) {
   return file;
 }
 
+function changeParentId(fileId, userId, updatedParentId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file) throw { status: 404, message: "File not found" };
+
+  if (!checkUserPermission(fileId, userId, "write")) {
+    throw { status: 403, message: "Access denied - only owner can move the file" };
+  }
+  if (updatedParentId !== null) {
+    const parent = files.find(f => f.id === updatedParentId);
+    if (!parent) throw { status: 404, message: "ParentId not found" };
+
+    if (parent.type !== "folder") { throw { status: 400, message: "Parent must be a folder" }; }
+
+    if (!checkUserPermission(updatedParentId, userId, "write")) {
+      throw { status: 403, message: "Permission denied - cannot write in given folder" };
+    }
+
+    if (fileId === updatedParentId) {
+      throw { status: 400, message: "Cannot move a folder into itself" };
+    }
+
+    if (file.type === "folder" && isAncestor(file, parent)) {
+      throw { status: 400, message: "Cannot move a folder into its own descendant" };
+    }
+  }
+
+  file.parentId = updatedParentId;
+  return file;
+}
+
+//helper method to check if a file is an ancestor of another
+function isAncestor(ancestorFile, nodeFile) {
+  let current = nodeFile;
+
+  while (current && current.parentId != null) {
+    if (current.parentId === ancestorFile.id) return true;
+    current = files.find(f => f.id === current.parentId);
+  }
+  return false;
+}
+
 
 
 module.exports = {
@@ -423,5 +464,6 @@ module.exports = {
   searchFiles,
   getFileMetadata,
   starFile,
-  unstarFile
+  unstarFile,
+  changeParentId
 };
