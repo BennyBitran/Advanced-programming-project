@@ -63,7 +63,11 @@ export default function FileMenu({ file, onToggleStar, onTrash, onMove,
                 {file.isStarred ? "Unstar" : "Star"}
               </button>
 
-              <button onClick={(e) => handleAction(e, () => onMove(file))}>
+              <button onClick={() => {
+                onOpenMoveModal(file);  //call open moving modal
+                setIsOpen(false); //close file menu
+              }}>
+                
                 <span className="material-symbols-outlined">drive_file_move</span>
                 Move to...
               </button>
