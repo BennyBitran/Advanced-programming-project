@@ -1,6 +1,7 @@
 import FileMenu from "./FileMenu";
 
-export default function FileRow({ file, isSelected, onClick, onDoubleClick, onToggleStar, onTrash, onRestore, onDeletePermanently }) {
+export default function FileRow({ file, isSelected, onClick, onDoubleClick,
+  onToggleStar, onTrash, onRestore, onDeletePermanently, onOpenMoveModal }) {
   const icon = file.type === "folder" ? "folder" : "description";
 
   return (
