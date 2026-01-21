@@ -8,6 +8,7 @@ const { listFiles: listFilesModel,
     starFile,
     unstarFile,
     changeParentId } = require("../models/files");
+const userModel = require("../models/users");
 
 //list all files for the authenticated user, optionally filtered by parentId (null for root files)
 function listFiles(req, res) {
