@@ -71,7 +71,7 @@ function isPathTrashed(file) {
 }
 
 // Creates metadata in Node.js and physical content in C++
-async function createFile({ name, ownerId,ownerName, type, parentId, content }) {
+async function createFile({ name, ownerId, ownerName, type, parentId, content }) {
   // check parent existence and type
   if (parentId) {
     const parent = getFileMetadata(parentId);
@@ -464,5 +464,6 @@ module.exports = {
   searchFiles,
   getFileMetadata,
   starFile,
-  unstarFile
+  unstarFile,
+  changeParentId
 };
