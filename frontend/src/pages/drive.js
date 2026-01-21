@@ -463,7 +463,7 @@ export default function DrivePage() {
   };
 
   const handleRowDoubleClick = (file) => {
-    if (file.type === "folder" && ["my-drive", "recent", "starred"].includes(activeNav)) {
+    if (file.type === "folder" && ["my-drive", "recent", "starred", "shared"].includes(activeNav)) {
       handleOpenFolder(file);
       return;
     }

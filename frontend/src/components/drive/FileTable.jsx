@@ -14,8 +14,8 @@ export default function FileTable({
   onRestore, 
   onDeletePermanently,
   onRename, 
-  onShare
-  onOpenMoveModal,
+  onShare,
+  onOpenMoveModal
 }) {
   if (isLoading) return <div className="gd-status">Loading files...</div>;
   if (error) return <div className="gd-error">{error}</div>;
