@@ -23,23 +23,26 @@ export default function LoginPage() {
   };
 
   const clearAuth = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("userId");
+    sessionStorage.removeItem("name");
+    sessionStorage.removeItem("avatarUrl");
+    
   };
 
   const saveAuth = (data) => {
     const token = data?.token ?? "";
     if (token) {
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
     }
     if (data?.userId) {
-      localStorage.setItem("userId", data.userId);
+      sessionStorage.setItem("userId", data.userId);
     }
     if (data?.name) {
-      localStorage.setItem("name", data.name);
+      sessionStorage.setItem("name", data.name);
     }
     if (data?.image) {
-      localStorage.setItem("avatarUrl", data.image);
+      sessionStorage.setItem("avatarUrl", data.image);
     }
   };
   
