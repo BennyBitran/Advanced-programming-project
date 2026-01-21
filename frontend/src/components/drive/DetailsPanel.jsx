@@ -6,6 +6,8 @@ export default function DetailsPanel({
   filePreviewError,
   breadcrumbs,
   onClose,
+  getFileKind,
+  canEditFile
 }) {
   const kind = selectedFile?.name ? getFileKind(selectedFile.name) : "text";
   const canEdit = selectedFile?.name ? canEditFile(selectedFile.name) : false;
