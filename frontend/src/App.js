@@ -5,7 +5,7 @@ import DrivePage from "./pages/drive";
 import { ThemeProvider } from "./theme/ThemeContext";
 
 function RequireAuth({ children }) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? sessionStorage.getItem("token") : null;
   if (!token) {
     return <Navigate to="/login" replace />;
   }
