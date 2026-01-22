@@ -689,7 +689,7 @@ export default function DrivePage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={() => setSearchQuery("")}
-        name={localStorage.getItem("name")}
+        name={sessionStorage.getItem("name")}
       />
 
       <div className="gd-body">
