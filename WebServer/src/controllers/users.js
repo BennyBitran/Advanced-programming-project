@@ -1,5 +1,32 @@
 const userModel = require("../models/users");
 
+function patchUserImage(req, res) {
+    const { id } = req.params;
+    const { image } = req.body || {};
+    const authUserId = req.user.id;
+
+    if (!authUserId || String(authUserId) !== String(id)) {
+        return res.status(403).json({ error: "Forbidden: You can only update your own profile image." });
+    }
+    if (image !== undefined && typeof image !== "string") {
+        return res.status(400).json({ error: "Image must be a string." });
+    }
+    try {
+        const updated = userModel.setUserImage(id, image ? image.trim() : '');
+        return res.status(200).json({
+            id: updated.id,
+            username: updated.username,
+            name: updated.name,
+            image: updated.image,
+        });
+    } catch (err) {
+        if (err.message === "User not found.") {
+            return res.status(404).json({ error: err.message });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
+}
+
 function createUser(req, res) {
     const { username, password, name, image } = req.body || {};
 
@@ -58,4 +85,4 @@ function getUserId(req, res) {
 
   return res.status(200).json({ username, userId: id });
 }
-module.exports = { createUser, getUserById, getUserId };
+module.exports = { createUser, getUserById, getUserId, patchUserImage };

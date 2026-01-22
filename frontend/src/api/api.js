@@ -94,3 +94,6 @@ export async function searchFiles(query) {
     }
     return apiRequest(`/api/search/${q}`, "GET", undefined, {}, true);
 }
+export async function updateUserImage(userId, image) {
+    return apiRequest(`/api/users/${userId}`, "PATCH", { image }, {}, true);
+}

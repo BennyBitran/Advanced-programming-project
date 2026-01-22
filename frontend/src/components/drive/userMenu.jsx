@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import UserAvatarButton from "./userAvatar";
 import UserDropdown from "./userDropDown";
 import UserPhotoModal from "./userProfileModal";
-
+import { updateUserImage } from "../../api/api.js";
+ 
 export default function UserMenu() {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
@@ -68,30 +69,37 @@ export default function UserMenu() {
   }
 
   function onAvatarFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    (async () => {
       const dataUrl = String(reader.result || "");
       const uid = getUserId();
+      if (!uid) return;
 
-      setAvatarUrl(dataUrl);
+      try {
+        // 1) persist to backend
+        await updateUserImage(uid, dataUrl);
 
-      // current tab
-      sessionStorage.setItem("avatarUrl", dataUrl);
-
-      // persist per-user across tab close
-      if (uid) {
+        // 2) update UI + storage
+        setAvatarUrl(dataUrl);
+        sessionStorage.setItem("avatarUrl", dataUrl);
         localStorage.setItem(getAvatarKey(uid), dataUrl);
+
+        setOpen(false);
+      } catch (err) {
+        // optional: show an alert; or just silently fail
+        console.error(err);
       }
+    })();
+  };
+  reader.readAsDataURL(file);
 
-      setOpen(false);
-    };
-    reader.readAsDataURL(file);
+  e.target.value = "";
+}
 
-    e.target.value = "";
-  }
 
   function onLogout() {
     sessionStorage.removeItem("token");
@@ -108,12 +116,25 @@ export default function UserMenu() {
   }
 
   function onRemovePhoto() {
+  (async () => {
     const uid = getUserId();
-    if (uid) localStorage.removeItem(getAvatarKey(uid));
-    sessionStorage.removeItem("avatarUrl");
-    setAvatarUrl("");
-    setOpen(false);
-  }
+    if (!uid) return;
+
+    try {
+      // 1) persist removal to backend
+      await updateUserImage(uid, "");
+
+      // 2) update UI + storage
+      localStorage.removeItem(getAvatarKey(uid));
+      sessionStorage.removeItem("avatarUrl");
+      setAvatarUrl("");
+      setOpen(false);
+    } catch (err) {
+      console.error(err);
+    }
+  })();
+}
+
 
   return (
     <div className="gd-user-menu" ref={wrapperRef}>
