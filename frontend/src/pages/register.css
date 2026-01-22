@@ -75,3 +75,23 @@
 .gd-btn-dev {
   margin-top: 10px;
 }
+.gd-image-preview {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gd-image-preview img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+
+.gd-btn-small {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+

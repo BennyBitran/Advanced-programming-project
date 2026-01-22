@@ -32,6 +32,7 @@ export default function LoginPage() {
 
   const saveAuth = (data) => {
     const token = data?.token ?? "";
+    const userId = data?.userId ?? "";
     if (token) {
       sessionStorage.setItem("token", token);
     }
@@ -44,6 +45,11 @@ export default function LoginPage() {
     if (data?.image) {
       sessionStorage.setItem("avatarUrl", data.image);
     }
+    if (userId && data?.image) {
+      localStorage.setItem(`avatarUrl:${userId}`, data.image);
+    }
+    
+    
   };
   
   // Check if redirected from registration, if so, show success message and pre-fill username
