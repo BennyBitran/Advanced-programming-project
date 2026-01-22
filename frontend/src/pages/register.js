@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {registerUser} from "../api/api.js";
 import { Link, useNavigate } from "react-router-dom";
 import "./register.css";
@@ -9,6 +9,8 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");   
   const [name, setName] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef(null);
   const [image, setImage] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -63,6 +65,46 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
+
+  function handleImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setImage("");
+      setImagePreview("");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
+      e.target.value = "";
+      setImage("");
+      setImagePreview("");
+      return;
+    }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || "");
+        setImage(dataUrl);
+        setImagePreview(dataUrl);
+        setError("");
+      };
+      reader.onerror = () => {
+        setError("Failed to read image file");
+        setImage("");
+        setImagePreview("");
+      };
+      reader.readAsDataURL(file);
+  }
+  function handleClearImage() {
+  setImage("");
+  setImagePreview("");
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+}
+
+
+
   // Render the registration form
   return (
   <div className="gd-auth-bg">
@@ -90,9 +132,27 @@ export default function RegisterPage() {
         </div>
 
         <div className="mb-3">
-          <label className="form-label">Image</label>
-          <input className="form-control gd-input" value={image}
-                 onChange={(e) => setImage(e.target.value)} />
+         <label className="form-label">Profile image</label>
+<input
+  ref={fileInputRef}
+  type="file"
+  accept="image/*"
+  className="form-control gd-input"
+  onChange={handleImageChange}
+/>
+{imagePreview && (
+  <div className="gd-image-preview">
+    <img src={imagePreview} alt="Selected profile" />
+    <button
+      className="btn btn-outline-secondary gd-btn gd-btn-small"
+      type="button"
+      onClick={handleClearImage}
+    >
+      Remove
+    </button>
+  </div>
+)}
+
         </div>
 
         <div className="mb-3">

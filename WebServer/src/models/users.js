@@ -38,10 +38,19 @@ function getUserId(username) {
   const user = users.find(u => u.username === username);
   return user?.id;
 }
+function setUserImage(userId, image) {
+    const user = getUserById(userId);
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    user.image = image;
+    return user;
+}
 
 module.exports = {
     createUser,
     getUserById,
     findUserByCredentials,
     getUserId,
+    setUserImage,
 };
