@@ -122,6 +122,16 @@ export default function DrivePage() {
   const buildListFilters = () => {
     if (activeNav === "trash") return { view: "trash" };
 
+     if (activeNav === "computers") {
+    setIsLoading(false);
+    setError("");
+    setFiles([]);
+    resetSelectionAndPreview();
+    setCurrentFolderId(null);
+    setBreadcrumbs([]);
+    return;
+  }
+
     if (activeNav === "shared") {
       if (!currentFolderId) return { view: "shared" };
       return { parentId: currentFolderId };
@@ -755,7 +765,19 @@ export default function DrivePage() {
 
           {uploadStatus && <div className="gd-status">{uploadStatus}</div>}
           {uploadError && <div className="gd-error">{uploadError}</div>}
-
+          
+          {tableNavMode === "computers" ? (
+  <div className="gd-empty" style={{ padding: "24px" }}>
+    <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
+     No synced computers yet
+    </div>
+    <div style={{ fontSize: 14, color: "var(--gd-muted)" }}>
+      To sync files from your computer, please download and install the Drive desktop application.
+      <br />
+      maybe we will support it next time :)
+    </div>
+  </div>
+) : (
           <FileTable
             files={displayFiles}
             onTrash={handleTrash}
@@ -773,6 +795,7 @@ export default function DrivePage() {
             onShare={handleOpenShare}
             onOpenMoveModal={handleOpenMoveModal}
           />
+)}
         </main>
         {isDetailsOpen && (
           <DetailsPanel
