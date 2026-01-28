@@ -1,0 +1,13 @@
+import { SafeAreaView, Text, Button, View } from "react-native";
+
+export default function HomeScreen({ onGoLogin }) {
+  return (
+    <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Text style={{ fontSize: 24 }}>Home Screen</Text>
+
+      <View style={{ height: 12 }} />
+
+      <Button title="Go to Login" onPress={onGoLogin} />
+    </SafeAreaView>
+  );
+}
