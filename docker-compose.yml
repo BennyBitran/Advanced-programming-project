@@ -63,6 +63,8 @@ services:
       - PORT=3000
       - BACKEND_HOST=server
       - BACKEND_PORT=8080
+      - MONGO_URI=mongodb://mongodb:27017/drive
+
     depends_on:
       - server
 
@@ -79,3 +81,12 @@ services:
       - HOST=0.0.0.0
     depends_on:
       - webserver
+
+  # MONGODB SERVICE
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+volumes:
+  mongo_data: {}
