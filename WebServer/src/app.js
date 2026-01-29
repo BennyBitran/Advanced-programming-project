@@ -1,4 +1,14 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/myapp";
+
+mongoose.connect(mongoURI)
+.then(() => {
+    console.log("Connected to MongoDB");
+})
+.catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+});
 
 const usersRoutes = require("./routes/users");
 const tokensRoutes = require("./routes/tokens");
