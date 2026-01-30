@@ -30,7 +30,7 @@ services:
   # C++ CLIENT
   client_cpp:
     build:
-      context: ./client
+      context: ./Client
       dockerfile: Dockerfile
     container_name: cpp_client_runner
     network_mode: service:server
@@ -67,6 +67,7 @@ services:
 
     depends_on:
       - server
+      - mongodb
 
   # FRONTEND (React)
   frontend:
